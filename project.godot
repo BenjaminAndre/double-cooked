@@ -11,8 +11,18 @@ config_version=5
 [application]
 
 config/name="double-cooked"
+run/main_scene="uid://82vklfxd2cp7"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Client="*res://experiments/tube_client.tscn"
+Signals="*res://globals/Signals.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/tube/plugin.cfg")
 
 [rendering]
 

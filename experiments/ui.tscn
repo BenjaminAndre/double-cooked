@@ -1,0 +1,78 @@
+[gd_scene load_steps=2 format=3 uid="uid://c3rs0k6y8qxi4"]
+
+[ext_resource type="Script" uid="uid://bk0aff3vsc4tc" path="res://experiments/ui.gd" id="1_5xrvf"]
+
+[node name="UI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_5xrvf")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_right = 40.0
+grow_vertical = 0
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/PanelContainer2"]
+layout_mode = 2
+
+[node name="Button" type="Label" parent="VBoxContainer/PanelContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Create room"
+horizontal_alignment = 1
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/PanelContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/PanelContainer2/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+text = "Your room ID : "
+
+[node name="RichTextLabel" type="RichTextLabel" parent="VBoxContainer/PanelContainer2/VBoxContainer/HSplitContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Button2" type="Button" parent="VBoxContainer/PanelContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Generate"
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/PanelContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Enter a room"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Friends room ID :"
+
+[node name="Line" type="LineEdit" parent="VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Join"
+
+[connection signal="pressed" from="VBoxContainer/PanelContainer2/VBoxContainer/Button2" to="." method="_on_generated_pressed"]
+[connection signal="pressed" from="VBoxContainer/PanelContainer/VBoxContainer/Button" to="." method="_on_join_pressed"]
