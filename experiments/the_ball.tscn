@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://dn8tt3psofco2"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_yuaii"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_yuaii"]
+radius = 0.25
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_c46vg"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:linear_velocity")
+properties/1/spawn = false
+properties/1/replication_mode = 1
+
+[node name="RigidBody3D" type="RigidBody3D"]
+mass = 0.1
+physics_material_override = SubResource("PhysicsMaterial_yuaii")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_yuaii")
+
+[node name="CSGSphere3D" type="CSGSphere3D" parent="."]
+radius = 0.25
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_interval = 0.2
+replication_config = SubResource("SceneReplicationConfig_c46vg")

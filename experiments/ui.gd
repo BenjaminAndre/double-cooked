@@ -12,14 +12,10 @@ extends Control
 func _on_generated_pressed() -> void:
     client.leave_session()
     client.create_session()
-    Signals.server_created.emit(client.session_id)
+    Signals.server_created.emit(str(1))
     generated_code.text = client.session_id
 
 func _on_join_pressed() -> void:
     if client.session_id != "":
         client.leave_session()
-    
     client.join_session(input_field.text)
-
-func _on_peer_connected(id: int) -> void:
-    print('Peer connected: %d' % id)

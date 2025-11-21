@@ -4,12 +4,11 @@ extends CharacterBody3D
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
 
-func _enter_tree() -> void:
+func _ready() -> void:
     set_multiplayer_authority(name.to_int())
-
+    get_node("./Label3D").text = "Player %s" % name
 
 func _physics_process(delta: float) -> void:
-
     # Add the gravity.
     if not is_on_floor():
         velocity += get_gravity() * delta

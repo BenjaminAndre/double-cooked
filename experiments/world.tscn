@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://82vklfxd2cp7"]
+[gd_scene load_steps=16 format=3 uid="uid://82vklfxd2cp7"]
 
 [ext_resource type="Script" uid="uid://c81lg7ab1ljey" path="res://experiments/world_manager.gd" id="1_ypt6p"]
 [ext_resource type="PackedScene" uid="uid://bquf0m3p4ysho" path="res://assets/kenney_prototype-kit/Models/GLB format/floor-square.glb" id="2_kl7cv"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://v7dith77bidt" path="res://experiments/player.tscn" id="5_yuaii"]
 [ext_resource type="Script" uid="uid://7p6h1o6kfmhl" path="res://experiments/multiplayer_spawner.gd" id="6_5mf7h"]
 [ext_resource type="PackedScene" uid="uid://c3rs0k6y8qxi4" path="res://experiments/ui.tscn" id="6_tylm7"]
+[ext_resource type="Script" uid="uid://e18xm510j8wl" path="res://experiments/multiplayer_spawner_2.gd" id="8_tylm7"]
+[ext_resource type="PackedScene" uid="uid://dn8tt3psofco2" path="res://experiments/the_ball.tscn" id="9_lxaht"]
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_1r1gk"]
 
@@ -25,13 +27,6 @@ size = Vector3(4.088623, 1.5457764, 0.37277222)
 [sub_resource type="Environment" id="Environment_kl7cv"]
 ambient_light_source = 2
 ambient_light_color = Color(0.16717109, 0.1393734, 0.12084158, 1)
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_yuaii"]
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_yuaii"]
-radius = 0.25
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_c46vg"]
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_ypt6p")
@@ -128,24 +123,20 @@ transform = Transform3D(1, 0, 0, 0, 0.5546411, 0.83208966, 0, -0.83208966, 0.554
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_kl7cv")
 
-[node name="RigidBody3D" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2932771, 0.7569995)
-mass = 0.1
-physics_material_override = SubResource("PhysicsMaterial_yuaii")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
-shape = SubResource("SphereShape3D_yuaii")
-
-[node name="CSGSphere3D" type="CSGSphere3D" parent="RigidBody3D"]
-radius = 0.25
-
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="RigidBody3D"]
-replication_config = SubResource("SceneReplicationConfig_c46vg")
+[node name="Players" type="Node3D" parent="."]
 
 [node name="UI" parent="." instance=ExtResource("6_tylm7")]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("uid://v7dith77bidt")
-spawn_path = NodePath("..")
+_spawnable_scenes = PackedStringArray("uid://v7dith77bidt", "uid://dn8tt3psofco2")
+spawn_path = NodePath("../Players")
+spawn_limit = 4
 script = ExtResource("6_5mf7h")
 player_scene = ExtResource("5_yuaii")
+
+[node name="MultiplayerSpawner2" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://dn8tt3psofco2")
+spawn_path = NodePath("..")
+spawn_limit = 1
+script = ExtResource("8_tylm7")
+the_ball = ExtResource("9_lxaht")
