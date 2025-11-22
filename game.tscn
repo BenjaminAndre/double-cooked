@@ -1,0 +1,388 @@
+[gd_scene load_steps=15 format=3 uid="uid://bolij82abbnan"]
+
+[ext_resource type="PackedScene" uid="uid://b2ngr5721d878" path="res://gameplay/anchor.tscn" id="1_80nbo"]
+[ext_resource type="PackedScene" uid="uid://0tj5r2gkkage" path="res://assets/kenney_prototype-kit/Models/GLB format/floor-small-square.glb" id="1_e2o6t"]
+[ext_resource type="PackedScene" uid="uid://dabulh3sf8ldc" path="res://gameplay/player.tscn" id="3_feb5d"]
+[ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
+[ext_resource type="Script" uid="uid://chjroa20q6yy3" path="res://gameplay/interactions/heal.gd" id="5_ryrav"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_feb5d"]
+albedo_color = Color(0.9502734, 0.98, 0.08819997, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fc0e3"]
+albedo_color = Color(0.058800004, 0.61152, 0.98, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7jktm"]
+albedo_color = Color(0.8085919, 0.63157827, 0.29977944, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ryrav"]
+albedo_color = Color(0.98, 0.058800004, 0.0741531, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eow3j"]
+albedo_color = Color(0.92634994, 0.44619998, 0.97, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j5wjh"]
+albedo_color = Color(0.97, 0.97, 0.97, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vef74"]
+albedo_color = Color(0.45, 0.27, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hve3p"]
+albedo_color = Color(0.47, 0.47, 0.47, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mfdv2"]
+albedo_color = Color(0.97, 0.058200005, 0.058200005, 1)
+
+[node name="Game" type="Node3D"]
+
+[node name="DemoLevel" type="Node3D" parent="."]
+
+[node name="Ground" type="Node3D" parent="DemoLevel"]
+
+[node name="floor-small-square2" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+
+[node name="floor-small-square3" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="floor-small-square4" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+
+[node name="floor-small-square5" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+
+[node name="floor-small-square6" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+
+[node name="floor-small-square7" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+
+[node name="floor-small-square8" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="floor-small-square9" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
+
+[node name="floor-small-square10" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+
+[node name="floor-small-square11" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -1)
+
+[node name="floor-small-square12" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -1)
+
+[node name="floor-small-square13" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -1)
+
+[node name="floor-small-square14" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+
+[node name="floor-small-square15" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -1)
+
+[node name="floor-small-square16" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="floor-small-square17" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -2)
+
+[node name="floor-small-square18" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -2)
+
+[node name="floor-small-square19" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -2)
+
+[node name="floor-small-square20" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -2)
+
+[node name="floor-small-square21" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -2)
+
+[node name="floor-small-square22" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
+
+[node name="floor-small-square23" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33401155, 0, 1)
+
+[node name="floor-small-square24" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
+
+[node name="floor-small-square25" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1)
+
+[node name="floor-small-square26" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1)
+
+[node name="floor-small-square27" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 1)
+
+[node name="floor-small-square28" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 1)
+
+[node name="floor-small-square29" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 1)
+
+[node name="Anchors" type="Node3D" parent="DemoLevel"]
+
+[node name="Anchor" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+down = NodePath("../Anchor8")
+right = NodePath("../Anchor2")
+interactible = NodePath("../../../Interactibles/Drink")
+
+[node name="Anchor2" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+down = NodePath("../Anchor9")
+left = NodePath("../Anchor")
+right = NodePath("../Anchor3")
+interactible = NodePath("../../../Interactibles/Fries")
+
+[node name="Anchor3" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+down = NodePath("../Anchor15")
+left = NodePath("../Anchor2")
+right = NodePath("../Anchor4")
+interactible = NodePath("../../../Interactibles/Fries")
+
+[node name="Anchor4" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+down = NodePath("../Anchor11")
+left = NodePath("../Anchor3")
+right = NodePath("../Anchor5")
+interactible = NodePath("../../../Interactibles/Fries2")
+
+[node name="Anchor5" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+down = NodePath("../Anchor12")
+left = NodePath("../Anchor4")
+right = NodePath("../Anchor6")
+interactible = NodePath("../../../Interactibles/Fries3")
+
+[node name="Anchor6" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+down = NodePath("../Anchor13")
+left = NodePath("../Anchor5")
+right = NodePath("../Anchor7")
+interactible = NodePath("../../../Interactibles/Bread")
+
+[node name="Anchor7" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+down = NodePath("../Anchor14")
+left = NodePath("../Anchor6")
+interactible = NodePath("../../../Interactibles/Heal")
+
+[node name="Anchor8" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -1)
+up = NodePath("../Anchor")
+right = NodePath("../Anchor9")
+interactible = NodePath("../../../Interactibles/Extinguisher")
+
+[node name="Anchor9" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
+up = NodePath("../Anchor2")
+left = NodePath("../Anchor8")
+right = NodePath("../Anchor15")
+interactible = NodePath("../../../Interactibles/Sauces")
+
+[node name="Anchor15" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "down", "left", "right") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.71741843)
+up = NodePath("../Anchor3")
+down = NodePath("../Anchor10")
+left = NodePath("../Anchor9")
+right = NodePath("../Anchor11")
+
+[node name="Anchor10" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.4953413)
+up = NodePath("../Anchor15")
+left = NodePath("../Anchor9")
+right = NodePath("../Anchor11")
+interactible = NodePath("../../../Interactibles/Register")
+
+[node name="Anchor11" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+up = NodePath("../Anchor4")
+left = NodePath("../Anchor15")
+right = NodePath("../Anchor12")
+interactible = NodePath("../../../Interactibles/Meats")
+
+[node name="Anchor12" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -1)
+up = NodePath("../Anchor5")
+left = NodePath("../Anchor11")
+right = NodePath("../Anchor13")
+interactible = NodePath("../../../Interactibles/Meats")
+
+[node name="Anchor13" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -1)
+up = NodePath("../Anchor6")
+left = NodePath("../Anchor12")
+right = NodePath("../Anchor14")
+interactible = NodePath("../../../Interactibles/Meats")
+
+[node name="Anchor14" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "interactible") instance=ExtResource("1_80nbo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -1)
+up = NodePath("../Anchor7")
+left = NodePath("../Anchor13")
+interactible = NodePath("../../../Interactibles/Bin")
+
+[node name="Player" parent="DemoLevel" node_paths=PackedStringArray("spawn") instance=ExtResource("3_feb5d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.84076595)
+spawn = NodePath("../Anchors/Anchor")
+
+[node name="Camera3D" type="Camera3D" parent="DemoLevel"]
+transform = Transform3D(-0.963453, -0.22027381, 0.15243961, 7.188714e-08, 0.56906426, 0.82229304, -0.26787755, 0.79224074, -0.54826665, 0.20805016, 2.1942425, -2.2725782)
+fov = 92.279335
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="DemoLevel"]
+transform = Transform3D(-0.09827772, -0.3643391, 0.9260662, 1.2006495e-08, 0.93057114, 0.3661115, -0.99515915, 0.035980582, -0.09145439, 2.1483388, 2.7698739, 0)
+
+[node name="Interactibles" type="Node3D" parent="."]
+
+[node name="Fries" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.66839194, 0, 0.5801511)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Fries"]
+transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, -0.11551124, 0.52303195, -0.098175645)
+text = "FRITES
+CUISSON 1"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Fries"]
+transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, -0.1695633, 0, 0)
+size = Vector3(1.79039, 1, 0.7739258)
+material = SubResource("StandardMaterial3D_feb5d")
+
+[node name="Drink" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.372872, 0, 0.5801511)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Drink"]
+transform = Transform3D(-1, 1.7329114e-08, -8.5688065e-08, 1.2681909e-08, 0.9985443, 0.053939506, 8.649805e-08, 0.053939506, -0.9985443, 0.36407614, 1.2100189, -0.257344)
+text = "BOISSONS"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Drink"]
+transform = Transform3D(1, 0, 0, 0, 0.96749324, -0.25289688, 0, 0.25289688, 0.96749324, 0.38650846, 0.4960327, -0.002796173)
+size = Vector3(0.74346924, 1.9920654, 0.7739258)
+material = SubResource("StandardMaterial3D_fc0e3")
+
+[node name="Bread" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4986424, 0, 0.5801511)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Bread"]
+transform = Transform3D(-0.9131144, -0.3610878, 0.18930826, -0.039286602, 0.5400958, 0.84068614, -0.4058061, 0.7602054, -0.5073552, -0.38122487, 0.41442204, -0.010837793)
+text = "PAIN
+"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Bread"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4236374, 0.10987091, 0)
+size = Vector3(0.8018341, 0.5272064, 0.7739258)
+material = SubResource("StandardMaterial3D_7jktm")
+
+[node name="Extinguisher" type="Node3D" parent="Interactibles"]
+transform = Transform3D(0.8897353, 0, -0.45647687, 0, 1, 0, 0.45647687, 0, 0.8897353, 1.0060419, 0, -2.805657)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Extinguisher"]
+transform = Transform3D(-1, 0, -8.568168e-08, -8.649804e-08, -0.05393955, 0.9985443, 0, 0.9985443, 0.05393955, 1.2892606, 0.437598, 0.67829776)
+text = "EXTINCTEUR"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Extinguisher"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4138843, -0.15390754, 0.70157635)
+size = Vector3(1.101172, 0.84906006, 0.47094727)
+material = SubResource("StandardMaterial3D_ryrav")
+
+[node name="Sauces" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.73599255, 0, -1.6443329)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Sauces"]
+transform = Transform3D(-1, 1.7329114e-08, -8.568806e-08, -8.649804e-08, -0.05393955, 0.9985443, 1.2681899e-08, 0.9985443, 0.05393955, 0.14437556, 0.2882023, -0.06453431)
+text = "SAUCES"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Sauces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15841675, -0.12600708, -0.052978516)
+size = Vector3(1.22052, 0.74798584, 0.5239258)
+material = SubResource("StandardMaterial3D_eow3j")
+
+[node name="Register" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072876215, 0, -1.9977882)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Register"]
+transform = Transform3D(-0.98660064, -0.16291624, -0.008800526, -8.649803e-08, -0.05393955, 0.9985443, -0.16315375, 0.9851644, 0.05321678, 0.060202837, 0.19973135, 0.041853666)
+text = "CAISSE
+"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Register"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.011310577, -0.15974426, 0.021606445)
+size = Vector3(0.96152496, 0.6805115, 0.37475586)
+material = SubResource("StandardMaterial3D_j5wjh")
+
+[node name="Meats" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0482602, 0, -1.6349995)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Meats"]
+transform = Transform3D(-0.921633, -0.38749763, -0.020931998, -8.649803e-08, -0.05393955, 0.9985443, -0.38806257, 0.92029136, 0.049712438, 0.07285869, 0.2882023, -0.08870709)
+text = "VIANDES"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Meats"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.025615692, -0.12600708, -0.1088562)
+size = Vector3(2.8847427, 0.74798584, 0.79766846)
+material = SubResource("StandardMaterial3D_vef74")
+
+[node name="Bin" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0125074, 0, -1.6443329)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Bin"]
+transform = Transform3D(-0.74597603, -0.66500336, -0.035922337, -8.649803e-08, -0.05393955, 0.9985443, -0.6659728, 0.7448901, 0.040237557, 0.04938531, 0.2882023, -0.06453431)
+text = "POUBELLE"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Bin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.05946541, -0.12600708, -0.087524414)
+size = Vector3(0.6450691, 0.74798584, 0.5930176)
+material = SubResource("StandardMaterial3D_hve3p")
+
+[node name="Heal" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.9761887, 0, 0.6658423)
+script = ExtResource("5_ryrav")
+
+[node name="Label" type="Label3D" parent="Interactibles/Heal"]
+transform = Transform3D(-0.7792505, -0.25220633, 0.5737252, -1.8619247e-08, 0.91545194, 0.40242738, -0.62671256, 0.31359172, -0.7133664, 0.24084044, 0.5658014, -0.48371708)
+text = "SOINS"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Heal"]
+transform = Transform3D(1, 0, 0, 0, 0.9999362, -0.01129204, 0, 0.01129204, 0.9999362, 0.004966736, 0.17616335, -0.051738203)
+size = Vector3(0.7309723, 1.3523407, 0.5239258)
+material = SubResource("StandardMaterial3D_mfdv2")
+
+[node name="Fries2" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0447927, 0, 0.5801511)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Fries2"]
+transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, 0.18142605, 0.52303207, -0.0779618)
+text = "FRITES
+CUISSON 2
+VIANDES"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Fries2"]
+transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, 0.09451866, 0, 0)
+size = Vector3(1.1629295, 1, 0.7739258)
+material = SubResource("StandardMaterial3D_feb5d")
+
+[node name="Fries3" type="Node3D" parent="Interactibles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9696004, 0, 0.5801511)
+script = ExtResource("4_7jktm")
+
+[node name="Label" type="Label3D" parent="Interactibles/Fries3"]
+transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, -0.11551124, 0.52303195, -0.098175645)
+text = "FRITES
+CUISSON 2
+VIANDES"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Fries3"]
+transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, -0.06712246, 0, 0)
+size = Vector3(1.0434093, 1, 0.7739258)
+material = SubResource("StandardMaterial3D_feb5d")

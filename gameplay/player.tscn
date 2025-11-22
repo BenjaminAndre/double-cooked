@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3 uid="uid://dabulh3sf8ldc"]
+
+[ext_resource type="PackedScene" uid="uid://q4oeoairq7t2" path="res://assets/kenney_prototype-kit/Models/GLB format/figurine.glb" id="1_8pc20"]
+[ext_resource type="Script" uid="uid://1ohc6nui7y0i" path="res://gameplay/player.gd" id="1_ysoui"]
+[ext_resource type="PackedScene" uid="uid://kqr7kbxilrw2" path="res://assets/kenney_prototype-kit/Models/GLB format/hat-cap.glb" id="2_ysoui"]
+[ext_resource type="Script" uid="uid://bd2g8fgw1310o" path="res://gameplay/player_ui.gd" id="4_wfdkp"]
+[ext_resource type="Texture2D" uid="uid://dh8n6uf6m35sw" path="res://res/heart.png" id="5_dxbr5"]
+
+[node name="Player" type="Node3D"]
+script = ExtResource("1_ysoui")
+
+[node name="PlayerModel" type="Node3D" parent="."]
+
+[node name="figurine2" parent="PlayerModel" instance=ExtResource("1_8pc20")]
+
+[node name="hat-cap2" parent="PlayerModel" instance=ExtResource("2_ysoui")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0.3332639, 0.9428336, -1.4567428e-08, 0.9428336, -0.3332639, -4.1212566e-08, 0, 0.619, -0.023)
+
+[node name="PlayerUI" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("4_wfdkp")
+player = NodePath("..")
+
+[node name="Heart1" type="Sprite3D" parent="PlayerUI"]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.0616838, 0)
+billboard = 1
+texture = ExtResource("5_dxbr5")
+
+[node name="Heart2" type="Sprite3D" parent="PlayerUI"]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.0616838, 0)
+billboard = 1
+texture = ExtResource("5_dxbr5")
+
+[node name="Heart3" type="Sprite3D" parent="PlayerUI"]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.0616838, 0)
+billboard = 1
+texture = ExtResource("5_dxbr5")
+
+[node name="Pseudo" type="Label3D" parent="PlayerUI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8307141, 0)
+billboard = 1
+text = "DEMOTEXT"

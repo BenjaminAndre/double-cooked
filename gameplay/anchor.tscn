@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b2ngr5721d878"]
+
+[ext_resource type="Script" uid="uid://11880q0y2koe" path="res://gameplay/anchor.gd" id="1_tillw"]
+
+[node name="Anchor" type="Node3D"]
+script = ExtResource("1_tillw")
