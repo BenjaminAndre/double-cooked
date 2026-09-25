@@ -243,8 +243,7 @@ kind = &"cuisson_1"
 
 [node name="Label" type="Label3D" parent="Interactibles/Fries"]
 transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, -0.11551124, 0.52303195, -0.098175645)
-text = "FRITES
-CUISSON 1"
+text = "CUISSON 1"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Fries"]
 transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, -0.1695633, 0, 0)
@@ -254,11 +253,11 @@ material = SubResource("StandardMaterial3D_feb5d")
 [node name="Drink" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.372872, 0, 0.5801511)
 script = ExtResource("4_7jktm")
-kind = &"boissons"
+kind = &"frigo"
 
 [node name="Label" type="Label3D" parent="Interactibles/Drink"]
 transform = Transform3D(-1, 1.7329114e-08, -8.5688065e-08, 1.2681909e-08, 0.9985443, 0.053939506, 8.649805e-08, 0.053939506, -0.9985443, 0.36407614, 1.2100189, -0.257344)
-text = "BOISSONS"
+text = "FRIGO"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Drink"]
 transform = Transform3D(1, 0, 0, 0, 0.96749324, -0.25289688, 0, 0.25289688, 0.96749324, 0.38650846, 0.4960327, -0.002796173)
@@ -372,9 +371,7 @@ kind = &"cuisson_2"
 
 [node name="Label" type="Label3D" parent="Interactibles/Fries2"]
 transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, 0.18142605, 0.52303207, -0.0779618)
-text = "FRITES
-CUISSON 2
-VIANDES"
+text = "CUISSON 2"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Fries2"]
 transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, 0.09451866, 0, 0)
@@ -388,9 +385,7 @@ kind = &"cuisson_2"
 
 [node name="Label" type="Label3D" parent="Interactibles/Fries3"]
 transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, -0.11551124, 0.52303195, -0.098175645)
-text = "FRITES
-CUISSON 2
-VIANDES"
+text = "CUISSON 2"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Fries3"]
 transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, -0.06712246, 0, 0)

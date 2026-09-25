@@ -88,12 +88,14 @@ func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
             .at(put_in, 0, C.INTERACT) \
             .at(done, 0, C.INTERACT) \
             .at(done + 1, 0, C.MOVE_DOWN).at(done + 1, 0, C.MOVE_LEFT).at(done + 1, 0, C.MOVE_LEFT) \
-            .at(done + 30, 0, C.INTERACT) \
-            .at(done + 31, 0, C.MOVE_RIGHT).at(done + 31, 0, C.MOVE_DOWN) \
+            .at(done + 30, 0, C.INTERACT).at(done + 31, 0, C.INTERACT) \
+            .at(done + 32, 0, C.MOVE_RIGHT).at(done + 32, 0, C.MOVE_DOWN) \
             .at(done + 60, 0, C.INTERACT)
     var sim := scenario.run_until(done + 1)
     assert_eq(level.station_kind_at(sim.players[0].node), &"cuisson_2")
     assert_eq(sim.players[0].focused_item().kind, Fryer.FRIES_GOOD)
+    # Orders are random; this customer wants what the script makes (SAUCES' first option).
+    sim.crowd.front().order = [&"frites:mayo"] as Array[StringName]
     sim = scenario.run_until(done + 61)
     assert_eq(level.station_kind_at(sim.players[0].node), &"caisse")
     assert_null(sim.players[0].focused_item(), "handed over")

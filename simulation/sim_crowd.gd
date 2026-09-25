@@ -4,13 +4,11 @@ extends RefCounted
 
 enum Level { CALME, TENDU, CHAUD, EMEUTE }
 
-## What customers order in the first slice: fries with mayo, of any quality.
-const FRITES_MAYO := &"frites_mayo"
 
 class Customer:
     ## Unique within a night, so the display can follow each customer.
     var id: int
-    ## Dishes still to hand over, one or two at most.
+    ## Order lines still to hand over (see Menu.order_key), one to three.
     var order: Array[StringName] = []
     var patience: int
 
@@ -64,11 +62,11 @@ func serve(item: SimItem, events: Array[Dictionary]) -> bool:
     var customer := front()
     if not customer or not item:
         return false
-    var dish := dish_of(item)
+    var dish := Menu.order_key(item)
     if not dish in customer.order:
         return false
     customer.order.erase(dish)
-    var good := item.kind == Fryer.FRIES_GOOD
+    var good := Menu.done_right(item)
     change_mood(rules.mood_good_item if good else rules.mood_bad_item)
     events.append({"type": &"served", "good": good})
     if customer.order.is_empty():
@@ -80,10 +78,6 @@ func serve(item: SimItem, events: Array[Dictionary]) -> bool:
 func change_mood(amount: int) -> void:
     mood = clampi(mood + amount, 0, rules.riot)
 
-
-## The dish an item counts as, &"" when it isn't one.
-static func dish_of(item: SimItem) -> StringName:
-    return FRITES_MAYO if item.kind in Fryer.FINISHED and item.sauce else &""
 
 
 func fingerprint() -> Array:
@@ -98,9 +92,7 @@ func _new_customer(rng: RandomNumberGenerator) -> Customer:
     customer.id = _next_id
     _next_id += 1
     customer.patience = rules.patience
-    customer.order.append(FRITES_MAYO)
-    if rng.randf() < rules.two_items_chance:
-        customer.order.append(FRITES_MAYO)
+    customer.order = Menu.random_order(rng, rules.order_sizes)
     return customer
 
 

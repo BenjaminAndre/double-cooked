@@ -111,7 +111,7 @@ func test_a_knocked_out_player_can_only_use_soins() -> void:
     sim.players[0].hands[0] = SimItem.new(Fryer.FRIES_GOOD)
     sim.players[0].health = 1
     scenario.at(1, 0, DAMAGE).at(2, 0, INTERACT).run_until(3)
-    assert_false(sim.players[0].hands[0].sauce, "no sauce while knocked out")
+    assert_eq(sim.players[0].hands[0].sauce, &"", "no sauce while knocked out")
     scenario.at(3, 0, RIGHT).at(3 + rules.crawl_ticks + 1, 0, INTERACT).run_until(rules.crawl_ticks + 6)
     assert_false(sim.players[0].down, "SOINS gets them back up")
     assert_eq(sim.players[0].health, SimPlayer.MAX_HEALTH)

@@ -9,7 +9,8 @@ const TICK_RATE := 30
 const WALK_SPEED := 10.0
 
 ## What a player can do in one tick. The move values match SimLevel.Direction.
-enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, FOCUS_LEFT, FOCUS_RIGHT, INTERACT, DEBUG_DAMAGE }
+## New commands go at the end, so saved replays keep their meaning.
+enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, FOCUS_LEFT, FOCUS_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL }
 
 const EXTINGUISHER := &"extincteur"
 
@@ -71,6 +72,8 @@ func step(commands: Array) -> void:
     for station in stations:
         Fryer.advance(station)
     _advance_fires()
+    for player in players:
+        _check_menu(player)
     crowd.advance(tick, players.size(), rng, events)
     tick += 1
     _count(events)
@@ -96,6 +99,8 @@ func state_hash() -> int:
 
 
 func _apply(player: SimPlayer, command: int) -> void:
+    if player.menu != SimLevel.NONE and _use_menu(player, command):
+        return
     match command:
         Command.MOVE_UP, Command.MOVE_DOWN, Command.MOVE_LEFT, Command.MOVE_RIGHT:
             _queue_move(player, command)
@@ -107,6 +112,43 @@ func _apply(player: SimPlayer, command: int) -> void:
             _interact(player)
         Command.DEBUG_DAMAGE:
             _hurt(player)
+
+
+## While a station menu is open, the arrows move the selection instead of the player,
+## interact takes the selected option and cancel closes the menu (GDD §5.4).
+## Returns whether the command was used by the menu.
+func _use_menu(player: SimPlayer, command: int) -> bool:
+    var options: Array = Menu.STATION_OPTIONS[stations[player.menu].kind]
+    match command:
+        Command.MOVE_UP, Command.MOVE_LEFT:
+            player.menu_choice = posmod(player.menu_choice - 1, options.size())
+        Command.MOVE_DOWN, Command.MOVE_RIGHT:
+            player.menu_choice = posmod(player.menu_choice + 1, options.size())
+        Command.INTERACT:
+            var station := stations[player.menu]
+            var option: StringName = options[player.menu_choice]
+            player.menu = SimLevel.NONE
+            if _menu_action(station, player) == &"":
+                return true
+            match station.kind:
+                &"sauces":
+                    player.focused_item().sauce = option
+                &"frigo", &"viandes":
+                    player.set_focused_item(SimItem.new(option))
+        Command.CANCEL:
+            player.menu = SimLevel.NONE
+        _:
+            return false
+    return true
+
+
+## A menu closes if its player falls, moves away or the station catches fire.
+func _check_menu(player: SimPlayer) -> void:
+    if player.menu == SimLevel.NONE:
+        return
+    if player.down or player.is_moving() or level.node_stations[player.node] != player.menu \
+            or stations[player.menu].burning:
+        player.menu = SimLevel.NONE
 
 
 ## Extends the planned path from its last node. Heading back to a node already planned
@@ -154,9 +196,12 @@ func _advance(player: SimPlayer) -> void:
 
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
-## One of: revive, extinguish, heal, fry, lift, take, sauce, trash, serve, take_extinguisher,
-## return_extinguisher. _interact() only acts when this isn't empty, so the two always agree.
+## One of: choose (a menu is open), revive, extinguish, heal, fry, lift, take, sauce, drink,
+## meat, trash, serve, take_extinguisher, return_extinguisher. _interact() only acts when this
+## isn't empty, so the two always agree.
 func action_for(player: SimPlayer) -> StringName:
+    if player.menu != SimLevel.NONE:
+        return &"choose"
     if not player.down and _fallen_neighbour(player.node):
         return &"revive"
     var index := level.node_stations[player.node]
@@ -175,20 +220,20 @@ func action_for(player: SimPlayer) -> StringName:
             if not station.basket:
                 return &"fry"
             if station.frying:
-                var rests := station.cook >= Fryer.FIRST_FRY_MIN and station.cook <= Fryer.FIRST_FRY_MAX
-                return &"lift" if rests or not held else &""
+                var in_time := station.cook >= Fryer.FIRST_FRY_MIN and station.cook <= Fryer.FIRST_FRY_MAX
+                return &"lift" if in_time or not held else &""
             return &"take" if not held else &""
         &"cuisson_2":
             if not station.basket:
-                return &"fry" if held and held.kind == Fryer.FRIES_BLANCHED else &""
+                return &"fry" if Fryer.can_second_fry(held) else &""
             return &"lift" if not held else &""
-        &"sauces":
-            return &"sauce" if held and held.kind in Fryer.FINISHED and not held.sauce else &""
+        &"sauces", &"frigo", &"viandes":
+            return _menu_action(station, player)
         &"poubelle":
             return &"trash" if held else &""
         &"caisse":
             var front := crowd.front()
-            return &"serve" if held and front and SimCrowd.dish_of(held) in front.order else &""
+            return &"serve" if held and front and Menu.order_key(held) in front.order else &""
         &"extincteur":
             if not held:
                 return &"take_extinguisher"
@@ -196,9 +241,23 @@ func action_for(player: SimPlayer) -> StringName:
     return &""
 
 
+## Whether a menu station can serve the player's focused hand: SAUCES needs a food without
+## sauce, FRIGO and VIANDES an empty hand.
+func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
+    var held := player.focused_item()
+    match station.kind:
+        &"sauces":
+            return &"sauce" if Menu.takes_sauce(held) else &""
+        &"frigo":
+            return &"drink" if not held else &""
+        &"viandes":
+            return &"meat" if not held else &""
+    return &""
+
+
 ## Getting a knocked-out neighbour back up comes first; otherwise the player uses the station
 ## at their last reached node with the focused hand (GDD §5.4). A knocked-out player can
-## only use SOINS.
+## only use SOINS. Menu stations open their menu; the choice is made in _use_menu().
 func _interact(player: SimPlayer) -> void:
     if action_for(player) == &"":
         return
@@ -210,17 +269,12 @@ func _interact(player: SimPlayer) -> void:
             events.append({"type": &"revived", "slot": fallen.slot, "by": player.slot})
             return
     var index := level.node_stations[player.node]
-    if index == SimLevel.NONE:
-        return
     var station := stations[index]
     var held := player.focused_item()
     if station.burning:
-        if held and held.kind == EXTINGUISHER and not player.down:
-            station.burning = false
-            station.burn_ticks = 0
-            events.append({"type": &"fire_out", "station": index, "by": player.slot})
-        return
-    if player.down and station.kind != &"soins":
+        station.burning = false
+        station.burn_ticks = 0
+        events.append({"type": &"fire_out", "station": index, "by": player.slot})
         return
     match station.kind:
         &"soins":
@@ -230,9 +284,9 @@ func _interact(player: SimPlayer) -> void:
             Fryer.use_first(station, player)
         &"cuisson_2":
             Fryer.use_second(station, player)
-        &"sauces":
-            if held and held.kind in Fryer.FINISHED:
-                held.sauce = true
+        &"sauces", &"frigo", &"viandes":
+            player.menu = index
+            player.menu_choice = 0
         &"poubelle":
             player.set_focused_item(null)
         &"caisse":

@@ -13,17 +13,29 @@ var is_local_player : bool = true
 var _bump_tween: Tween
 var _hands_label: Label3D
 var _hint_label: Label3D
+var _menu_label: Label3D
 
 
 func _ready() -> void:
     _hands_label = _label(1.3, 28)
     _hint_label = _label(1.55, 26)
     _hint_label.modulate = Color(1.0, 0.9, 0.3)
+    _menu_label = _label(1.8, 30)
+    _menu_label.modulate = Color(0.6, 0.9, 1.0)
 
 
 ## What this player's interact key would do here, "" for nothing (only for local players).
 func show_hint(text: String) -> void:
     _hint_label.text = text
+
+
+## An open station menu: its options side by side, the selected one in brackets.
+## An empty list hides it.
+func show_menu(options: Array, choice: int) -> void:
+    var shown := []
+    for index in options.size():
+        shown.append("[%s]" % options[index] if index == choice else options[index])
+    _menu_label.text = "  ".join(shown)
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.

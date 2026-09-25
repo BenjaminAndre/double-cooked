@@ -21,8 +21,8 @@ var max_line := 6
 ## How many customers, from the front of the line, show their order (GDD §6.2). One per stage of
 ## the fries (first fry, second fry, ready), so players can start the next basket in time.
 var visible_orders := 3
-## Chance that an order has two items instead of one.
-var two_items_chance := 0.3
+## Weights of one-, two- and three-line orders (GDD §6.2).
+var order_sizes := PackedFloat32Array([0.5, 0.35, 0.15])
 
 ## A customer walks out when this runs out. The front of the line drains it much faster.
 var patience := 4 * 45 * SECOND

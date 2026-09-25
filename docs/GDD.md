@@ -60,6 +60,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - Each player has two hands. **Q and F choose the focused hand** (left or right). The focused hand is the one the next interaction changes.
 - **Space interacts** with the station at the player's node, and the station **transforms or fills the focused hand directly**. Items are never put down on the counter first; there are no intermediate steps.
   - Example: press Q to focus the left hand, which holds a bread, then interact at VIANDES. The left hand now holds a pain-saucisse.
+- **Station menus:** SAUCES, FRIGO and VIANDES offer a choice. The first press opens a menu. While it is open, the arrows move the selection instead of the player, a second press takes the selected option, and Échap closes the menu without taking anything (Backspace for P2 in duo).
 - Station rules:
   - With an empty focused hand, interacting at a supply station (PAIN, BOISSONS, EXTINCTEUR…) takes the base item.
   - Interacting at the POUBELLE empties the focused hand.
@@ -84,11 +85,11 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 ### 6.2 Queue and orders
 - Customers wait in a single line at the counter.
-- An order has **one or two items at most** (e.g. frites + bière, or two mitraillettes).
+- An order has **one to three lines**, at most **one per category**: fries with a sauce, a meat with a sauce, a drink. Each line fits in one hand, and the biggest order is frites + meat + drink, shown as three sub-panels on the ticket.
 - **The first 3 customers in line show a ticket** (order + patience bar) above their head; the rest of the line is visible, but their orders stay unknown. One ticket per stage of the fries (first fry, second fry, ready), so players can start the next basket while finishing the current one. Tunable: `SimRules.visible_orders` (changed from "front only" after the first playtest).
 - **Everyone in the line loses patience**, slowly, and the customer at the front loses it much faster. A long line raises the mood on its own, even if nobody is served badly.
 - **(slice default)** A customer whose patience runs out **walks out**, which raises the mood a lot. Players can tune it or replace it once other hazards exist.
-- **Items are handed over one at a time.** Each interaction at the CAISSE delivers the focused item, and the ticket ticks it off. A two-item order can be served with both hands in a row (switching focus with Q/F), or the second item can be brought later.
+- **Lines are handed over one at a time.** Each interaction at the CAISSE delivers the focused item if it matches a line (dish **and** sauce), and the ticket ticks it off.
 
 ## 7. Cooking
 
@@ -115,8 +116,15 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 - The fryers are shared between players.
 
 ### 7.2 Menu
-- **(proposal)** Frites with sauce (mayo, andalouse, samouraï…), fried snacks (fricadelle, boulette), a mitraillette (bread + meat + fries + sauce), and canned drinks and beer.
-- Recipes are shown on a menu board in the kitchen, as in Cat Cafe.
+- **Now on the menu:**
+  - **frites** with a sauce;
+  - **fricadelle** (raw from VIANDES, fried once in a CUISSON 2) with a sauce;
+  - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON 2, with a sauce;
+  - **cola** or **bière** from the FRIGO.
+- The sauces are **mayo** and **andalouse**, or **nature** (no sauce), which customers order too.
+- Nothing with sauce goes into a fryer.
+- CUISSON 2 lifts meats with the same window as fries: too early gives undercooked (fricadelle) or lukewarm (cervelas), too late gives burnt. Both are served at a mood penalty.
+- Later: samouraï and other sauces, boulette, a mitraillette (bread + meat + fries + sauce), a menu board in the kitchen as in Cat Cafe.
 
 ## 8. Hazards
 

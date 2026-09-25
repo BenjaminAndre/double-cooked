@@ -11,17 +11,18 @@ Assets to have loaded (should be found on another repo like SVN or even a USB st
 
 ## How to play (first slice)
 Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole crew going down.
-1. At CUISSON 1, interact to drop raw fries in the oil. Interact again when the gauge turns green: the basket rests on the fryer. Interact once more to take it.
-2. Once it has rested (✓), put it in a CUISSON 2 and lift it when its gauge is green.
-3. Add mayo at SAUCES, and serve at the CAISSE. The front customer's ticket shows the order.
-4. Forgotten fries catch fire. Grab the EXTINCTEUR and interact at the fire. At 0 hearts you're K.O.: a teammate next to you gets you up, or you crawl to SOINS.
+1. At CUISSON 1, interact to drop a batch of fries in the oil, and again when the gauge is blue: the batch (5 portions) waits on the fryer. Each further press takes one portion.
+2. Put a portion in a CUISSON 2 and lift it in the blue. VIANDES gives a fricadelle (fry it the same way) or a cervelas (cold as is, or warm once fried).
+3. At SAUCES, pick mayo or andalouse (or skip it for "nature"). FRIGO gives a cola or a bière. Menus: open with interact, arrows to pick, interact to take, Escape to close.
+4. Serve at the CAISSE, line by line. The first three customers' tickets show their orders.
+5. Forgotten fryers catch fire. Grab the EXTINCTEUR and interact at the fire. At 0 hearts you're K.O.: a teammate next to you gets you up, or you crawl to SOINS.
 
 ## Controls
 Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.
-* Solo: arrows to move, Q / F to focus the left / right hand, Space to interact, Tab to take damage (debug)
+* Solo: arrows to move, Q / F to focus the left / right hand, Space to interact, Escape to close a station menu, Tab to take damage (debug)
 * F2 toggles two players on one keyboard:
-  * P1: WASD, Q / E, Space
-  * P2: arrows, `.` / `/`, Right Shift
+  * P1: WASD, Q / E, Space, Escape
+  * P2: arrows, `.` / `/`, Right Shift, Backspace
 * Online (one player per machine): H hosts and shows a code to share, J joins with a code, Enter starts the night (host), Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
 
 ## Tests

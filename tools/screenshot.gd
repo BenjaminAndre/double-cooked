@@ -67,6 +67,18 @@ func _initialize() -> void:
             fry.call("Anchor2", Fryer.FIRST_FRY_MIN + 60)
             fry.call("Anchor4", Fryer.SECOND_FRY_MIN / 2)
             fry.call("Anchor5", Fryer.SECOND_FRY_MAX + 120)
+        "menu":
+            # The SAUCES menu open on andalouse, and a line of three-line orders.
+            var sim := night.simulation
+            var player := sim.players[0]
+            player.node = sim.level.find("Anchor9")
+            player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+            player.menu = sim.level.node_stations[player.node]
+            player.menu_choice = 1
+            sim.rules.arrival_min = 15
+            sim.rules.arrival_max = 15
+            sim.rules.order_sizes = PackedFloat32Array([1, 1, 2])
+            sim.crowd.next_arrival = 1
         "hints":
             # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
             night.play_local(2)

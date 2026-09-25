@@ -100,14 +100,44 @@ func test_cuisson_2_only_takes_blanched_fries() -> void:
     assert_eq(scenario.simulation.players[0].focused_item().kind, Fryer.FRIES_COLD)
 
 
-func test_sauces_only_go_on_finished_fries() -> void:
+func test_the_sauces_menu_puts_the_chosen_sauce_on() -> void:
     var scenario := Scenario.new(level, [sauces])
     var player := scenario.simulation.players[0]
-    player.hands = [SimItem.new(Fryer.FRIES_GOOD), SimItem.new(Fryer.FRIES_COLD)]
-    scenario.at(0, 0, INTERACT).at(0, 0, Simulation.Command.FOCUS_RIGHT).at(0, 0, INTERACT)
-    scenario.run_until(1)
-    assert_true(player.hands[0].sauce)
-    assert_false(player.hands[1].sauce)
+    player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+    scenario.at(0, 0, INTERACT).run_until(1)
+    assert_eq(player.menu, 2, "the first press opens the menu")
+    assert_eq(player.hands[0].sauce, &"", "nothing chosen yet")
+    scenario.at(1, 0, RIGHT).at(2, 0, INTERACT).run_until(3)
+    assert_eq(player.hands[0].sauce, Menu.ANDALOUSE)
+    assert_eq(player.menu, SimLevel.NONE, "choosing closes the menu")
+    assert_eq(player.node, sauces, "the arrows didn't move the player")
+
+
+func test_escape_closes_a_menu_without_taking_anything() -> void:
+    var scenario := Scenario.new(level, [sauces])
+    var player := scenario.simulation.players[0]
+    player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+    scenario.at(0, 0, INTERACT).at(1, 0, Simulation.Command.CANCEL).run_until(2)
+    assert_eq(player.menu, SimLevel.NONE)
+    assert_eq(player.hands[0].sauce, &"")
+    scenario.at(2, 0, RIGHT).run_until(3)
+    assert_true(player.is_moving(), "arrows move the player again")
+
+
+func test_sauces_only_open_for_a_food_without_sauce() -> void:
+    var scenario := Scenario.new(level, [sauces])
+    var player := scenario.simulation.players[0]
+    player.hands = [SimItem.new(Fryer.FRIES_COLD), SimItem.new(Menu.COLA)]
+    scenario.at(0, 0, INTERACT).at(0, 0, Simulation.Command.FOCUS_RIGHT).at(0, 0, INTERACT).run_until(1)
+    assert_eq(player.menu, SimLevel.NONE, "no sauce on cold fries nor on a cola")
+
+
+func test_the_menu_wraps_around() -> void:
+    var scenario := Scenario.new(level, [sauces])
+    var player := scenario.simulation.players[0]
+    player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+    scenario.at(0, 0, INTERACT).at(1, 0, LEFT).run_until(2)
+    assert_eq(player.menu_choice, Menu.SAUCES.size() - 1)
 
 
 func test_the_bin_empties_only_the_focused_hand() -> void:
@@ -179,7 +209,7 @@ func test_the_hint_at_cuisson_2_sauces_and_the_bin() -> void:
     player.node = sauces
     player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
     assert_eq(sim.action_for(player), &"sauce")
-    player.hands[0].sauce = true
+    player.hands[0].sauce = Menu.MAYO
     assert_eq(sim.action_for(player), &"", "already has mayo")
     player.node = bin
     assert_eq(sim.action_for(player), &"trash")

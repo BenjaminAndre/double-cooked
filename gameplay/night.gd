@@ -107,6 +107,14 @@ func local_slots() -> PackedInt32Array:
     return _local_slots
 
 
+## Whether a player at this keyboard has a station menu open (Escape then closes it).
+func has_open_menu() -> bool:
+    for slot in _local_slots:
+        if simulation.players[slot].menu != SimLevel.NONE:
+            return true
+    return false
+
+
 ## The night so far, in the shape Scenario.from_replay() reads.
 func replay() -> Dictionary:
     var data := _replay.duplicate()
@@ -245,6 +253,11 @@ func _show(alpha: float) -> void:
             if action != &"":
                 hint = "%s : %s" % [_input.interact_key_name(local_index), ItemNames.action(action)]
         _views[slot].show_hint(hint)
+        var options: Array = []
+        if player.menu != SimLevel.NONE:
+            for option: StringName in Menu.STATION_OPTIONS[simulation.stations[player.menu].kind]:
+                options.append(ItemNames.word(option))
+        _views[slot].show_menu(options, player.menu_choice)
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
         _station_views[index].set_highlighted(highlighted.has(index))

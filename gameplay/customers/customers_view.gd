@@ -16,8 +16,10 @@ const FIGURE_SCALE := 0.6
 ## they never overlap.
 const TICKET_GAP_BELOW := 6.0
 const TICKET_GAP := 8.0
-const FRONT_FONT_SIZE := 24
-const BACK_FONT_SIZE := 18
+const FRONT_FONT_SIZE := 20
+const BACK_FONT_SIZE := 16
+## Order lines per customer: fries, a meat, a drink.
+const MAX_ORDER_LINES := 3
 
 @export var night: Night
 @export var line_step := Vector3(-0.45, 0, 0)
@@ -68,7 +70,8 @@ func clear() -> void:
 
 
 ## Each ticket sits under its customer on screen; a ticket that would overlap the previous one
-## is pushed along the line, so the order of the tickets always matches the line.
+## is pushed along the line, so the order of the tickets always matches the line. A ticket
+## has one sub-panel per order line (dish, then sauce) and the customer's patience below.
 func _show_tickets(crowd: SimCrowd) -> void:
     var camera := get_viewport().get_camera_3d()
     var shown := mini(crowd.line.size(), crowd.rules.visible_orders)
@@ -82,47 +85,54 @@ func _show_tickets(crowd: SimCrowd) -> void:
             continue
         var customer := crowd.line[index]
         var figure: Node3D = _figures[customer.id]
-        var label: Label = ticket.get_child(0).get_child(0)
+        var lines: VBoxContainer = ticket.get_child(0).get_child(0)
         var bar: DrainingBar = ticket.get_child(0).get_child(1)
-        var patience := float(customer.patience) / crowd.rules.patience
-        label.text = _order_text(customer.order)
-        label.add_theme_font_size_override("font_size", FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE)
-        bar.show_fraction(patience)
+        var size := FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE
+        for line in lines.get_child_count():
+            var panel: PanelContainer = lines.get_child(line)
+            panel.visible = line < customer.order.size()
+            if panel.visible:
+                var label: Label = panel.get_child(0)
+                label.text = "\n".join(ItemNames.order_line(customer.order[line])).strip_edges()
+                label.add_theme_font_size_override("font_size", size)
+        bar.show_fraction(float(customer.patience) / crowd.rules.patience)
         ticket.reset_size()
         var anchor := camera.unproject_position(figure.global_position)
         var left := maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP)
         ticket.position = Vector2(left, anchor.y + TICKET_GAP_BELOW)
         previous_right = left + ticket.size.x
-
-
-## "frites mayo ×2", one line per dish.
-func _order_text(order: Array[StringName]) -> String:
-    var counts := {}
-    for dish in order:
-        counts[dish] = counts.get(dish, 0) + 1
-    var lines := []
-    for dish in counts:
-        lines.append("%s ×%d" % [ItemNames.dish(dish), counts[dish]] if counts[dish] > 1 \
-                else ItemNames.dish(dish))
-    return "\n".join(lines)
-
+    # Keep the last ticket on screen: slide them all left by what overflows.
+    var overflow := previous_right + TICKET_GAP - get_viewport().get_visible_rect().size.x
+    if overflow > 0:
+        for ticket in _tickets:
+            ticket.position.x -= overflow
 
 
 func _new_ticket() -> PanelContainer:
-    var ticket := PanelContainer.new()
-    var style := StyleBoxFlat.new()
-    style.bg_color = Color(0, 0, 0, 0.7)
-    style.set_content_margin_all(6)
-    style.set_corner_radius_all(4)
-    ticket.add_theme_stylebox_override("panel", style)
+    var ticket := _panel(Color(0, 0, 0, 0.7), 6)
     var column := VBoxContainer.new()
     ticket.add_child(column)
-    var label := Label.new()
-    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    column.add_child(label)
+    var lines := VBoxContainer.new()
+    column.add_child(lines)
+    for line in MAX_ORDER_LINES:
+        var panel := _panel(Color(1, 1, 1, 0.12), 4)
+        var label := Label.new()
+        label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        panel.add_child(label)
+        lines.add_child(panel)
     column.add_child(DrainingBar.new(0, 8))
     _layer.add_child(ticket)
     return ticket
+
+
+func _panel(color: Color, margin: float) -> PanelContainer:
+    var panel := PanelContainer.new()
+    var style := StyleBoxFlat.new()
+    style.bg_color = color
+    style.set_content_margin_all(margin)
+    style.set_corner_radius_all(4)
+    panel.add_theme_stylebox_override("panel", style)
+    return panel
 
 
 func _new_figure() -> Node3D:

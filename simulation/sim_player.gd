@@ -22,6 +22,10 @@ var hands: Array[SimItem] = [null, null]
 var down := false
 ## Ticks spent standing next to a fire since the last heart it cost.
 var exposure := 0
+## Station whose menu this player has open, or SimLevel.NONE; menu_choice is the selected
+## option (GDD §5.4).
+var menu := SimLevel.NONE
+var menu_choice := 0
 
 
 func _init(p_slot: int, p_node: int) -> void:
@@ -58,4 +62,4 @@ func fingerprint() -> Array:
     var held := []
     for item in hands:
         held.append(item.fingerprint() if item else null)
-    return [node, path, progress, edge_ticks, health, focus, held, down, exposure]
+    return [node, path, progress, edge_ticks, health, focus, held, down, exposure, menu, menu_choice]

@@ -52,6 +52,9 @@ func _unhandled_input(event: InputEvent) -> void:
     var key := event as InputEventKey
     if not key or not key.pressed or key.echo:
         return
+    # Escape closes a station menu first; it only leaves the session when no menu is open.
+    if key.physical_keycode == KEY_ESCAPE and night.has_open_menu():
+        return
     match [state, key.physical_keycode]:
         [State.OFFLINE, KEY_H]:
             _host()

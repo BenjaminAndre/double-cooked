@@ -13,8 +13,6 @@ const FRIES_BLANCHED := &"frites_blanchies"
 const FRIES_SOGGY := &"frites_molles"
 const FRIES_GOOD := &"frites"
 const FRIES_BURNT := &"frites_brulees"
-## Out of CUISSON 2: they take sauce and can be served (bad ones at a mood penalty).
-const FINISHED: Array[StringName] = [FRIES_GOOD, FRIES_SOGGY, FRIES_BURNT]
 
 ## Portions in one CUISSON 1 batch.
 const BATCH := 5
@@ -56,21 +54,28 @@ static func use_first(station: SimStation, player: SimPlayer) -> void:
             station.basket = null
 
 
-## CUISSON 2: takes a blanched portion from the focused hand, or lifts the frying one into it.
+## CUISSON 2: takes what it can fry (a blanched portion, a raw fricadelle, a cold cervelas)
+## from the focused hand, or lifts the frying one into it (see Menu.SECOND_FRY).
 static func use_second(station: SimStation, player: SimPlayer) -> void:
     var held := player.focused_item()
     if not station.basket:
-        if held and held.kind == FRIES_BLANCHED:
+        if can_second_fry(held):
             station.basket = held
             station.frying = true
             station.cook = 0
             player.set_focused_item(null)
-    elif station.cook < SECOND_FRY_MIN:
-        _lift_into_hand(station, player, FRIES_SOGGY)
+        return
+    var outcomes: Array = Menu.SECOND_FRY[station.basket.kind]
+    if station.cook < SECOND_FRY_MIN:
+        _lift_into_hand(station, player, outcomes[0])
     elif station.cook <= SECOND_FRY_MAX:
-        _lift_into_hand(station, player, FRIES_GOOD)
+        _lift_into_hand(station, player, outcomes[1])
     else:
-        _lift_into_hand(station, player, FRIES_BURNT)
+        _lift_into_hand(station, player, outcomes[2])
+
+
+static func can_second_fry(item: SimItem) -> bool:
+    return item != null and Menu.SECOND_FRY.has(item.kind) and item.sauce == &""
 
 
 ## Every tick: frying time runs.
