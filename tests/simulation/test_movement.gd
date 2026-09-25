@@ -16,10 +16,10 @@ var d: int
 ## A straight corridor A - B - C - D, one unit apart, with SOINS at D.
 func before_each() -> void:
     level = SimLevel.new()
-    a = level.add_node(Vector3(0, 0, 0), &"", "A")
-    b = level.add_node(Vector3(1, 0, 0), &"", "B")
-    c = level.add_node(Vector3(2, 0, 0), &"", "C")
-    d = level.add_node(Vector3(3, 0, 0), &"soins", "D")
+    a = level.add_node(Vector3(0, 0, 0), SimLevel.NONE, "A")
+    b = level.add_node(Vector3(1, 0, 0), SimLevel.NONE, "B")
+    c = level.add_node(Vector3(2, 0, 0), SimLevel.NONE, "C")
+    d = level.add_node(Vector3(3, 0, 0), level.add_station(&"soins"), "D")
     for pair in [[a, b], [b, c], [c, d]]:
         level.link(pair[0], SimLevel.Direction.RIGHT, pair[1])
         level.link(pair[1], SimLevel.Direction.LEFT, pair[0])

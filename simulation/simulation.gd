@@ -14,6 +14,8 @@ enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, FOCUS_LEFT, FOCUS_RIGH
 var tick := 0
 var level: SimLevel
 var players: Array[SimPlayer] = []
+## One per level station, in the same order.
+var stations: Array[SimStation] = []
 ## What happened during the last step, for the display, e.g. {"type": &"bump", "by": 0, "target": 1}.
 var events: Array[Dictionary] = []
 ## The only source of randomness, so that a seed replays the same night.
@@ -26,6 +28,8 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int) -> void:
     rng.seed = p_seed
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
+    for kind in level.station_kinds:
+        stations.append(SimStation.new(kind))
 
 
 ## Advances one tick. commands[slot] lists that player's commands for this tick, in press order.
@@ -37,6 +41,11 @@ func step(commands: Array) -> void:
             _apply(players[slot], command)
     for player in players:
         _advance(player)
+    for station in stations:
+        Fryer.advance(station)
+    for player in players:
+        for item in player.hands:
+            Fryer.advance_item(item)
     tick += 1
 
 
@@ -44,7 +53,9 @@ func step(commands: Array) -> void:
 func state_hash() -> int:
     var state: Array = [tick, rng.state]
     for p in players:
-        state.append([p.node, p.path, p.progress, p.edge_ticks, p.health, p.focus])
+        state.append(p.fingerprint())
+    for station in stations:
+        state.append(station.fingerprint())
     return hash(state)
 
 
@@ -93,14 +104,32 @@ func _advance(player: SimPlayer) -> void:
     if occupant:
         player.path.clear()
         events.append({"type": &"bump", "by": player.slot, "target": occupant.slot})
+        var dropped := occupant.drop_unfocused()
+        if dropped:
+            events.append({"type": &"drop", "slot": occupant.slot, "item": dropped.kind})
         return
     player.edge_ticks = _walk_ticks(player.node, target)
 
 
+## Uses the station at the player's last reached node with the focused hand (GDD §5.4).
 func _interact(player: SimPlayer) -> void:
-    match level.stations[player.node]:
+    var index := level.node_stations[player.node]
+    if index == SimLevel.NONE:
+        return
+    var station := stations[index]
+    var held := player.focused_item()
+    match station.kind:
         &"soins":
             player.health = SimPlayer.MAX_HEALTH
+        &"cuisson_1":
+            Fryer.use_first(station, player)
+        &"cuisson_2":
+            Fryer.use_second(station, player)
+        &"sauces":
+            if held and held.kind in Fryer.FINISHED:
+                held.sauce = true
+        &"poubelle":
+            player.set_focused_item(null)
 
 
 func _occupant(node: int) -> SimPlayer:

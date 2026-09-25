@@ -6,7 +6,6 @@
 [ext_resource type="Script" path="res://network/night_link.gd" id="7_link"]
 [ext_resource type="Script" path="res://network/lobby.gd" id="8_lobby"]
 [ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
-[ext_resource type="Script" uid="uid://chjroa20q6yy3" path="res://gameplay/interactions/heal.gd" id="5_ryrav"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_feb5d"]
 albedo_color = Color(0.9502734, 0.98, 0.08819997, 1)
@@ -238,6 +237,7 @@ transform = Transform3D(-0.09827772, -0.3643391, 0.9260662, 1.2006495e-08, 0.930
 [node name="Fries" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.66839194, 0, 0.5801511)
 script = ExtResource("4_7jktm")
+kind = &"cuisson_1"
 
 [node name="Label" type="Label3D" parent="Interactibles/Fries"]
 transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, -0.11551124, 0.52303195, -0.098175645)
@@ -252,6 +252,7 @@ material = SubResource("StandardMaterial3D_feb5d")
 [node name="Drink" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.372872, 0, 0.5801511)
 script = ExtResource("4_7jktm")
+kind = &"boissons"
 
 [node name="Label" type="Label3D" parent="Interactibles/Drink"]
 transform = Transform3D(-1, 1.7329114e-08, -8.5688065e-08, 1.2681909e-08, 0.9985443, 0.053939506, 8.649805e-08, 0.053939506, -0.9985443, 0.36407614, 1.2100189, -0.257344)
@@ -265,6 +266,7 @@ material = SubResource("StandardMaterial3D_fc0e3")
 [node name="Bread" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4986424, 0, 0.5801511)
 script = ExtResource("4_7jktm")
+kind = &"pain"
 
 [node name="Label" type="Label3D" parent="Interactibles/Bread"]
 transform = Transform3D(-0.9131144, -0.3610878, 0.18930826, -0.039286602, 0.5400958, 0.84068614, -0.4058061, 0.7602054, -0.5073552, -0.38122487, 0.41442204, -0.010837793)
@@ -279,6 +281,7 @@ material = SubResource("StandardMaterial3D_7jktm")
 [node name="Extinguisher" type="Node3D" parent="Interactibles"]
 transform = Transform3D(0.8897353, 0, -0.45647687, 0, 1, 0, 0.45647687, 0, 0.8897353, 1.0060419, 0, -2.805657)
 script = ExtResource("4_7jktm")
+kind = &"extincteur"
 
 [node name="Label" type="Label3D" parent="Interactibles/Extinguisher"]
 transform = Transform3D(-1, 0, -8.568168e-08, -8.649804e-08, -0.05393955, 0.9985443, 0, 0.9985443, 0.05393955, 1.2892606, 0.437598, 0.67829776)
@@ -292,6 +295,7 @@ material = SubResource("StandardMaterial3D_ryrav")
 [node name="Sauces" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.73599255, 0, -1.6443329)
 script = ExtResource("4_7jktm")
+kind = &"sauces"
 
 [node name="Label" type="Label3D" parent="Interactibles/Sauces"]
 transform = Transform3D(-1, 1.7329114e-08, -8.568806e-08, -8.649804e-08, -0.05393955, 0.9985443, 1.2681899e-08, 0.9985443, 0.05393955, 0.14437556, 0.2882023, -0.06453431)
@@ -305,6 +309,7 @@ material = SubResource("StandardMaterial3D_eow3j")
 [node name="Register" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072876215, 0, -1.9977882)
 script = ExtResource("4_7jktm")
+kind = &"caisse"
 
 [node name="Label" type="Label3D" parent="Interactibles/Register"]
 transform = Transform3D(-0.98660064, -0.16291624, -0.008800526, -8.649803e-08, -0.05393955, 0.9985443, -0.16315375, 0.9851644, 0.05321678, 0.060202837, 0.19973135, 0.041853666)
@@ -319,6 +324,7 @@ material = SubResource("StandardMaterial3D_j5wjh")
 [node name="Meats" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0482602, 0, -1.6349995)
 script = ExtResource("4_7jktm")
+kind = &"viandes"
 
 [node name="Label" type="Label3D" parent="Interactibles/Meats"]
 transform = Transform3D(-0.921633, -0.38749763, -0.020931998, -8.649803e-08, -0.05393955, 0.9985443, -0.38806257, 0.92029136, 0.049712438, 0.07285869, 0.2882023, -0.08870709)
@@ -332,6 +338,7 @@ material = SubResource("StandardMaterial3D_vef74")
 [node name="Bin" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0125074, 0, -1.6443329)
 script = ExtResource("4_7jktm")
+kind = &"poubelle"
 
 [node name="Label" type="Label3D" parent="Interactibles/Bin"]
 transform = Transform3D(-0.74597603, -0.66500336, -0.035922337, -8.649803e-08, -0.05393955, 0.9985443, -0.6659728, 0.7448901, 0.040237557, 0.04938531, 0.2882023, -0.06453431)
@@ -344,7 +351,8 @@ material = SubResource("StandardMaterial3D_hve3p")
 
 [node name="Heal" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.9761887, 0, 0.6658423)
-script = ExtResource("5_ryrav")
+script = ExtResource("4_7jktm")
+kind = &"soins"
 
 [node name="Label" type="Label3D" parent="Interactibles/Heal"]
 transform = Transform3D(-0.7792505, -0.25220633, 0.5737252, -1.8619247e-08, 0.91545194, 0.40242738, -0.62671256, 0.31359172, -0.7133664, 0.24084044, 0.5658014, -0.48371708)
@@ -358,6 +366,7 @@ material = SubResource("StandardMaterial3D_mfdv2")
 [node name="Fries2" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0447927, 0, 0.5801511)
 script = ExtResource("4_7jktm")
+kind = &"cuisson_2"
 
 [node name="Label" type="Label3D" parent="Interactibles/Fries2"]
 transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, 0.18142605, 0.52303207, -0.0779618)
@@ -373,6 +382,7 @@ material = SubResource("StandardMaterial3D_feb5d")
 [node name="Fries3" type="Node3D" parent="Interactibles"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9696004, 0, 0.5801511)
 script = ExtResource("4_7jktm")
+kind = &"cuisson_2"
 
 [node name="Label" type="Label3D" parent="Interactibles/Fries3"]
 transform = Transform3D(-1, 1.732911e-08, -8.5688065e-08, -8.026837e-08, 0.20634072, 0.97848016, 3.463712e-08, 0.97848016, -0.20634072, -0.11551124, 0.52303195, -0.098175645)

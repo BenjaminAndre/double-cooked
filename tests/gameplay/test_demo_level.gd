@@ -12,7 +12,10 @@ func test_reads_every_anchor_with_its_links_and_stations() -> void:
     assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Anchor2"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.DOWN), level.find("Anchor8"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.UP), SimLevel.NONE)
-    assert_eq(level.stations[level.find("Anchor7")], &"soins")
+    assert_eq(level.station_kind_at(level.find("Anchor7")), &"soins")
+    assert_eq(level.node_stations[level.find("Anchor2")], level.node_stations[level.find("Anchor3")],
+            "both anchors reach the same CUISSON 1")
+    assert_eq(level.station_kinds.size(), 11)
     game.free()
 
 

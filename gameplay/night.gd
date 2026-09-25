@@ -43,6 +43,8 @@ var _input: LocalInput
 ## The slot of each player at this keyboard.
 var _local_slots := PackedInt32Array()
 var _views: Array[Player] = []
+## One per simulation station, in the same order.
+var _station_views: Array[Interactible] = []
 ## Offline and host: commands per slot, waiting for the next tick.
 var _pending: Array = []
 ## Client: tick -> [check, flattened commands], as relayed by the host.
@@ -179,6 +181,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         view.queue_free()
     _views.clear()
     var level := LevelReader.read(anchors_root)
+    _station_views = LevelReader.stations(anchors_root)
     var spawn_nodes := PackedInt32Array()
     var spawn_names := []
     for slot in player_count:
@@ -222,6 +225,8 @@ func _on_tick_received(tick: int, check: int, commands: PackedInt32Array) -> voi
 func _show(alpha: float) -> void:
     for slot in _views.size():
         _views[slot].show_state(simulation.players[slot], simulation.level, alpha)
+    for index in _station_views.size():
+        _station_views[index].show_station(simulation.stations[index])
 
 
 func _no_commands() -> Array:
