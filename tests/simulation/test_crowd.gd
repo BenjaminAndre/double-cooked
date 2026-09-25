@@ -157,7 +157,8 @@ func test_reaching_closing_time_wins_the_night() -> void:
     scenario.run_until(50)
     assert_eq(sim.outcome, &"won")
     assert_eq(sim.clock_minutes(), 600, "04:00")
-    assert_eq(scenario.events.back(), {"type": &"night_over", "outcome": &"won", "tick": 49})
+    assert_eq(scenario.events.back(), {"type": &"night_over", "outcome": &"won", "reason": &"closing",
+            "tick": 49})
 
 
 func _scenario() -> Scenario:

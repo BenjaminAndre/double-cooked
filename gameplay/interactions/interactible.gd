@@ -18,9 +18,12 @@ const TOO_LATE := Color(1.0, 0.3, 0.2)
 var _state_label: Label3D
 
 
-## Shows the fryer gauge: grey while too early, green in the window, red once too late.
+## Shows a fire on any station, and the fryer gauge: grey while too early, green in the
+## window, red once too late.
 func show_station(station: SimStation) -> void:
-    if not kind in FRYERS:
+    if not station.burning and not kind in FRYERS:
+        if _state_label:
+            _state_label.visible = false
         return
     if not _state_label:
         _state_label = Label3D.new()
@@ -29,6 +32,14 @@ func show_station(station: SimStation) -> void:
         _state_label.font_size = 40
         _state_label.outline_size = 10
         add_child(_state_label)
+    if station.burning:
+        _state_label.visible = true
+        _state_label.text = "FEU !"
+        # Flickers between red and orange.
+        _state_label.modulate = TOO_LATE.lerp(Color.ORANGE, 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.02))
+        _state_label.font_size = 64
+        return
+    _state_label.font_size = 40
     _state_label.visible = station.basket != null
     if not station.basket:
         return

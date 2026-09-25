@@ -9,6 +9,7 @@ const NAMES := {
     Fryer.FRIES_SOGGY: "frites molles",
     Fryer.FRIES_GOOD: "frites",
     Fryer.FRIES_BURNT: "frites brûlées",
+    Simulation.EXTINGUISHER: "extincteur",
 }
 
 

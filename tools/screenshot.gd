@@ -24,6 +24,23 @@ func _initialize() -> void:
             night.simulation.rules.night_ticks = 20
         "lost":
             night.simulation.crowd.mood = night.simulation.rules.riot
+        "danger":
+            # Two players, CUISSON 1 on fire, P2 knocked out.
+            night.play_local(2)
+            var sim := night.simulation
+            sim.stations[sim.level.node_stations[sim.level.find("Anchor2")]].burning = true
+            sim.players[1].health = 0
+            sim.players[1].down = true
+            sim.players[0].hands[0] = SimItem.new(Simulation.EXTINGUISHER)
+        "recap":
+            night.play_local(2)
+            var sim := night.simulation
+            sim.stats.merge({"orders": 9, "dishes": 12, "bad_dishes": 3, "walk_outs": 2, "fires": 1,
+                    "bumps": [5, 2], "knockouts": [0, 2], "revives": [2, 0]}, true)
+            sim.players[0].health = 0
+            sim.players[0].down = true
+            sim.players[1].health = 0
+            sim.players[1].down = true
     await create_timer(seconds).timeout
     await process_frame
     root.get_viewport().get_texture().get_image().save_png(output)

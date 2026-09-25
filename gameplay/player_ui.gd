@@ -33,4 +33,4 @@ func _process(delta: float) -> void:
         _heart1.global_position.x = player.global_position.x
 
     if player.health <= 0:
-        _pseudo.text += " (Dead)"
+        _pseudo.text += " (K.O.)"

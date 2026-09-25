@@ -18,6 +18,10 @@ var health := MAX_HEALTH
 var focus := Hand.LEFT
 ## What each hand holds, indexed by Hand. null is an empty hand.
 var hands: Array[SimItem] = [null, null]
+## Knocked out at 0 hearts: crawls, blocks their node, and can only use SOINS (GDD §5.1).
+var down := false
+## Ticks spent standing next to a fire since the last heart it cost.
+var exposure := 0
 
 
 func _init(p_slot: int, p_node: int) -> void:
@@ -54,4 +58,4 @@ func fingerprint() -> Array:
     var held := []
     for item in hands:
         held.append(item.fingerprint() if item else null)
-    return [node, path, progress, edge_ticks, health, focus, held]
+    return [node, path, progress, edge_ticks, health, focus, held, down, exposure]

@@ -37,3 +37,16 @@ var drift_every_rush := SECOND
 var drift_every_after := 15
 ## +1 per customer waiting behind the front one, every this many ticks.
 var line_pressure_every := 2 * SECOND
+
+## A basket left in the oil this long, at either fryer, starts a grease fire (GDD §8).
+var fire_after := 15 * SECOND
+## Standing on a burning station's node costs a heart this often.
+var fire_damage_every := 2 * SECOND
+## A fire left burning this long spreads to a neighbouring station.
+var fire_spread_after := 10 * SECOND
+## Stations fire never reaches, so the crew can always fight back.
+var fireproof: Array[StringName] = [&"extincteur"]
+## A knocked-out player crawls one node in this many ticks.
+var crawl_ticks := 2 * SECOND
+## Hearts of a player a teammate gets back up.
+var revive_health := 1

@@ -37,6 +37,8 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)
         shown = shown.lerp(level.positions[state.path[0]], t)
     global_position = shown
+    # Knocked out: lying on the floor.
+    $PlayerModel.rotation.z = PI / 2 if state.down else 0.0
     for node in state.path:
         DebugDraw3D.draw_sphere(level.positions[node], 0.12, Color.GREEN)
 

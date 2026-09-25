@@ -9,6 +9,10 @@ var basket: SimItem
 var frying := false
 ## Ticks the basket has spent in the oil.
 var cook := 0
+## On fire: unusable until put out, and dangerous to stand next to.
+var burning := false
+## Ticks since the fire started or last spread.
+var burn_ticks := 0
 
 
 func _init(p_kind: StringName) -> void:
@@ -16,4 +20,4 @@ func _init(p_kind: StringName) -> void:
 
 
 func fingerprint() -> Array:
-    return [kind, basket.fingerprint() if basket else null, frying, cook]
+    return [kind, basket.fingerprint() if basket else null, frying, cook, burning, burn_ticks]

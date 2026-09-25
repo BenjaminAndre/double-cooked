@@ -11,6 +11,8 @@ const WALK_SPEED := 10.0
 ## What a player can do in one tick. The move values match SimLevel.Direction.
 enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, FOCUS_LEFT, FOCUS_RIGHT, INTERACT, DEBUG_DAMAGE }
 
+const EXTINGUISHER := &"extincteur"
+
 var tick := 0
 var level: SimLevel
 var players: Array[SimPlayer] = []
@@ -22,8 +24,12 @@ var events: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var rules: SimRules
 var crowd: SimCrowd
-## &"won" at closing time, &"lost" when the room riots; &"" while the night goes on.
+## &"won" at closing time, &"lost" otherwise; &"" while the night goes on.
 var outcome := &""
+## Why the night ended: &"closing", &"riot" or &"crew_down".
+var outcome_reason := &""
+## Counters for the end-of-night recap. Per-player lists are indexed by slot.
+var stats := {}
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
@@ -36,6 +42,12 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
         players.append(SimPlayer.new(slot, spawns[slot]))
     for kind in level.station_kinds:
         stations.append(SimStation.new(kind))
+    var per_player := []
+    per_player.resize(players.size())
+    per_player.fill(0)
+    stats = {"dishes": 0, "bad_dishes": 0, "orders": 0, "walk_outs": 0, "fires": 0,
+            "bumps": per_player.duplicate(), "knockouts": per_player.duplicate(),
+            "revives": per_player.duplicate()}
 
 
 ## Minutes since 18:00 on the night's clock.
@@ -61,12 +73,16 @@ func step(commands: Array) -> void:
     for player in players:
         for item in player.hands:
             Fryer.advance_item(item)
+    _advance_fires()
     crowd.advance(tick, players.size(), rng, events)
     tick += 1
-    if crowd.mood >= rules.riot:
-        _end(&"lost")
+    _count(events)
+    if players.size() > 1 and players.all(func(p: SimPlayer) -> bool: return p.down):
+        _end(&"lost", &"crew_down")
+    elif crowd.mood >= rules.riot:
+        _end(&"lost", &"riot")
     elif tick >= rules.night_ticks:
-        _end(&"won")
+        _end(&"won", &"closing")
 
 
 ## Fingerprint of the state, to check that two runs (or host and client) agree.
@@ -78,6 +94,7 @@ func state_hash() -> int:
         state.append(station.fingerprint())
     state.append(crowd.fingerprint())
     state.append(outcome)
+    state.append(stats)
     return hash(state)
 
 
@@ -92,7 +109,7 @@ func _apply(player: SimPlayer, command: int) -> void:
         Command.INTERACT:
             _interact(player)
         Command.DEBUG_DAMAGE:
-            player.health = maxi(player.health - 1, 0)
+            _hurt(player)
 
 
 ## Extends the planned path from its last node. Heading back to a node already planned
@@ -130,19 +147,37 @@ func _advance(player: SimPlayer) -> void:
         if dropped:
             events.append({"type": &"drop", "slot": occupant.slot, "item": dropped.kind})
         return
-    player.edge_ticks = _walk_ticks(player.node, target)
+    player.edge_ticks = rules.crawl_ticks if player.down else _walk_ticks(player.node, target)
 
 
-## Uses the station at the player's last reached node with the focused hand (GDD §5.4).
+## Getting a knocked-out neighbour back up comes first; otherwise the player uses the station
+## at their last reached node with the focused hand (GDD §5.4). A knocked-out player can
+## only use SOINS.
 func _interact(player: SimPlayer) -> void:
+    if not player.down:
+        var fallen := _fallen_neighbour(player.node)
+        if fallen:
+            fallen.down = false
+            fallen.health = rules.revive_health
+            events.append({"type": &"revived", "slot": fallen.slot, "by": player.slot})
+            return
     var index := level.node_stations[player.node]
     if index == SimLevel.NONE:
         return
     var station := stations[index]
     var held := player.focused_item()
+    if station.burning:
+        if held and held.kind == EXTINGUISHER and not player.down:
+            station.burning = false
+            station.burn_ticks = 0
+            events.append({"type": &"fire_out", "station": index, "by": player.slot})
+        return
+    if player.down and station.kind != &"soins":
+        return
     match station.kind:
         &"soins":
             player.health = SimPlayer.MAX_HEALTH
+            player.down = false
         &"cuisson_1":
             Fryer.use_first(station, player)
         &"cuisson_2":
@@ -155,11 +190,117 @@ func _interact(player: SimPlayer) -> void:
         &"caisse":
             if crowd.serve(held, events):
                 player.set_focused_item(null)
+        &"extincteur":
+            if not held:
+                player.set_focused_item(SimItem.new(EXTINGUISHER))
+            elif held.kind == EXTINGUISHER:
+                player.set_focused_item(null)
 
 
-func _end(result: StringName) -> void:
+## Fryers left in the oil too long catch fire; fires burn whoever stands at them and spread
+## to a neighbouring station if left alone (GDD §8).
+func _advance_fires() -> void:
+    for index in stations.size():
+        var station := stations[index]
+        if station.frying and station.cook > rules.fire_after:
+            station.basket = null
+            station.frying = false
+            station.cook = 0
+            _ignite(index, &"fire_started")
+    for index in stations.size():
+        var station := stations[index]
+        if not station.burning:
+            continue
+        station.burn_ticks += 1
+        if station.burn_ticks >= rules.fire_spread_after:
+            station.burn_ticks = 0
+            var candidates := _spread_candidates(index)
+            if not candidates.is_empty():
+                _ignite(candidates[rng.randi_range(0, candidates.size() - 1)], &"fire_spread")
+    for player in players:
+        var index := level.node_stations[player.node]
+        if player.is_moving() or index == SimLevel.NONE or not stations[index].burning:
+            player.exposure = 0
+            continue
+        player.exposure += 1
+        if player.exposure >= rules.fire_damage_every:
+            player.exposure = 0
+            _hurt(player)
+
+
+func _ignite(index: int, event_type: StringName) -> void:
+    var station := stations[index]
+    station.burning = true
+    station.burn_ticks = 0
+    station.basket = null
+    station.frying = false
+    events.append({"type": event_type, "station": index})
+
+
+## Stations reachable from a node linked to one of this station's nodes, in index order.
+func _spread_candidates(index: int) -> Array[int]:
+    var found: Array[int] = []
+    for node in level.positions.size():
+        if level.node_stations[node] != index:
+            continue
+        for neighbour in level.links[node]:
+            if neighbour == SimLevel.NONE:
+                continue
+            var other := level.node_stations[neighbour]
+            if other != SimLevel.NONE and other != index and not other in found \
+                    and not stations[other].burning and not stations[other].kind in rules.fireproof:
+                found.append(other)
+    found.sort()
+    return found
+
+
+func _hurt(player: SimPlayer) -> void:
+    if player.health == 0:
+        return
+    player.health -= 1
+    events.append({"type": &"hurt", "slot": player.slot})
+    if player.health == 0:
+        player.down = true
+        # A falling player finishes the step under way, and nothing more.
+        player.path.resize(1 if player.is_moving() else 0)
+        events.append({"type": &"knocked_out", "slot": player.slot})
+
+
+func _fallen_neighbour(node: int) -> SimPlayer:
+    for neighbour in level.links[node]:
+        if neighbour == SimLevel.NONE:
+            continue
+        var other := _occupant(neighbour)
+        if other and other.down and not other.is_moving():
+            return other
+    return null
+
+
+func _count(step_events: Array[Dictionary]) -> void:
+    for event in step_events:
+        match event.type:
+            &"served":
+                stats.dishes += 1
+                if not event.good:
+                    stats.bad_dishes += 1
+            &"order_done":
+                stats.orders += 1
+            &"walk_out":
+                stats.walk_outs += 1
+            &"fire_started", &"fire_spread":
+                stats.fires += 1
+            &"bump":
+                stats.bumps[event.by] += 1
+            &"knocked_out":
+                stats.knockouts[event.slot] += 1
+            &"revived":
+                stats.revives[event.by] += 1
+
+
+func _end(result: StringName, reason: StringName) -> void:
     outcome = result
-    events.append({"type": &"night_over", "outcome": result})
+    outcome_reason = reason
+    events.append({"type": &"night_over", "outcome": result, "reason": reason})
 
 
 func _occupant(node: int) -> SimPlayer:

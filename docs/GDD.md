@@ -42,7 +42,9 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - The night is **lost when every player is knocked out at the same time**, or **when the room riots**: the mood meter reaches its top (§6).
 - The SOINS station restores hearts.
 - **Solo play is supported.** A knocked-out player can **crawl** slowly toward SOINS to get back up alone. In solo this is the only way to recover, and the night is lost if the room riots first.
-- **(proposal)** A revived player comes back with 1 heart. Crawling speed: one node every few seconds.
+- A revived player comes back with 1 heart. Crawling takes about 2 s per node.
+- Getting a knocked-out neighbour up takes priority over using your own station. A knocked-out player can only use SOINS.
+- **(slice default)** Losing "when every player is knocked out" applies from two players up. A solo player who is knocked out keeps crawling toward SOINS.
 
 ### 5.2 Movement
 - Players move from node to node with the arrow keys, and moves can be queued (already implemented: `Anchor` graph, `future_path`).
@@ -126,7 +128,7 @@ Fry states: raw (in oil), cold, overcooked, resting, soggy, good, burnt.
 |---|---|---|---|
 | Spill | Dropped drinks/sauce, bumps, customers | Wet node: players slide through it **(proposal)** | Mop? Avoid it? |
 | Thrown can | Customer misbehaviour | 1 heart of damage to the targeted player **(proposal:** telegraphed, dodged by leaving the node) | Keep the mood low |
-| Grease fire | A basket left in the oil far too long (§7.1) | Blocks the fryer. Standing on its node costs 1 heart every ~2 s. Spreads to a neighbouring station after ~10 s | EXTINCTEUR in the focused hand, one interaction |
+| Grease fire | A basket left in the oil far too long (§7.1) | Blocks the station. **Standing** on its node costs 1 heart every ~2 s (walking past is safe). Spreads to a neighbouring station after ~10 s; EXTINCTEUR itself never burns | Take the extinguisher at EXTINCTEUR (it stays in your hand and goes back on its station), then one interaction at the fire |
 | Beer | A player drinks one | **(proposal)** Heals 1 heart but scrambles controls for a while (input delay or swapped keys) | Temptation |
 
 ## 9. Technical notes
@@ -158,7 +160,7 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 - **Replays:** the host records the seed and the command log of real games. A bug report becomes a replay file, and the replay becomes a scenario test.
 - The actual network transport (Tube/WebRTC) is tested by hand with two local instances, since everything above it is covered by scenarios.
 
-## 10. First playable slice (v0.1.x)
+## 10. First playable slice (v0.1.x) — implemented in 0.1.8
 
 Goal: prove the core loop **with multiplayer**.
 
