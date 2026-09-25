@@ -1,0 +1,59 @@
+name: Build Web
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: build-web-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Editor + export templates are ~1 GB, so they are cached per Godot version.
+      - id: cache-godot
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          mkdir -p ~/godot
+          curl -fsSL "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" -o godot.zip
+          unzip -q godot.zip -d ~/godot
+          curl -fsSL "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz" -o templates.tpz
+          unzip -q templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates
+          mv templates ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          rm godot.zip templates.tpz
+
+      - run: echo "GODOT=$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" >> "$GITHUB_ENV"
+
+      - run: bash tools/fetch_deps.sh
+
+      - id: version
+        run: echo "version=$(sed -n 's/^config\/version="\(.*\)"$/\1/p' project.godot)" >> "$GITHUB_OUTPUT"
+
+      # A fresh checkout has no .godot/ import cache; export needs it.
+      - run: $GODOT --headless --import
+
+      - run: |
+          mkdir -p build/web
+          $GODOT --headless --export-release "Web" build/web/index.html
+          test -f build/web/index.html
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: double-cooked-web-v${{ steps.version.outputs.version }}-${{ github.sha }}
+          path: build/web

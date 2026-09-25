@@ -4,3 +4,6 @@
 assets/
 addons/
 godot-extension-webrtc/
+# Web export output (rebuilt by CI)
+/bin/
+/build/
