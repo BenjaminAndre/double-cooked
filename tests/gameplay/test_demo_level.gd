@@ -99,3 +99,42 @@ func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
     assert_null(sim.players[0].focused_item(), "handed over")
     assert_eq(sim.stats.dishes, 1)
     assert_eq(sim.stats.bad_dishes, 0)
+
+
+## Playtest bug: knocked out alone, crawling to SOINS didn't get the player back up.
+func test_knocked_out_alone_a_player_crawls_to_soins_and_gets_up() -> void:
+    var game := GAME_SCENE.instantiate()
+    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    game.free()
+    const C := Simulation.Command
+    var scenario := Scenario.new(level, [level.find("Anchor")], 1)
+    for i in SimPlayer.MAX_HEALTH:
+        scenario.at(0, 0, C.DEBUG_DAMAGE)
+    # Arrows pressed one at a time, as a player would, while crawling.
+    for i in 6:
+        scenario.at(1 + i * 70, 0, C.MOVE_RIGHT)
+    var sim := scenario.run_until(1 + 6 * 70)
+    var player := sim.players[0]
+    assert_eq(level.names[player.node], "Anchor7", "at SOINS")
+    assert_false(player.is_moving())
+    assert_eq(sim.action_for(player), &"heal")
+    scenario.at(sim.tick, 0, C.INTERACT).run_until(sim.tick + 1)
+    assert_false(player.down)
+    assert_eq(player.health, SimPlayer.MAX_HEALTH)
+
+
+func test_the_heal_hint_shows_when_knocked_out_at_soins() -> void:
+    var game: Node = add_child_autofree(GAME_SCENE.instantiate())
+    var night: Night = game.get_node("Night")
+    await wait_process_frames(1)
+    var sim := night.simulation
+    var player := sim.players[0]
+    player.node = sim.level.find("Anchor7")
+    player.health = 0
+    player.down = true
+    await wait_process_frames(2)
+    var view: Player = night._views[0]
+    assert_eq(view._hint_label.text, "Espace : se soigner")
+    night.submit(0, Simulation.Command.INTERACT)
+    await wait_seconds(0.2)
+    assert_false(player.down)

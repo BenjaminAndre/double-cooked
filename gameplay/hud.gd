@@ -4,11 +4,12 @@ extends CanvasLayer
 
 const MOOD_NAMES := ["Calme", "Tendu", "Chaud", "Émeute"]
 const MOOD_COLORS := [Color(0.5, 1.0, 0.5), Color(1.0, 0.9, 0.3), Color(1.0, 0.55, 0.2), Color(1.0, 0.25, 0.2)]
-const MOOD_CELLS := 12
 
 @export var night: Night
 
 var _status: Label
+## Calm left before a riot: empties as the mood rises.
+var _calm: DrainingBar
 ## Centered panel shown once the night is over.
 var _banner: PanelContainer
 var _title: Label
@@ -17,10 +18,15 @@ var _next: Label
 
 
 func _ready() -> void:
-    _status = _label(24)
-    _status.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
-    _status.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+    var corner := VBoxContainer.new()
+    corner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
+    corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+    corner.alignment = BoxContainer.ALIGNMENT_END
+    add_child(corner)
+    _status = _label(24, corner)
     _status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    _calm = DrainingBar.new(220, 14)
+    corner.add_child(_calm)
     _banner = PanelContainer.new()
     var style := StyleBoxFlat.new()
     style.bg_color = Color(0, 0, 0, 0.75)
@@ -41,10 +47,9 @@ func _process(_delta: float) -> void:
     if not sim:
         return
     var level := sim.crowd.level()
-    var filled := clampi(roundi(float(sim.crowd.mood) / sim.rules.riot * MOOD_CELLS), 0, MOOD_CELLS)
-    _status.text = "%s\nAmbiance : %s\n%s" % [clock(sim.clock_minutes()), MOOD_NAMES[level],
-            "■".repeat(filled) + "□".repeat(MOOD_CELLS - filled)]
+    _status.text = "%s\nAmbiance : %s" % [clock(sim.clock_minutes()), MOOD_NAMES[level]]
     _status.modulate = MOOD_COLORS[level]
+    _calm.show_fraction(1.0 - float(sim.crowd.mood) / sim.rules.riot)
     _banner.visible = sim.outcome != &""
     if _banner.visible:
         var next := "Entrée : nouvelle nuit"

@@ -178,3 +178,15 @@ func test_the_hint_puts_reviving_first_and_offers_the_extinguisher() -> void:
     sim.players[0].node = fryer
     sim.stations[1].burning = true
     assert_eq(sim.action_for(sim.players[0]), &"extinguish")
+
+
+func test_crawling_keeps_no_queue() -> void:
+    var scenario := _scenario([extinguisher])
+    for i in SimPlayer.MAX_HEALTH:
+        scenario.at(0, 0, DAMAGE)
+    scenario.at(1, 0, RIGHT).at(2, 0, RIGHT).at(3, 0, RIGHT)
+    var player := scenario.run_until(4).players[0]
+    assert_eq(player.path, [fryer] as Array[int], "presses while crawling are ignored")
+    scenario.run_until(1 + rules.crawl_ticks + 1)
+    assert_eq(player.node, fryer)
+    assert_true(player.path.is_empty(), "stops at the first node")

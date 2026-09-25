@@ -5,7 +5,6 @@ extends Node3D
 ## show a ticket with their order and patience (GDD §6.2).
 
 const MODEL := preload("res://assets/kenney_prototype-kit/Models/GLB format/figurine-cube.glb")
-const PATIENCE_CELLS := 8
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
 ## Where customers come from and go to, relative to the front of the line.
@@ -83,12 +82,12 @@ func _show_tickets(crowd: SimCrowd) -> void:
             continue
         var customer := crowd.line[index]
         var figure: Node3D = _figures[customer.id]
-        var label: Label = ticket.get_child(0)
+        var label: Label = ticket.get_child(0).get_child(0)
+        var bar: DrainingBar = ticket.get_child(0).get_child(1)
         var patience := float(customer.patience) / crowd.rules.patience
-        label.text = "%s\n%s" % [_order_text(customer.order), _bar(patience)]
+        label.text = _order_text(customer.order)
         label.add_theme_font_size_override("font_size", FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE)
-        label.modulate = Color(1, 1, 1) if patience > 0.5 else Color(1, 0.8, 0.2) if patience > 0.25 \
-                else Color(1, 0.3, 0.2)
+        bar.show_fraction(patience)
         ticket.reset_size()
         var anchor := camera.unproject_position(figure.global_position)
         var left := maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP)
@@ -108,10 +107,6 @@ func _order_text(order: Array[StringName]) -> String:
     return "\n".join(lines)
 
 
-func _bar(fraction: float) -> String:
-    var filled := clampi(ceili(fraction * PATIENCE_CELLS), 0, PATIENCE_CELLS)
-    return "■".repeat(filled) + "□".repeat(PATIENCE_CELLS - filled)
-
 
 func _new_ticket() -> PanelContainer:
     var ticket := PanelContainer.new()
@@ -120,9 +115,12 @@ func _new_ticket() -> PanelContainer:
     style.set_content_margin_all(6)
     style.set_corner_radius_all(4)
     ticket.add_theme_stylebox_override("panel", style)
+    var column := VBoxContainer.new()
+    ticket.add_child(column)
     var label := Label.new()
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    ticket.add_child(label)
+    column.add_child(label)
+    column.add_child(DrainingBar.new(0, 8))
     _layer.add_child(ticket)
     return ticket
 

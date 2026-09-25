@@ -115,6 +115,12 @@ func _apply(player: SimPlayer, command: int) -> void:
 ## Extends the planned path from its last node. Heading back to a node already planned
 ## cuts the loop instead, so the path never doubles back on itself.
 func _queue_move(player: SimPlayer, direction: int) -> void:
+    if player.down:
+        # Crawling is slow, so no queue: one node at a time, chosen once the last one is reached.
+        if not player.is_moving():
+            var next := level.neighbour(player.node, direction)
+            player.path.assign([next] if next != SimLevel.NONE else [])
+        return
     var from: int = player.node if player.path.is_empty() else player.path.back()
     var to := level.neighbour(from, direction)
     if to == SimLevel.NONE:
