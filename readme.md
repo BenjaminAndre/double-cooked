@@ -10,7 +10,7 @@ Assets to have loaded (should be found on another repo like SVN or even a USB st
 `bash tools/fetch_deps.sh` (Git Bash on Windows) downloads the Kenney kit, tube and debug_draw_3d at the versions CI uses. WebRTC for desktop is still manual.
 
 ## Build
-Every push builds the Web export on GitHub Actions (`.github/workflows/build.yml`). Download it from the run's artifacts.
+Every push builds the Web export on GitHub Actions (`.github/workflows/build.yml`). Download it from the run's artifacts. Pushes to `main` also publish it to GitHub Pages: https://benjaminandre.github.io/double-cooked/
 
 ## Versioning
 Semantic versioning, stored in `project.godot` (`config/version`).
