@@ -18,6 +18,26 @@ const DISHES := {
 }
 
 
+## Short verbs for the interaction hint (see Simulation.action_for). Meant to become icons.
+const ACTIONS := {
+    &"revive": "relever",
+    &"extinguish": "éteindre",
+    &"heal": "se soigner",
+    &"fry": "plonger",
+    &"lift": "soulever",
+    &"take": "prendre",
+    &"sauce": "mayo",
+    &"trash": "jeter",
+    &"serve": "servir",
+    &"take_extinguisher": "prendre",
+    &"return_extinguisher": "reposer",
+}
+
+
+static func action(action_id: StringName) -> String:
+    return ACTIONS.get(action_id, String(action_id))
+
+
 static func dish(dish_id: StringName) -> String:
     return DISHES.get(dish_id, String(dish_id))
 

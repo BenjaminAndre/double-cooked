@@ -228,8 +228,8 @@ left = NodePath("../Anchor13")
 interactible = NodePath("../../../Interactibles/Bin")
 
 [node name="Camera3D" type="Camera3D" parent="DemoLevel"]
-transform = Transform3D(-0.963453, -0.22027381, 0.15243961, 7.188714e-08, 0.56906426, 0.82229304, -0.26787755, 0.79224074, -0.54826665, 0.20805016, 2.1942425, -2.2725782)
-fov = 92.279335
+transform = Transform3D(-0.963453, -0.22027381, 0.15243961, 7.188714e-08, 0.56906426, 0.82229304, -0.26787755, 0.79224074, -0.54826665, 0.82318485, 5.5124154, -4.484981)
+fov = 45.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="DemoLevel"]
 transform = Transform3D(-0.09827772, -0.3643391, 0.9260662, 1.2006495e-08, 0.93057114, 0.3661115, -0.99515915, 0.035980582, -0.09145439, 2.1483388, 2.7698739, 0)

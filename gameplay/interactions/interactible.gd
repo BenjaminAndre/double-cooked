@@ -16,6 +16,28 @@ const TOO_LATE := Color(1.0, 0.3, 0.2)
 @export var kind : StringName = &""
 
 var _state_label: Label3D
+var _highlight: MeshInstance3D
+
+
+## A pale shell around the station, while a player at this keyboard stands at it.
+func set_highlighted(on: bool) -> void:
+    if on and not _highlight:
+        var box := get_node_or_null("CSGBox3D") as CSGBox3D
+        if not box:
+            return
+        _highlight = MeshInstance3D.new()
+        var mesh := BoxMesh.new()
+        mesh.size = box.size + Vector3.ONE * 0.08
+        var material := StandardMaterial3D.new()
+        material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+        material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+        material.albedo_color = Color(1, 1, 1, 0.3)
+        mesh.material = material
+        _highlight.mesh = mesh
+        _highlight.transform = box.transform
+        add_child(_highlight)
+    if _highlight:
+        _highlight.visible = on
 
 
 ## Shows a fire on any station, and the fryer gauge: grey while too early, green in the

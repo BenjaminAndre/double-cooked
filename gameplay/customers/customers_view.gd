@@ -13,8 +13,9 @@ const ENTRANCE := Vector3(-6, 0, 0)
 const EXIT := Vector3(2.5, 0, -1)
 ## The camera is close to the line, so customers are drawn smaller than the players.
 const FIGURE_SCALE := 0.6
-## Tickets are drawn on screen above their customer, and pushed apart so they never overlap.
-const TICKET_HEIGHT := 0.55
+## Tickets are drawn on screen under their customer (clear of the counter), and pushed apart so
+## they never overlap.
+const TICKET_GAP_BELOW := 6.0
 const TICKET_GAP := 8.0
 const FRONT_FONT_SIZE := 24
 const BACK_FONT_SIZE := 18
@@ -67,7 +68,7 @@ func clear() -> void:
     _leaving.clear()
 
 
-## Each ticket sits above its customer on screen; a ticket that would overlap the previous one
+## Each ticket sits under its customer on screen; a ticket that would overlap the previous one
 ## is pushed along the line, so the order of the tickets always matches the line.
 func _show_tickets(crowd: SimCrowd) -> void:
     var camera := get_viewport().get_camera_3d()
@@ -89,9 +90,9 @@ func _show_tickets(crowd: SimCrowd) -> void:
         label.modulate = Color(1, 1, 1) if patience > 0.5 else Color(1, 0.8, 0.2) if patience > 0.25 \
                 else Color(1, 0.3, 0.2)
         ticket.reset_size()
-        var anchor := camera.unproject_position(figure.global_position + Vector3.UP * TICKET_HEIGHT)
+        var anchor := camera.unproject_position(figure.global_position)
         var left := maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP)
-        ticket.position = Vector2(left, anchor.y - ticket.size.y)
+        ticket.position = Vector2(left, anchor.y + TICKET_GAP_BELOW)
         previous_right = left + ticket.size.x
 
 

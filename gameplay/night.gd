@@ -230,8 +230,24 @@ func _on_tick_received(tick: int, check: int, commands: PackedInt32Array) -> voi
 func _show(alpha: float) -> void:
     for slot in _views.size():
         _views[slot].show_state(simulation.players[slot], simulation.level, alpha)
+    # Each player at this keyboard sees the station they stand at highlighted, and what their
+    # interact key would do there.
+    var highlighted := {}
+    for local_index in _local_slots.size():
+        var slot := _local_slots[local_index]
+        var player := simulation.players[slot]
+        var hint := ""
+        if not player.is_moving() and simulation.outcome == &"":
+            var station := simulation.level.node_stations[player.node]
+            if station != SimLevel.NONE:
+                highlighted[station] = true
+            var action := simulation.action_for(player)
+            if action != &"":
+                hint = "%s : %s" % [_input.interact_key_name(local_index), ItemNames.action(action)]
+        _views[slot].show_hint(hint)
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index])
+        _station_views[index].set_highlighted(highlighted.has(index))
 
 
 func _no_commands() -> Array:

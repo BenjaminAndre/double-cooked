@@ -12,15 +12,18 @@ var is_local_player : bool = true
 
 var _bump_tween: Tween
 var _hands_label: Label3D
+var _hint_label: Label3D
 
 
 func _ready() -> void:
-    _hands_label = Label3D.new()
-    _hands_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _hands_label.position = Vector3(0, 1.3, 0)
-    _hands_label.font_size = 28
-    _hands_label.outline_size = 8
-    add_child(_hands_label)
+    _hands_label = _label(1.3, 28)
+    _hint_label = _label(1.55, 26)
+    _hint_label.modulate = Color(1.0, 0.9, 0.3)
+
+
+## What this player's interact key would do here, "" for nothing (only for local players).
+func show_hint(text: String) -> void:
+    _hint_label.text = text
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
@@ -41,6 +44,16 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     $PlayerModel.rotation.z = PI / 2 if state.down else 0.0
     for node in state.path:
         DebugDraw3D.draw_sphere(level.positions[node], 0.12, Color.GREEN)
+
+
+func _label(height: float, size: int) -> Label3D:
+    var label := Label3D.new()
+    label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    label.position = Vector3(0, height, 0)
+    label.font_size = size
+    label.outline_size = 8
+    add_child(label)
+    return label
 
 
 ## A small hop when someone runs into this player.

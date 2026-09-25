@@ -150,10 +150,55 @@ func _advance(player: SimPlayer) -> void:
     player.edge_ticks = rules.crawl_ticks if player.down else _walk_ticks(player.node, target)
 
 
+## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
+## One of: revive, extinguish, heal, fry, lift, take, sauce, trash, serve, take_extinguisher,
+## return_extinguisher. _interact() only acts when this isn't empty, so the two always agree.
+func action_for(player: SimPlayer) -> StringName:
+    if not player.down and _fallen_neighbour(player.node):
+        return &"revive"
+    var index := level.node_stations[player.node]
+    if index == SimLevel.NONE:
+        return &""
+    var station := stations[index]
+    var held := player.focused_item()
+    if station.burning:
+        return &"extinguish" if held and held.kind == EXTINGUISHER and not player.down else &""
+    if player.down and station.kind != &"soins":
+        return &""
+    match station.kind:
+        &"soins":
+            return &"heal" if player.down or player.health < SimPlayer.MAX_HEALTH else &""
+        &"cuisson_1":
+            if not station.basket:
+                return &"fry"
+            if station.frying:
+                var rests := station.cook >= Fryer.FIRST_FRY_MIN and station.cook <= Fryer.FIRST_FRY_MAX
+                return &"lift" if rests or not held else &""
+            return &"take" if not held else &""
+        &"cuisson_2":
+            if not station.basket:
+                return &"fry" if held and held.kind == Fryer.FRIES_RESTING else &""
+            return &"lift" if not held else &""
+        &"sauces":
+            return &"sauce" if held and held.kind in Fryer.FINISHED and not held.sauce else &""
+        &"poubelle":
+            return &"trash" if held else &""
+        &"caisse":
+            var front := crowd.front()
+            return &"serve" if held and front and SimCrowd.dish_of(held) in front.order else &""
+        &"extincteur":
+            if not held:
+                return &"take_extinguisher"
+            return &"return_extinguisher" if held.kind == EXTINGUISHER else &""
+    return &""
+
+
 ## Getting a knocked-out neighbour back up comes first; otherwise the player uses the station
 ## at their last reached node with the focused hand (GDD §5.4). A knocked-out player can
 ## only use SOINS.
 func _interact(player: SimPlayer) -> void:
+    if action_for(player) == &"":
+        return
     if not player.down:
         var fallen := _fallen_neighbour(player.node)
         if fallen:

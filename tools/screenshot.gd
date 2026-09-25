@@ -1,15 +1,30 @@
 extends SceneTree
 ## Renders the game for a moment and saves a screenshot, to check layouts without the editor:
-##     godot --path . --resolution 1280x720 -s res://tools/screenshot.gd -- out.png [seconds] [setup]
+##     godot --path . --resolution 64x64 -s res://tools/screenshot.gd -- out.png [seconds] [setup]
 ## setup names one of the views prepared below, e.g. "crowd".
+##
+## Godot only renders while a window can draw (not headless, not minimized), so the window is
+## shrunk, made unfocusable and pushed off-screen, and the game renders into a SubViewport.
+
+const SIZE := Vector2i(1280, 720)
+
 
 func _initialize() -> void:
+    DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
+    DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+    DisplayServer.window_set_size(Vector2i.ONE)
+    DisplayServer.window_set_position(Vector2i(-32000, -32000))
     var args := OS.get_cmdline_user_args()
     var output := args[0] if args.size() > 0 else "user://screenshot.png"
     var seconds := float(args[1]) if args.size() > 1 else 1.0
+    var viewport := SubViewport.new()
+    viewport.size = SIZE
+    viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    root.add_child(viewport)
     var game: Node = load("res://game.tscn").instantiate()
-    root.add_child(game)
+    viewport.add_child(game)
     await process_frame
+    print("screenshot window at %s, size %s" % [DisplayServer.window_get_position(), DisplayServer.window_get_size()])
     var night: Night = game.get_node("Night")
     match args[2] if args.size() > 2 else "":
         "crowd":
@@ -41,7 +56,16 @@ func _initialize() -> void:
             sim.players[0].down = true
             sim.players[1].health = 0
             sim.players[1].down = true
+        "hints":
+            # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
+            night.play_local(2)
+            var sim := night.simulation
+            sim.players[0].node = sim.level.find("Anchor2")
+            sim.players[1].node = sim.level.find("Anchor4")
+            var fries := SimItem.new(Fryer.FRIES_RESTING)
+            fries.rest = Fryer.REST_NEEDED
+            sim.players[1].hands[0] = fries
     await create_timer(seconds).timeout
     await process_frame
-    root.get_viewport().get_texture().get_image().save_png(output)
+    viewport.get_texture().get_image().save_png(output)
     quit()

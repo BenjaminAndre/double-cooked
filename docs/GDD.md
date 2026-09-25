@@ -66,6 +66,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
   - Serving means interacting at the CAISSE with an ordered item in the focused hand (see §6.2).
   - Fryers keep their own state (§7.1).
 - Tactical depth: you choose which item you protect (focused) and which one you risk (non-focused) whenever you move through a crowd.
+- The station a player stands at is highlighted, with a hint of what their interact key does there (`Simulation.action_for`). Text for now; the aim is icons, and as little text as possible overall.
 
 ## 6. The room mood (ambiance)
 

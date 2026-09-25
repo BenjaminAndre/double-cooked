@@ -148,3 +148,38 @@ func _second_fry(put_in: int, second_fry: int) -> Simulation:
             .at(lift + 1, 0, INTERACT).at(lift + 2, 0, RIGHT) \
             .at(put_in, 0, INTERACT).at(put_in + second_fry, 0, INTERACT)
     return scenario.run_until(put_in + second_fry + 1)
+
+
+func test_the_hint_matches_what_each_fryer_step_would_do() -> void:
+    var scenario := Scenario.new(level, [fryer_1])
+    var sim := scenario.simulation
+    var player := sim.players[0]
+    assert_eq(sim.action_for(player), &"fry", "empty CUISSON 1")
+    scenario.at(0, 0, INTERACT).run_until(10)
+    assert_eq(sim.action_for(player), &"lift", "frying, free hand")
+    player.hands[0] = SimItem.new(Fryer.FRIES_COLD)
+    assert_eq(sim.action_for(player), &"", "too early with a full hand does nothing")
+    scenario.run_until(Fryer.FIRST_FRY_MIN)
+    assert_eq(sim.action_for(player), &"lift", "in the window the basket stays, so a full hand is fine")
+    scenario.at(Fryer.FIRST_FRY_MIN, 0, INTERACT).run_until(Fryer.FIRST_FRY_MIN + 1)
+    assert_eq(sim.action_for(player), &"", "resting basket, but the hand is full")
+    player.hands[0] = null
+    assert_eq(sim.action_for(player), &"take")
+
+
+func test_the_hint_at_cuisson_2_sauces_and_the_bin() -> void:
+    var scenario := Scenario.new(level, [fryer_2])
+    var sim := scenario.simulation
+    var player := sim.players[0]
+    assert_eq(sim.action_for(player), &"", "nothing to put in")
+    player.hands[0] = SimItem.new(Fryer.FRIES_RESTING)
+    assert_eq(sim.action_for(player), &"fry")
+    player.node = sauces
+    player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+    assert_eq(sim.action_for(player), &"sauce")
+    player.hands[0].sauce = true
+    assert_eq(sim.action_for(player), &"", "already has mayo")
+    player.node = bin
+    assert_eq(sim.action_for(player), &"trash")
+    player.hands[0] = null
+    assert_eq(sim.action_for(player), &"")

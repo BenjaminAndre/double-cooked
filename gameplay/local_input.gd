@@ -37,11 +37,21 @@ const DUO := [{
     &"p2_interact": Simulation.Command.INTERACT,
 }]
 
+## The interact key of each layout, as shown in hints.
+const SOLO_INTERACT_KEYS := ["Espace"]
+const DUO_INTERACT_KEYS := ["Espace", "Maj"]
+
 var _layouts: Array
+var _interact_keys: Array
 
 
 func _init(local_players: int) -> void:
     _layouts = SOLO if local_players == 1 else DUO
+    _interact_keys = SOLO_INTERACT_KEYS if local_players == 1 else DUO_INTERACT_KEYS
+
+
+func interact_key_name(local_index: int) -> String:
+    return _interact_keys[local_index]
 
 
 ## Returns [slot, command] for a key press, or [] if it isn't one of ours.

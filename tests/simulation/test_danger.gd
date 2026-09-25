@@ -159,3 +159,22 @@ func _burning_fryer(spawns: Array) -> Scenario:
     scenario.simulation.stations[1].basket = SimItem.new(Fryer.FRIES_RAW)
     scenario.simulation.stations[1].frying = true
     return scenario
+
+
+func test_the_hint_puts_reviving_first_and_offers_the_extinguisher() -> void:
+    var scenario := _scenario([sauces, soins])
+    var sim := scenario.simulation
+    sim.players[1].health = 1
+    assert_eq(sim.action_for(sim.players[1]), &"heal")
+    sim.players[0].health = 0
+    sim.players[0].down = true
+    assert_eq(sim.action_for(sim.players[1]), &"revive", "before SOINS")
+    assert_eq(sim.action_for(sim.players[0]), &"", "down, and not at SOINS")
+    sim.players[0].node = extinguisher
+    sim.players[0].down = false
+    assert_eq(sim.action_for(sim.players[0]), &"take_extinguisher")
+    sim.players[0].hands[0] = SimItem.new(Simulation.EXTINGUISHER)
+    assert_eq(sim.action_for(sim.players[0]), &"return_extinguisher")
+    sim.players[0].node = fryer
+    sim.stations[1].burning = true
+    assert_eq(sim.action_for(sim.players[0]), &"extinguish")

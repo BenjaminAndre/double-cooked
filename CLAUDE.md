@@ -16,10 +16,10 @@ A keyboard-only multiplayer game about surviving the night in a Belgian fritkot,
 godot --headless --path . --import                   # after adding scripts or assets (registers class_names)
 godot --headless --path . -s addons/gut/gut_cmdln.gd # all tests (GUT, config in .gutconfig.json)
 godot --headless --path . --quit-after 300           # run the game briefly and check the log for errors
-godot --path . --position -32000,-32000 --resolution 1280x720 -s res://tools/screenshot.gd -- out.png 3 crowd
+godot --path . --resolution 64x64 -s res://tools/screenshot.gd -- out.png 3 crowd
 ```
 
-The last command renders a screenshot to check a layout (setups are listed in the script). The window must stay **off-screen**: never pop one on the user's monitor. Headless can't render, and a minimized window renders a blank image.
+The last command renders a 1280×720 screenshot to check a layout (setups are listed in the script). **Never pop a window on the user's monitor.** The script shrinks its window, moves it off-screen at runtime and renders into a SubViewport. Headless can't render, a minimized window renders blank, and `--position` at startup gets pulled back on screen.
 
 `bash tools/fetch_deps.sh` downloads the git-ignored `assets/` and `addons/` folders at pinned versions. On this machine, set `CURL_EXTRA=--ssl-revoke-best-effort`. The "invalid UID" warnings for Kenney models are expected: those UIDs are generated per machine.
 
