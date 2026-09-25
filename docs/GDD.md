@@ -39,7 +39,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ### 5.1 Health and knock-out
 - Each player has 3 hearts (already implemented).
 - At 0 hearts a player is **knocked out**. They lie on their node and **block it**, until a teammate gets them back up by interacting with them.
-- The night is **lost when every player is knocked out at the same time**.
+- The night is **lost when every player is knocked out at the same time**, or **when the room riots**: the mood meter reaches its top (§6).
 - The SOINS station restores hearts.
 - **Solo play is supported.** A knocked-out player can **crawl** slowly toward SOINS to get back up alone. In solo this is the only way to recover, and the night is lost if the room riots first.
 - **(proposal)** A revived player comes back with 1 heart. Crawling speed: one node every few seconds.
@@ -84,6 +84,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - An order has **one or two items at most** (e.g. frites + bière, or two mitraillettes).
 - **Only the customer at the front of the line shows a ticket**: their order plus a patience bar, above their head. The rest of the line is visible, but their orders stay unknown until they reach the front.
 - **Everyone in the line loses patience**, slowly, and the customer at the front loses it much faster. A long line raises the mood on its own, even if nobody is served badly.
+- **(slice default)** A customer whose patience runs out **walks out**, which raises the mood a lot. Players can tune it or replace it once other hazards exist.
 - **Items are handed over one at a time.** Each interaction at the CAISSE delivers the focused item, and the ticket ticks it off. A two-item order can be served with both hands in a row (switching focus with Q/F), or the second item can be brought later.
 
 ## 7. Cooking
@@ -179,4 +180,4 @@ To tune by playing the slice, not on paper:
 3. Patience speeds (front and rest of the line), and the customer rate per player count.
 4. Fire timings (damage interval, spread delay).
 
-To decide after the slice: the other hazards (§8), the rest of the menu (§7.2), customer types beyond the first (§6.1), and whether customers can walk out.
+To decide after the slice: the other hazards (§8), the rest of the menu (§7.2), and customer types beyond the first (§6.1).

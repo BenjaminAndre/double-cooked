@@ -20,22 +20,37 @@ var stations: Array[SimStation] = []
 var events: Array[Dictionary] = []
 ## The only source of randomness, so that a seed replays the same night.
 var rng := RandomNumberGenerator.new()
+var rules: SimRules
+var crowd: SimCrowd
+## &"won" at closing time, &"lost" when the room riots; &"" while the night goes on.
+var outcome := &""
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
-func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int) -> void:
+func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: SimRules = null) -> void:
     level = p_level
     rng.seed = p_seed
+    rules = p_rules if p_rules else SimRules.new()
+    crowd = SimCrowd.new(rules)
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
     for kind in level.station_kinds:
         stations.append(SimStation.new(kind))
 
 
+## Minutes since 18:00 on the night's clock.
+func clock_minutes() -> int:
+    return mini(tick, rules.night_ticks) * 600 / rules.night_ticks
+
+
 ## Advances one tick. commands[slot] lists that player's commands for this tick, in press order.
 ## Players are resolved in slot order, which is the tie-break for simultaneous moves.
+## Once the night is over, nothing changes any more.
 func step(commands: Array) -> void:
     events.clear()
+    if outcome != &"":
+        tick += 1
+        return
     for slot in mini(commands.size(), players.size()):
         for command: int in commands[slot]:
             _apply(players[slot], command)
@@ -46,7 +61,12 @@ func step(commands: Array) -> void:
     for player in players:
         for item in player.hands:
             Fryer.advance_item(item)
+    crowd.advance(tick, players.size(), rng, events)
     tick += 1
+    if crowd.mood >= rules.riot:
+        _end(&"lost")
+    elif tick >= rules.night_ticks:
+        _end(&"won")
 
 
 ## Fingerprint of the state, to check that two runs (or host and client) agree.
@@ -56,6 +76,8 @@ func state_hash() -> int:
         state.append(p.fingerprint())
     for station in stations:
         state.append(station.fingerprint())
+    state.append(crowd.fingerprint())
+    state.append(outcome)
     return hash(state)
 
 
@@ -130,6 +152,14 @@ func _interact(player: SimPlayer) -> void:
                 held.sauce = true
         &"poubelle":
             player.set_focused_item(null)
+        &"caisse":
+            if crowd.serve(held, events):
+                player.set_focused_item(null)
+
+
+func _end(result: StringName) -> void:
+    outcome = result
+    events.append({"type": &"night_over", "outcome": result})
 
 
 func _occupant(node: int) -> SimPlayer:

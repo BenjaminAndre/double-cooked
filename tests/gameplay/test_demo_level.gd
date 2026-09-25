@@ -44,3 +44,27 @@ func test_the_game_scene_starts_a_night_and_toggles_duo() -> void:
     await wait_process_frames(2)
     assert_eq(night.simulation.players.size(), 2)
     assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 2)
+
+
+func test_the_clock_runs_from_18_00_to_04_00() -> void:
+    assert_eq(Hud.clock(0), "18:00")
+    assert_eq(Hud.clock(363), "00:03")
+    assert_eq(Hud.clock(600), "04:00")
+
+
+func test_enter_starts_a_new_night_once_it_is_over() -> void:
+    var game: Node = add_child_autofree(GAME_SCENE.instantiate())
+    var night: Night = game.get_node("Night")
+    await wait_process_frames(1)
+    var enter := InputEventKey.new()
+    enter.physical_keycode = KEY_ENTER
+    enter.pressed = true
+    var before := night.simulation
+    night._unhandled_input(enter)
+    assert_eq(night.simulation, before, "Enter does nothing during the night")
+    night.simulation.crowd.mood = night.simulation.rules.riot
+    await wait_process_frames(3)
+    assert_eq(night.simulation.outcome, &"lost")
+    night._unhandled_input(enter)
+    assert_ne(night.simulation, before)
+    assert_eq(night.simulation.outcome, &"")

@@ -13,8 +13,8 @@ var events: Array[Dictionary] = []
 var _timeline := {}
 
 
-func _init(level: SimLevel, spawns: PackedInt32Array, seed_value := 0) -> void:
-    simulation = Simulation.new(level, spawns, seed_value)
+func _init(level: SimLevel, spawns: PackedInt32Array, seed_value := 0, rules: SimRules = null) -> void:
+    simulation = Simulation.new(level, spawns, seed_value, rules)
 
 
 ## Rebuilds a recorded night (Night.replay(), or a file from user://replays) on its level.

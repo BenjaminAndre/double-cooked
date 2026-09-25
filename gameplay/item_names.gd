@@ -12,6 +12,15 @@ const NAMES := {
 }
 
 
+const DISHES := {
+    SimCrowd.FRITES_MAYO: "frites mayo",
+}
+
+
+static func dish(dish_id: StringName) -> String:
+    return DISHES.get(dish_id, String(dish_id))
+
+
 static func of(item: SimItem) -> String:
     if not item:
         return "—"

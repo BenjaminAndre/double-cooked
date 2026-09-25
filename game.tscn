@@ -5,6 +5,8 @@
 [ext_resource type="Script" path="res://gameplay/night.gd" id="6_night"]
 [ext_resource type="Script" path="res://network/night_link.gd" id="7_link"]
 [ext_resource type="Script" path="res://network/lobby.gd" id="8_lobby"]
+[ext_resource type="Script" path="res://gameplay/customers/customers_view.gd" id="9_customers"]
+[ext_resource type="Script" path="res://gameplay/hud.gd" id="10_hud"]
 [ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_feb5d"]
@@ -406,4 +408,13 @@ script = ExtResource("7_link")
 
 [node name="Lobby" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
 script = ExtResource("8_lobby")
+night = NodePath("../Night")
+
+[node name="Customers" type="Node3D" parent="." node_paths=PackedStringArray("night")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0, -2.35)
+script = ExtResource("9_customers")
+night = NodePath("../Night")
+
+[node name="Hud" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
+script = ExtResource("10_hud")
 night = NodePath("../Night")

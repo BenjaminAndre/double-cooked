@@ -117,11 +117,16 @@ func replay() -> Dictionary:
 
 func _unhandled_input(event: InputEvent) -> void:
     var key := event as InputEventKey
-    if role == Role.OFFLINE and key and key.pressed and not key.echo \
-            and key.physical_keycode == TOGGLE_DUO_KEY:
-        play_local(2 if _local_slots.size() == 1 else 1)
-        get_viewport().set_input_as_handled()
-        return
+    if role == Role.OFFLINE and key and key.pressed and not key.echo:
+        var restart := -1
+        if key.physical_keycode == TOGGLE_DUO_KEY:
+            restart = 2 if _local_slots.size() == 1 else 1
+        elif simulation.outcome != &"" and key.physical_keycode in [KEY_ENTER, KEY_KP_ENTER]:
+            restart = _local_slots.size()
+        if restart != -1:
+            play_local(restart)
+            get_viewport().set_input_as_handled()
+            return
     var command := _input.read(event)
     if not command.is_empty():
         submit(command[0], command[1])
