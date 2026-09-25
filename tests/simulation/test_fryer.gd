@@ -96,7 +96,7 @@ func test_cuisson_2_only_takes_blanched_fries() -> void:
     scenario.at(0, 0, INTERACT).run_until(1)
     assert_null(scenario.simulation.stations[1].basket)
     assert_null(scenario.simulation.players[0].item, "the fryer won't take them, so they get eaten")
-    assert_eq(scenario.simulation.players[0].fat, 1)
+    assert_eq(scenario.simulation.players[0].bmi, 22)
 
 
 func test_the_sauces_menu_puts_the_chosen_sauce_on() -> void:

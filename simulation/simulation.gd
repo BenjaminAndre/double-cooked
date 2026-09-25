@@ -47,8 +47,11 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     crowd = SimCrowd.new(rules)
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
+        players[slot].bmi = rules.start_bmi
     for kind in level.station_kinds:
         stations.append(SimStation.new(kind))
+        if kind == &"frigo":
+            stations[-1].beers = rules.fridge_beers
     var per_player := []
     per_player.resize(players.size())
     per_player.fill(0)
@@ -77,6 +80,11 @@ func step(commands: Array) -> void:
         _advance(player)
     for station in stations:
         Fryer.advance(station)
+        if station.kind == &"frigo" and station.beers < rules.fridge_beers:
+            station.restock += 1
+            if station.restock >= rules.fridge_restock:
+                station.restock = 0
+                station.beers += 1
     _advance_fires()
     for player in players:
         _check_menu(player)
@@ -150,7 +158,13 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
             match station.kind:
                 &"sauces":
                     player.item.sauce = option
-                &"frigo", &"viandes":
+                &"frigo":
+                    if option == Menu.BEER:
+                        if station.beers == 0:
+                            return true
+                        station.beers -= 1
+                    player.item = SimItem.new(option)
+                &"viandes":
                     player.item = SimItem.new(option)
         Command.CANCEL:
             player.menu = SimLevel.NONE
@@ -346,6 +360,7 @@ func _advance(player: SimPlayer) -> void:
         if player.progress < player.edge_ticks:
             return
         player.node = player.path.pop_front()
+        _burn(player)
         player.progress = 0
         player.edge_ticks = 0
     if player.path.is_empty():
@@ -357,9 +372,9 @@ func _advance(player: SimPlayer) -> void:
         events.append({"type": &"bump", "by": player.slot, "target": occupant.slot})
         occupant.stun = rules.bump_stun
         return
-    # Every bite or drink of the night makes the walk a little slower (GDD §5.1).
+    # Every BMI point over a healthy start makes the walk slower (GDD §5.1); thinner isn't faster.
     player.edge_ticks = rules.crawl_ticks if player.down \
-            else roundi(_walk_ticks(player.node, target) * (1.0 + player.fat * rules.fat_slowdown))
+            else roundi(_walk_ticks(player.node, target) * (1.0 + maxi(player.bmi - rules.start_bmi, 0) * rules.bmi_slowdown))
 
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
@@ -466,13 +481,14 @@ func _interact(player: SimPlayer) -> void:
                 player.item = null
 
 
-## Eating or drinking what is held: a heart back (and back on their feet if knocked out), and
-## a little fatter and slower for the rest of the night, even at full health (GDD §5.1).
+## Eating or drinking what is held: a heart back and a BMI point (back on their feet if that
+## was what they lacked), even at full health (GDD §5.1).
 func _consume(player: SimPlayer) -> void:
     player.item = null
     player.health = mini(player.health + 1, SimPlayer.MAX_HEALTH)
-    player.down = false
-    player.fat += 1
+    player.bmi += 1
+    # Back up once they have a heart and aren't starving any more.
+    player.down = player.health == 0 or player.bmi <= rules.knockout_bmi
     events.append({"type": &"fattened", "slot": player.slot})
 
 
@@ -539,10 +555,31 @@ func _hurt(player: SimPlayer) -> void:
     player.health -= 1
     events.append({"type": &"hurt", "slot": player.slot})
     if player.health == 0:
-        player.down = true
-        # A falling player finishes the step under way, and nothing more.
-        player.path.resize(1 if player.is_moving() else 0)
-        events.append({"type": &"knocked_out", "slot": player.slot})
+        _knock_out(player)
+
+
+func _knock_out(player: SimPlayer) -> void:
+    if player.down:
+        return
+    player.down = true
+    # A falling player finishes the step under way, and nothing more.
+    player.path.resize(1 if player.is_moving() else 0)
+    events.append({"type": &"knocked_out", "slot": player.slot})
+
+
+## Every SimRules.moves_per_bmi nodes walked burn a BMI point; at knockout_bmi the player
+## collapses, undernourished (GDD §5.1). Crawling burns nothing.
+func _burn(player: SimPlayer) -> void:
+    if player.down:
+        return
+    player.walked += 1
+    if player.walked < rules.moves_per_bmi:
+        return
+    player.walked = 0
+    player.bmi -= 1
+    events.append({"type": &"thinner", "slot": player.slot})
+    if player.bmi <= rules.knockout_bmi:
+        _knock_out(player)
 
 
 func _count(step_events: Array[Dictionary]) -> void:

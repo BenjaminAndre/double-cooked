@@ -54,8 +54,17 @@ var fireproof: Array[StringName] = [&"extincteur"]
 var crawl_ticks := 2 * SECOND
 ## A bumped player is stunned this long: no moving, no acting (GDD §5.3).
 var bump_stun := 15
-## Each thing eaten or drunk makes a player this much slower, for the rest of the night.
-var fat_slowdown := 0.08
+## Body mass index (GDD §5.1): everyone starts healthy, each thing eaten or drunk adds a point,
+## and every moves_per_bmi nodes walked burns one. Above start_bmi a player is slower by
+## bmi_slowdown per point; at knockout_bmi they collapse, undernourished.
+var start_bmi := 21
+var knockout_bmi := 16
+var moves_per_bmi := 25
+var bmi_slowdown := 0.12
+
+## Beers in the FRIGO: it starts full and gets one back every fridge_restock ticks.
+var fridge_beers := 5
+var fridge_restock := 25 * SECOND
 
 ## Throwing a beer (GDD §8): hold interact this long with a beer in hand to aim instead of
 ## using the station; release to throw.

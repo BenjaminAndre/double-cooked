@@ -17,7 +17,7 @@ Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole cr
 4. Serve at the CAISSE: whatever you hold goes to the front customer. The right order, done right, makes them happy; anything else sends them off angry. A beer always pleases. The first three customers' tickets show their orders.
 5. Hold Space with a beer to aim at a customer (arrows), release to throw it: everyone is glad of a beer. Angry customers throw cans back: step out of the red ring.
 6. Forgotten fryers catch fire. Grab the EXTINCTEUR and interact at the fire.
-7. No healing station: eat or drink what you hold (interact where nothing else happens) for a heart, and get a bit fatter and slower each time. At 0 hearts you're K.O.: a teammate throws you a beer (aim up), or you crawl to the FRIGO.
+7. No healing station: eat or drink what you hold (interact where nothing else happens) for a heart and a BMI point. You start at BMI 21; walking burns it (1 per 25 nodes), above 21 you are slower, at 16 you collapse. The FRIGO only holds 5 beers. At 0 hearts you're K.O.: a teammate throws you a beer (aim up), or you crawl to the FRIGO.
 
 ## Controls
 Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.

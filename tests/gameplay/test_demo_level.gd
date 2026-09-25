@@ -109,7 +109,7 @@ func test_knocked_out_alone_a_player_crawls_to_the_fridge_and_drinks() -> void:
     scenario.at(t + 3, 0, C.INTERACT).at(t + 3, 0, C.RELEASE).run_until(t + 4)
     assert_false(player.down)
     assert_eq(player.health, 1)
-    assert_eq(player.fat, 1)
+    assert_eq(player.bmi, 22)
 
 
 func test_the_drink_hint_shows_when_knocked_out_with_a_beer() -> void:

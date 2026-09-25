@@ -80,3 +80,28 @@ func _fried(kind: StringName, cook: int) -> SimItem:
     scenario.simulation.players[0].item = SimItem.new(kind)
     var sim := scenario.at(0, 0, INTERACT).at(cook, 0, INTERACT).run_until(cook + 1)
     return sim.players[0].item
+
+
+func test_the_fridge_runs_out_of_beers_and_restocks_slowly() -> void:
+    var rules := SimRules.new()
+    rules.fridge_beers = 2
+    var scenario := Scenario.new(level, [fridge], 0, rules)
+    var sim := scenario.simulation
+    var player := sim.players[0]
+    for taken in 3:
+        var t := sim.tick
+        scenario.at(t, 0, INTERACT).at(t + 1, 0, RIGHT).at(t + 2, 0, INTERACT).run_until(t + 3)
+        if taken < 2:
+            assert_eq(player.item.kind, Menu.BEER)
+            player.item = null
+    assert_null(player.item, "the third beer isn't there")
+    assert_eq(sim.stations[2].beers, 0)
+    scenario.run_until(sim.tick + rules.fridge_restock)
+    assert_eq(sim.stations[2].beers, 1, "one came back")
+
+
+func test_colas_never_run_out() -> void:
+    var rules := SimRules.new()
+    rules.fridge_beers = 0
+    var sim := Scenario.new(level, [fridge], 0, rules).at(0, 0, INTERACT).at(1, 0, INTERACT).run_until(2)
+    assert_eq(sim.players[0].item.kind, Menu.COLA)

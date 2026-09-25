@@ -4,13 +4,19 @@ extends Node3D
 ## show_state() every frame.
 
 const BUMP_HOP := 0.15
-## How much wider a player gets per thing eaten or drunk.
+## How much wider a player gets per BMI point over a healthy start, and thinner per point under.
 const FAT_WIDTH := 0.12
+const THIN_WIDTH := 0.07
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
 var pseudo : String = "Player"
 var is_local_player : bool = true
+## Close to collapsing from hunger (GDD §5.1): the name says so.
+var hungry := false
+## Set by Night from SimRules.
+var level_start_bmi := 21
+var hungry_below := 18
 
 var _bump_tween: Tween
 var _hands_label: Label3D
@@ -57,8 +63,10 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)
         shown = shown.lerp(level.positions[state.path[0]], t)
     global_position = shown
-    # Wider with every bite of the night (GDD §5.1).
-    var girth := 1.0 + FAT_WIDTH * state.fat
+    # Wider with every BMI point, thinner as they waste away (GDD §5.1).
+    var over := state.bmi - level_start_bmi
+    var girth := 1.0 + (FAT_WIDTH if over > 0 else THIN_WIDTH) * over
+    hungry = state.bmi <= hungry_below
     $PlayerModel.scale = Vector3(girth, 1.0, girth)
     # Knocked out: lying on the floor.
     $PlayerModel.rotation.z = PI / 2 if state.down else 0.0

@@ -116,11 +116,12 @@ func _initialize() -> void:
             # P1 has eaten a lot (and just ate again); P2 aims a beer at P1.
             night.play_local(2)
             var sim := night.simulation
-            sim.players[0].fat = 4
+            sim.players[0].bmi = 25
             sim.players[0].node = sim.level.find("Anchor3")
             night._views[0].show_fat_gain()
             var p2 := sim.players[1]
             p2.node = sim.level.find("Anchor11")
+            p2.bmi = 17
             p2.item = SimItem.new(Menu.BEER)
             p2.aim = 0
             p2.aim_player = 0

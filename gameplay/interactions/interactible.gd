@@ -49,6 +49,8 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     var frying := kind in FRYERS and station.basket != null and station.frying and not station.burning
     if station.burning:
         label = "FEU !"
+    elif kind == &"frigo":
+        label = "bière ×%d" % station.beers
     elif kind in FRYERS and station.basket and not station.frying:
         label = "×%d" % station.basket.portions
     _show_label(label, station.burning)
@@ -65,7 +67,10 @@ func _show_label(text: String, fire: bool) -> void:
     if not _state_label:
         _state_label = Label3D.new()
         _state_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-        _state_label.position = Vector3(0, LABEL_HEIGHT, 0)
+        # Just above the station's box, however tall it is.
+        var box := get_node_or_null("CSGBox3D") as CSGBox3D
+        var top := box.position.y + box.size.y / 2 + 0.3 if box else LABEL_HEIGHT
+        _state_label.position = Vector3(0, maxf(top, LABEL_HEIGHT), 0)
         _state_label.outline_size = 10
         add_child(_state_label)
     _state_label.visible = text != ""

@@ -40,7 +40,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ### 5.1 Health, eating and knock-out
 - Each player has 3 hearts, shown as ♥ over their head.
 - **There is no healing station** (SOINS was removed after the third playtest). A player heals by **eating or drinking what they hold**: interacting where the station has nothing to do with it (or where there is no station) eats it, 1 heart at a time. Any food works, however badly done, and so do drinks, which can be had almost anywhere except the CAISSE and the POUBELLE. Eating the burnt fries instead of walking to the bin is a real choice.
-- **Every bite or drink makes the player fatter and a little slower for the rest of the night**, even at full health (a death spiral). The figure widens and a discreet "+Gras" pops up.
+- **Body mass index** (after the fourth playtest): everyone starts at a healthy **21**. Every bite or drink adds **+1** (even at full health; a discreet "+Gras" pops up), and every **25 nodes walked** burn **−1**. Above 21 the player is wider and **12% slower per point**; below 21 they are visibly thinner but not faster. At **16** they collapse, undernourished, and need a beer like any knocked-out player (their name says "affamé" from 18). Running the fritkot either drains you or fattens you.
 - At 0 hearts a player is **knocked out**: they lie on their node and **block it**, crawl slowly (about 2 s per node, one node at a time), and can only eat or drink what they hold, or use the FRIGO.
 - **Rescue:** a teammate throws them a beer (§8), which they drink at once to get back up with 1 heart. Alone, a knocked-out player crawls to the FRIGO and drinks a beer. Rescue beers count toward the fat too.
 - The night is **lost when every player is knocked out at the same time** (from two players up), or **when the room riots**: the mood meter reaches its top (§6).
@@ -118,7 +118,7 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
   - **frites** with a sauce;
   - **fricadelle** (raw from VIANDES, fried once in a CUISSON 2) with a sauce;
   - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON 2, with a sauce;
-  - **cola** or **bière** from the FRIGO.
+  - **cola** or **bière** from the FRIGO. Colas never run out; the FRIGO holds **5 beers** and gets one back every 25 s (shown over it and in its menu), so beers are a shared, scarce resource for orders, gifts, rescues and healing (after the fourth playtest: one player was spending the night gifting beers).
 - The sauces are **mayo** and **andalouse**, or **nature** (no sauce), which customers order too.
 - Nothing with sauce goes into a fryer.
 - CUISSON 2 lifts meats with the same window as fries: too early gives undercooked (fricadelle) or lukewarm (cervelas), too late gives burnt. Both are served at a mood penalty.

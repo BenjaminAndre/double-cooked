@@ -134,7 +134,7 @@ func test_eating_or_drinking_gives_a_heart_and_fat_even_at_full_health() -> void
     player.item = SimItem.new(Fryer.FRIES_BURNT)
     scenario.at(3, 0, INTERACT).run_until(4)
     assert_eq(player.health, SimPlayer.MAX_HEALTH, "capped")
-    assert_eq(player.fat, 3, "but it all counts")
+    assert_eq(player.bmi, 24, "but it all counts")
     assert_true(scenario.events.any(func(e: Dictionary) -> bool: return e.type == &"fattened"))
 
 
@@ -155,7 +155,7 @@ func test_every_bite_makes_the_walk_slower() -> void:
     sim.players[0].node = extinguisher
     sim.players[0].path.clear()
     sim.players[0].edge_ticks = 0
-    sim.players[0].fat = 5
+    sim.players[0].bmi = 26
     scenario.at(2, 0, RIGHT).run_until(3)
     assert_gt(sim.players[0].edge_ticks, lean)
 
@@ -173,7 +173,7 @@ func test_a_beer_thrown_to_a_knocked_out_teammate_gets_them_up() -> void:
     scenario.run_until(3 + rules.aim_hold + rules.beer_flight)
     assert_false(sim.players[0].down)
     assert_eq(sim.players[0].health, 1)
-    assert_eq(sim.players[0].fat, 1, "rescue beers count too")
+    assert_eq(sim.players[0].bmi, 22, "rescue beers count too")
     assert_eq(sim.stats.revives[1], 1)
 
 
@@ -185,7 +185,7 @@ func test_a_beer_thrown_to_a_teammate_lands_in_an_empty_hand() -> void:
             .at(2 + rules.aim_hold, 1, Simulation.Command.RELEASE)
     scenario.run_until(3 + rules.aim_hold + rules.beer_flight)
     assert_eq(sim.players[0].item.kind, Menu.BEER)
-    assert_eq(sim.players[0].fat, 0, "caught, not drunk")
+    assert_eq(sim.players[0].bmi, 21, "caught, not drunk")
 func test_the_night_is_lost_when_the_whole_crew_is_down() -> void:
     var scenario := _scenario([sauces, extinguisher])
     for slot in 2:
@@ -251,3 +251,36 @@ func test_crawling_keeps_no_queue() -> void:
     scenario.run_until(1 + rules.crawl_ticks + 1)
     assert_eq(player.node, fryer)
     assert_true(player.path.is_empty(), "stops at the first node")
+
+
+func test_walking_burns_a_bmi_point_every_so_many_nodes() -> void:
+    var scenario := _scenario([sauces])
+    for step in rules.moves_per_bmi:
+        scenario.at(step * 5, 0, RIGHT if step % 2 == 0 else LEFT)
+    var sim := scenario.run_until(rules.moves_per_bmi * 5 + 5)
+    assert_eq(sim.players[0].bmi, rules.start_bmi - 1)
+    assert_eq(sim.players[0].walked, 0)
+
+
+func test_undernourished_a_player_collapses_and_a_beer_gets_them_up() -> void:
+    var scenario := _scenario([sauces])
+    var player := scenario.simulation.players[0]
+    player.bmi = rules.knockout_bmi + 1
+    player.walked = rules.moves_per_bmi - 1
+    var sim := scenario.at(0, 0, RIGHT).run_until(6)
+    assert_eq(player.bmi, rules.knockout_bmi)
+    assert_true(player.down, "starving")
+    assert_eq(player.health, SimPlayer.MAX_HEALTH, "hearts have nothing to do with it")
+    player.item = SimItem.new(Menu.BEER)
+    scenario.at(sim.tick, 0, INTERACT).run_until(sim.tick + 1)
+    assert_false(player.down)
+
+
+func test_being_thin_is_not_faster_but_being_heavy_is_slower() -> void:
+    var ticks := {}
+    for bmi in [rules.start_bmi, rules.start_bmi - 3, rules.start_bmi + 3]:
+        var scenario := _scenario([sauces])
+        scenario.simulation.players[0].bmi = bmi
+        ticks[bmi] = scenario.at(0, 0, RIGHT).run_until(1).players[0].edge_ticks
+    assert_eq(ticks[rules.start_bmi - 3], ticks[rules.start_bmi])
+    assert_gt(ticks[rules.start_bmi + 3], ticks[rules.start_bmi])

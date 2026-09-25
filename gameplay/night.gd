@@ -222,6 +222,8 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     for slot in player_count:
         var view: Player = PLAYER_SCENE.instantiate()
         view.is_local_player = slot in local_slots
+        view.level_start_bmi = simulation.rules.start_bmi
+        view.hungry_below = simulation.rules.knockout_bmi + 2
         view.pseudo = "You" if player_count == 1 else "P%d" % (slot + 1)
         players_parent.add_child(view)
         _views.append(view)
@@ -271,8 +273,12 @@ func _show(p_alpha: float) -> void:
         _views[slot].show_hint(hint)
         var options: Array = []
         if player.menu != SimLevel.NONE:
-            for option: StringName in Menu.STATION_OPTIONS[simulation.stations[player.menu].kind]:
-                options.append(ItemNames.word(option))
+            var menu_station := simulation.stations[player.menu]
+            for option: StringName in Menu.STATION_OPTIONS[menu_station.kind]:
+                var word := ItemNames.word(option)
+                if option == Menu.BEER:
+                    word += " ×%d" % menu_station.beers
+                options.append(word)
         _views[slot].show_menu(options, player.menu_choice)
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
