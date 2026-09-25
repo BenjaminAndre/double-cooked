@@ -3,7 +3,7 @@ extends RefCounted
 ## The fritkot's menu (GDD §7.2): what the menu stations offer, what CUISSON 2 turns things
 ## into, what each item counts as when served, and how customers pick their orders.
 ##
-## An order line is one hand's worth: fries with a sauce, a meat with a sauce, or a drink.
+## A customer orders one line, one hand's worth: fries with a sauce, a meat with a sauce, or a drink.
 ## Its key reads "frites:mayo", "cervelas_chaud:nature" or "cola".
 
 const MAYO := &"mayo"
@@ -57,8 +57,7 @@ const DISHES := {
     BEER: [BEER, true],
 }
 
-## The dishes an order line can ask for, per category. A customer orders at most one line
-## of each category.
+## The dishes an order line can ask for, per category.
 const FRIES_DISHES: Array[StringName] = [&"frites"]
 const MEAT_DISHES: Array[StringName] = [&"fricadelle", &"cervelas_froid", &"cervelas_chaud"]
 
@@ -82,29 +81,15 @@ static func done_right(item: SimItem) -> bool:
     return DISHES.has(item.kind) and DISHES[item.kind][1]
 
 
-## One to three order lines, at most one of each category (fries, meat, drink), listed in
-## that order. size_weights[n] is the weight of an (n + 1)-line order.
-static func random_order(rng: RandomNumberGenerator, size_weights: PackedFloat32Array) -> Array[StringName]:
-    var size := rng.rand_weighted(size_weights) + 1
-    var categories := [0, 1, 2]
-    # Fisher-Yates with the simulation's generator, so the order replays.
-    for index in range(categories.size() - 1, 0, -1):
-        var other := rng.randi_range(0, index)
-        var swap: int = categories[index]
-        categories[index] = categories[other]
-        categories[other] = swap
-    var chosen := categories.slice(0, size)
-    chosen.sort()
-    var order: Array[StringName] = []
-    for category in chosen:
-        match category:
-            0:
-                order.append(_with_sauce(FRIES_DISHES[0], rng))
-            1:
-                order.append(_with_sauce(MEAT_DISHES[rng.randi_range(0, MEAT_DISHES.size() - 1)], rng))
-            2:
-                order.append(DRINKS[rng.randi_range(0, DRINKS.size() - 1)])
-    return order
+## One order line: fries, a meat or a drink, picked by category_weights, then a dish and a
+## sauce at random.
+static func random_order(rng: RandomNumberGenerator, category_weights: PackedFloat32Array) -> StringName:
+    match rng.rand_weighted(category_weights):
+        0:
+            return _with_sauce(FRIES_DISHES[0], rng)
+        1:
+            return _with_sauce(MEAT_DISHES[rng.randi_range(0, MEAT_DISHES.size() - 1)], rng)
+    return DRINKS[rng.randi_range(0, DRINKS.size() - 1)]
 
 
 static func _with_sauce(dish: StringName, rng: RandomNumberGenerator) -> StringName:

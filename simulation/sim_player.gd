@@ -2,8 +2,6 @@ class_name SimPlayer
 extends RefCounted
 ## One player's state inside the Simulation. Plain data: the rules live in Simulation.
 
-enum Hand { LEFT, RIGHT }
-
 const MAX_HEALTH := 3
 
 var slot: int
@@ -15,11 +13,12 @@ var path: Array[int] = []
 var progress := 0
 var edge_ticks := 0
 var health := MAX_HEALTH
-var focus := Hand.LEFT
-## What each hand holds, indexed by Hand. null is an empty hand.
-var hands: Array[SimItem] = [null, null]
+## What the player holds (one hand, GDD §5.4). null is an empty hand.
+var item: SimItem
 ## Knocked out at 0 hearts: crawls, blocks their node, and can only use SOINS (GDD §5.1).
 var down := false
+## Ticks left stunned after being bumped: no moving, no acting (GDD §5.3).
+var stun := 0
 ## Ticks spent standing next to a fire since the last heart it cost.
 var exposure := 0
 ## Station whose menu this player has open, or SimLevel.NONE; menu_choice is the selected
@@ -33,22 +32,6 @@ func _init(p_slot: int, p_node: int) -> void:
     node = p_node
 
 
-func focused_item() -> SimItem:
-    return hands[focus]
-
-
-func set_focused_item(item: SimItem) -> void:
-    hands[focus] = item
-
-
-## Empties the hand that isn't focused, and returns what it held (GDD §5.3: lost on a bump).
-func drop_unfocused() -> SimItem:
-    var other := Hand.RIGHT if focus == Hand.LEFT else Hand.LEFT
-    var dropped := hands[other]
-    hands[other] = null
-    return dropped
-
-
 func is_moving() -> bool:
     return edge_ticks > 0
 
@@ -59,7 +42,5 @@ func occupied_node() -> int:
 
 
 func fingerprint() -> Array:
-    var held := []
-    for item in hands:
-        held.append(item.fingerprint() if item else null)
-    return [node, path, progress, edge_ticks, health, focus, held, down, exposure, menu, menu_choice]
+    return [node, path, progress, edge_ticks, health, item.fingerprint() if item else null, down,
+            stun, exposure, menu, menu_choice]

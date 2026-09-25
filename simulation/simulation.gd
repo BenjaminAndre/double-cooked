@@ -10,7 +10,7 @@ const WALK_SPEED := 10.0
 
 ## What a player can do in one tick. The move values match SimLevel.Direction.
 ## New commands go at the end, so saved replays keep their meaning.
-enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, FOCUS_LEFT, FOCUS_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL }
+enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL }
 
 const EXTINGUISHER := &"extincteur"
 
@@ -46,7 +46,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     var per_player := []
     per_player.resize(players.size())
     per_player.fill(0)
-    stats = {"dishes": 0, "bad_dishes": 0, "orders": 0, "walk_outs": 0, "fires": 0,
+    stats = {"served": 0, "angry": 0, "walk_outs": 0, "beers": 0, "fires": 0, "cans_hit": 0,
             "bumps": per_player.duplicate(), "knockouts": per_player.duplicate(),
             "revives": per_player.duplicate()}
 
@@ -99,15 +99,13 @@ func state_hash() -> int:
 
 
 func _apply(player: SimPlayer, command: int) -> void:
+    if player.stun > 0:
+        return
     if player.menu != SimLevel.NONE and _use_menu(player, command):
         return
     match command:
         Command.MOVE_UP, Command.MOVE_DOWN, Command.MOVE_LEFT, Command.MOVE_RIGHT:
             _queue_move(player, command)
-        Command.FOCUS_LEFT:
-            player.focus = SimPlayer.Hand.LEFT
-        Command.FOCUS_RIGHT:
-            player.focus = SimPlayer.Hand.RIGHT
         Command.INTERACT:
             _interact(player)
         Command.DEBUG_DAMAGE:
@@ -132,9 +130,9 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
                 return true
             match station.kind:
                 &"sauces":
-                    player.focused_item().sauce = option
+                    player.item.sauce = option
                 &"frigo", &"viandes":
-                    player.set_focused_item(SimItem.new(option))
+                    player.item = SimItem.new(option)
         Command.CANCEL:
             player.menu = SimLevel.NONE
         _:
@@ -172,8 +170,12 @@ func _queue_move(player: SimPlayer, direction: int) -> void:
 
 
 ## Walks along the current edge, then sets off towards the next planned node.
-## A player who tries to enter an occupied node bumps its occupant and stops (GDD §5.3).
+## A player who tries to enter an occupied node stops, and stuns its occupant (GDD §5.3).
+## A stunned player stands frozen, even halfway along an edge.
 func _advance(player: SimPlayer) -> void:
+    if player.stun > 0:
+        player.stun -= 1
+        return
     if player.is_moving():
         player.progress += 1
         if player.progress < player.edge_ticks:
@@ -188,9 +190,7 @@ func _advance(player: SimPlayer) -> void:
     if occupant:
         player.path.clear()
         events.append({"type": &"bump", "by": player.slot, "target": occupant.slot})
-        var dropped := occupant.drop_unfocused()
-        if dropped:
-            events.append({"type": &"drop", "slot": occupant.slot, "item": dropped.kind})
+        occupant.stun = rules.bump_stun
         return
     player.edge_ticks = rules.crawl_ticks if player.down else _walk_ticks(player.node, target)
 
@@ -208,7 +208,7 @@ func action_for(player: SimPlayer) -> StringName:
     if index == SimLevel.NONE:
         return &""
     var station := stations[index]
-    var held := player.focused_item()
+    var held := player.item
     if station.burning:
         return &"extinguish" if held and held.kind == EXTINGUISHER and not player.down else &""
     if player.down and station.kind != &"soins":
@@ -233,7 +233,7 @@ func action_for(player: SimPlayer) -> StringName:
             return &"trash" if held else &""
         &"caisse":
             var front := crowd.front()
-            return &"serve" if held and front and Menu.order_key(held) in front.order else &""
+            return &"serve" if held and front else &""
         &"extincteur":
             if not held:
                 return &"take_extinguisher"
@@ -244,7 +244,7 @@ func action_for(player: SimPlayer) -> StringName:
 ## Whether a menu station can serve the player's focused hand: SAUCES needs a food without
 ## sauce, FRIGO and VIANDES an empty hand.
 func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
-    var held := player.focused_item()
+    var held := player.item
     match station.kind:
         &"sauces":
             return &"sauce" if Menu.takes_sauce(held) else &""
@@ -270,7 +270,7 @@ func _interact(player: SimPlayer) -> void:
             return
     var index := level.node_stations[player.node]
     var station := stations[index]
-    var held := player.focused_item()
+    var held := player.item
     if station.burning:
         station.burning = false
         station.burn_ticks = 0
@@ -288,15 +288,15 @@ func _interact(player: SimPlayer) -> void:
             player.menu = index
             player.menu_choice = 0
         &"poubelle":
-            player.set_focused_item(null)
+            player.item = null
         &"caisse":
             if crowd.serve(held, events):
-                player.set_focused_item(null)
+                player.item = null
         &"extincteur":
             if not held:
-                player.set_focused_item(SimItem.new(EXTINGUISHER))
+                player.item = SimItem.new(EXTINGUISHER)
             elif held.kind == EXTINGUISHER:
-                player.set_focused_item(null)
+                player.item = null
 
 
 ## Fryers left in the oil too long catch fire; fires burn whoever stands at them and spread
@@ -382,11 +382,11 @@ func _count(step_events: Array[Dictionary]) -> void:
     for event in step_events:
         match event.type:
             &"served":
-                stats.dishes += 1
-                if not event.good:
-                    stats.bad_dishes += 1
-            &"order_done":
-                stats.orders += 1
+                stats.served += 1
+            &"angry":
+                stats.angry += 1
+            &"beer_gift":
+                stats.beers += 1
             &"walk_out":
                 stats.walk_outs += 1
             &"fire_started", &"fire_spread":

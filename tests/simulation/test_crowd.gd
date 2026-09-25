@@ -10,7 +10,7 @@ var rules: SimRules
 
 
 ## A single CAISSE node, and rules that isolate one effect at a time: one customer at tick 1,
-## one-item orders, no drift.
+## no drift.
 func before_each() -> void:
     level = SimLevel.new()
     till = level.add_node(Vector3.ZERO, level.add_station(&"caisse"), "C")
@@ -18,42 +18,29 @@ func before_each() -> void:
     rules.first_arrival = 1
     rules.arrival_min = NEVER
     rules.arrival_max = NEVER
-    rules.order_sizes = PackedFloat32Array([1, 0, 0])
-    rules.drift_every_soiree = NEVER
-    rules.drift_every_rush = NEVER
-    rules.drift_every_after = NEVER
+    rules.calm_drift_every = NEVER
+    rules.mad_drift_every = NEVER
     rules.line_pressure_every = NEVER
     rules.night_ticks = NEVER
 
 
-func test_a_customer_arrives_with_an_order() -> void:
+func test_a_customer_arrives_with_one_order() -> void:
     var sim := _scenario().run_until(2)
     assert_eq(sim.crowd.line.size(), 1)
-    assert_eq(sim.crowd.front().order.size(), 1)
+    assert_ne(sim.crowd.front().order, &"")
 
 
-func test_orders_have_one_to_three_lines_at_most_one_per_category() -> void:
+func test_orders_cover_the_whole_menu() -> void:
     rules.arrival_min = 1
     rules.arrival_max = 1
-    rules.max_line = 200
+    rules.max_line = 300
     rules.patience = NEVER
-    rules.order_sizes = SimRules.new().order_sizes
-    var sizes := {}
     var seen := {}
-    for customer in _scenario().run_until(150).crowd.line:
-        sizes[customer.order.size()] = true
-        var categories := {}
-        for line in customer.order:
-            seen[line] = true
-            var text := String(line)
-            var dish := text.get_slice(":", 0)
-            var category := "frites" if dish == "frites" else "boisson" if not ":" in text else "viande"
-            assert_false(categories.has(category), "one %s at most in %s" % [category, customer.order])
-            categories[category] = true
-    assert_eq(sizes.keys().size(), 3, "one, two and three lines all show up")
-    assert_true(seen.has(&"cola") or seen.has(&"biere"))
-    assert_true(seen.keys().any(func(k: StringName) -> bool: return String(k).begins_with("cervelas_chaud")))
-    assert_true(seen.keys().any(func(k: StringName) -> bool: return String(k).ends_with(":nature")))
+    for customer in _scenario().run_until(250).crowd.line:
+        seen[customer.order] = true
+    for expected in [&"cola", &"biere", &"frites:nature", &"frites:mayo", &"frites:andalouse",
+            &"fricadelle:mayo", &"cervelas_froid:nature", &"cervelas_chaud:andalouse"]:
+        assert_true(seen.has(expected), "%s shows up" % expected)
 
 
 func test_the_line_never_grows_past_its_maximum() -> void:
@@ -66,6 +53,7 @@ func test_the_line_never_grows_past_its_maximum() -> void:
 func test_the_front_customer_loses_patience_faster() -> void:
     rules.arrival_min = 1
     rules.arrival_max = 1
+    rules.calm_arrival_factor = 1.0
     rules.max_line = 2
     var line := _scenario().run_until(12).crowd.line
     # Arrivals on ticks 1 and 2; the first one has been at the front for 11 ticks.
@@ -82,80 +70,118 @@ func test_a_customer_out_of_patience_walks_out_and_the_mood_rises() -> void:
     assert_true(scenario.events.any(func(e: Dictionary) -> bool: return e.type == &"walk_out"))
 
 
-func test_serving_good_fries_completes_the_order_and_calms_the_room() -> void:
+func test_the_right_order_done_right_sends_the_customer_off_happy() -> void:
     var scenario := _scenario()
-    var sim := _with_order(scenario, [&"frites:mayo"])
+    var sim := _with_order(scenario, &"frites:mayo")
     sim.crowd.mood = 500
-    sim.players[0].hands[0] = _item(Fryer.FRIES_GOOD, Menu.MAYO)
+    sim.players[0].item = _item(Fryer.FRIES_GOOD, Menu.MAYO)
     scenario.at(2, 0, INTERACT).run_until(3)
-    assert_null(sim.players[0].hands[0], "the fries are handed over")
-    assert_true(sim.crowd.line.is_empty(), "the customer leaves happy")
-    assert_eq(sim.crowd.mood, 500 + rules.mood_good_item)
+    assert_null(sim.players[0].item, "handed over")
+    assert_true(sim.crowd.line.is_empty())
+    assert_eq(sim.crowd.mood, 500 + rules.mood_served)
+    assert_eq(sim.stats.served, 1)
 
 
-func test_bad_fries_are_accepted_at_a_mood_penalty() -> void:
+func test_anything_badly_done_sends_them_off_angry() -> void:
+    for kind in [Fryer.FRIES_SOGGY, Fryer.FRIES_BURNT]:
+        var scenario := _scenario()
+        var sim := _with_order(scenario, &"frites:mayo")
+        sim.players[0].item = _item(kind, Menu.MAYO)
+        scenario.at(2, 0, INTERACT).run_until(3)
+        assert_null(sim.players[0].item, "serving always hands the item over")
+        assert_true(sim.crowd.line.is_empty(), "they leave")
+        assert_eq(sim.crowd.mood, rules.mood_angry)
+        assert_eq(sim.stats.angry, 1)
+
+
+func test_the_wrong_order_sends_them_off_angry() -> void:
+    for served in [_item(Fryer.FRIES_GOOD, Menu.ANDALOUSE), _item(Fryer.FRIES_GOOD, &""),
+            _item(Menu.CERVELAS, Menu.MAYO), _item(Menu.COLA, &"")]:
+        var scenario := _scenario()
+        var sim := _with_order(scenario, &"frites:mayo")
+        sim.players[0].item = served
+        scenario.at(2, 0, INTERACT).run_until(3)
+        assert_true(sim.crowd.line.is_empty(), "%s isn't frites mayo" % ItemNames.of(served))
+        assert_eq(sim.stats.angry, 1)
+
+
+func test_a_warm_cervelas_isnt_a_cold_one() -> void:
     var scenario := _scenario()
-    var sim := _with_order(scenario, [&"frites:mayo"])
-    sim.players[0].hands[0] = _item(Fryer.FRIES_BURNT, Menu.MAYO)
+    var sim := _with_order(scenario, &"cervelas_chaud:nature")
+    sim.players[0].item = _item(Menu.CERVELAS, &"")
+    scenario.at(2, 0, INTERACT).run_until(3)
+    assert_eq(sim.stats.angry, 1)
+
+
+func test_an_unordered_beer_buys_patience_and_the_customer_stays() -> void:
+    var scenario := _scenario()
+    var sim := _with_order(scenario, &"frites:mayo")
+    sim.crowd.front().patience = 100
+    sim.players[0].item = _item(Menu.BEER, &"")
+    scenario.at(2, 0, INTERACT).run_until(3)
+    assert_null(sim.players[0].item)
+    assert_eq(sim.crowd.line.size(), 1, "still waiting for their fries")
+    assert_eq(sim.crowd.front().patience, 100 + rules.beer_patience - rules.front_drain)
+    assert_eq(sim.stats.beers, 1)
+    assert_eq(sim.stats.angry, 0)
+
+
+func test_an_ordered_beer_is_simply_served() -> void:
+    var scenario := _scenario()
+    var sim := _with_order(scenario, Menu.BEER)
+    sim.players[0].item = _item(Menu.BEER, &"")
     scenario.at(2, 0, INTERACT).run_until(3)
     assert_true(sim.crowd.line.is_empty())
-    assert_eq(sim.crowd.mood, rules.mood_bad_item)
+    assert_eq(sim.stats.served, 1)
 
 
-func test_a_three_line_order_is_handed_over_one_line_at_a_time() -> void:
-    var scenario := _scenario()
-    var sim := _with_order(scenario, [&"frites:andalouse", &"cervelas_froid:nature", &"cola"])
-    sim.players[0].hands = [_item(Fryer.FRIES_GOOD, Menu.ANDALOUSE), _item(Menu.CERVELAS, &"")]
-    scenario.at(2, 0, INTERACT).run_until(3)
-    assert_eq(sim.crowd.front().order, [&"cervelas_froid:nature", &"cola"] as Array[StringName])
-    scenario.at(3, 0, Simulation.Command.FOCUS_RIGHT).at(3, 0, INTERACT).run_until(4)
-    assert_eq(sim.crowd.front().order, [&"cola"] as Array[StringName])
-    sim.players[0].hands[1] = _item(Menu.COLA, &"")
-    scenario.at(4, 0, INTERACT).run_until(5)
-    assert_true(sim.crowd.line.is_empty())
-
-
-func test_the_sauce_must_match_the_order() -> void:
-    var scenario := _scenario()
-    var sim := _with_order(scenario, [&"frites:mayo"])
-    sim.players[0].hands = [_item(Fryer.FRIES_GOOD, &""), _item(Fryer.FRIES_GOOD, Menu.ANDALOUSE)]
-    scenario.at(2, 0, INTERACT).at(2, 0, Simulation.Command.FOCUS_RIGHT).at(2, 0, INTERACT).run_until(3)
-    assert_not_null(sim.players[0].hands[0], "nature isn't mayo")
-    assert_not_null(sim.players[0].hands[1], "andalouse isn't mayo")
-    assert_eq(sim.crowd.line.size(), 1)
-
-
-func test_nature_means_no_sauce_and_a_warm_cervelas_isnt_a_cold_one() -> void:
-    var scenario := _scenario()
-    var sim := _with_order(scenario, [&"cervelas_chaud:nature", &"fricadelle:nature"])
-    sim.players[0].hands = [_item(Menu.CERVELAS, &""), _item(Menu.FRICADELLE, &"")]
-    scenario.at(2, 0, INTERACT).run_until(3)
-    assert_not_null(sim.players[0].hands[0], "a cold cervelas isn't the warm one ordered")
-    scenario.at(3, 0, Simulation.Command.FOCUS_RIGHT).at(3, 0, INTERACT).run_until(4)
-    assert_eq(sim.crowd.front().order, [&"cervelas_chaud:nature"] as Array[StringName])
+func test_the_night_starts_calm_and_gets_mad_after_one_in_the_morning() -> void:
+    rules.night_ticks = 1000
+    assert_eq(rules.intensity(0), 0.0)
+    assert_eq(rules.intensity(499), 0.0, "calm until 23:00")
+    assert_almost_eq(rules.intensity(600), 0.5, 0.01, "halfway at midnight")
+    assert_eq(rules.intensity(700), 1.0, "mad from 01:00")
+    assert_eq(rules.intensity(999), 1.0)
 
 
 func test_the_mood_drifts_up_faster_as_the_night_goes_on() -> void:
     rules.first_arrival = NEVER
     rules.night_ticks = 1000
-    rules.drift_every_soiree = 10
-    rules.drift_every_rush = 5
-    rules.drift_every_after = 2
-    var sim := _scenario().run_until(999)
-    # Soirée ticks 1-399: 39, Rush 400-699: 60, After 700-998: 150.
-    assert_eq(sim.crowd.mood, 39 + 60 + 150)
+    rules.calm_drift_every = 10
+    rules.mad_drift_every = 2
+    var sim := _scenario().run_until(500)
+    assert_eq(sim.crowd.mood, 49, "calm: +1 every 10 ticks")
+    var calm := sim.crowd.mood
+    _scenario_on(sim, 1000)
+    assert_gt(sim.crowd.mood - calm, 49 * 3, "much faster in the second half")
 
 
 func test_more_players_bring_customers_faster() -> void:
     rules.first_arrival = 0
     rules.arrival_min = 300
     rules.arrival_max = 300
+    rules.calm_arrival_factor = 1.0
     var solo := Simulation.new(level, [till], 1, rules)
     var four := Simulation.new(level, [till, till, till, till], 1, rules)
     solo.step([])
     four.step([])
     assert_eq(solo.crowd.next_arrival, 300)
     assert_eq(four.crowd.next_arrival, 120)
+
+
+func test_arrivals_come_faster_once_the_night_is_mad() -> void:
+    rules.night_ticks = 1000
+    rules.arrival_min = 100
+    rules.arrival_max = 100
+    rules.first_arrival = 0
+    var calm := Simulation.new(level, [till], 1, rules)
+    calm.step([])
+    rules.first_arrival = 900
+    var mad := Simulation.new(level, [till], 1, rules)
+    mad.tick = 900
+    mad.step([])
+    assert_eq(calm.crowd.next_arrival, roundi(100 * rules.calm_arrival_factor))
+    assert_eq(mad.crowd.next_arrival - 900, roundi(100 * rules.mad_arrival_factor))
 
 
 func test_a_riot_loses_the_night_and_freezes_it() -> void:
@@ -189,6 +215,12 @@ func _scenario() -> Scenario:
     return Scenario.new(level, [till], 7, rules)
 
 
+## Steps a simulation made outside a Scenario until tick, with no commands.
+func _scenario_on(sim: Simulation, tick: int) -> void:
+    while sim.tick < tick:
+        sim.step([])
+
+
 func _item(kind: StringName, sauce: StringName) -> SimItem:
     var item := SimItem.new(kind)
     item.sauce = sauce
@@ -196,7 +228,7 @@ func _item(kind: StringName, sauce: StringName) -> SimItem:
 
 
 ## Runs until the first customer is in line, and replaces their order.
-func _with_order(scenario: Scenario, order: Array[StringName]) -> Simulation:
+func _with_order(scenario: Scenario, order: StringName) -> Simulation:
     var sim := scenario.run_until(2)
     sim.crowd.front().order = order
     return sim

@@ -14,6 +14,7 @@ var _bump_tween: Tween
 var _hands_label: Label3D
 var _hint_label: Label3D
 var _menu_label: Label3D
+var _stun_label: Label3D
 
 
 func _ready() -> void:
@@ -22,6 +23,10 @@ func _ready() -> void:
     _hint_label.modulate = Color(1.0, 0.9, 0.3)
     _menu_label = _label(1.8, 30)
     _menu_label.modulate = Color(0.6, 0.9, 1.0)
+    _stun_label = _label(0.95, 48)
+    _stun_label.text = "✶ ✶ ✶"
+    _stun_label.modulate = Color(1.0, 0.85, 0.2)
+    _stun_label.visible = false
 
 
 ## What this player's interact key would do here, "" for nothing (only for local players).
@@ -41,12 +46,10 @@ func show_menu(options: Array, choice: int) -> void:
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
 func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     health = state.health
-    # Left hand on the left, the focused one in brackets.
-    var hands := []
-    for hand in state.hands.size():
-        var text := ItemNames.of(state.hands[hand])
-        hands.append("[%s]" % text if hand == state.focus else text)
-    _hands_label.text = "%s   %s" % hands
+    _hands_label.text = ItemNames.of(state.item) if state.item else ""
+    # Stunned after a bump: stars and a shake, for as long as it lasts.
+    _stun_label.visible = state.stun > 0
+    $PlayerModel.rotation.y = sin(Time.get_ticks_msec() * 0.06) * 0.5 if state.stun > 0 else 0.0
     var shown := level.positions[state.node]
     if state.is_moving():
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)

@@ -77,9 +77,10 @@ static func title(sim: Simulation) -> String:
 ## The end-of-night fun stats (GDD §4).
 static func recap(sim: Simulation) -> String:
     var stats := sim.stats
-    var lines := ["Commandes servies : %d · Portions : %d, dont %d ratées" \
-            % [stats.orders, stats.dishes, stats.bad_dishes],
-            "Clients partis : %d · Incendies : %d" % [stats.walk_outs, stats.fires]]
+    var lines := ["Clients servis : %d · Repartis furieux : %d · Partis sans rien : %d" \
+            % [stats.served, stats.angry, stats.walk_outs],
+            "Bières offertes : %d · Canettes reçues : %d · Incendies : %d" \
+            % [stats.beers, stats.cans_hit, stats.fires]]
     if sim.players.size() > 1:
         var players := []
         for slot in sim.players.size():

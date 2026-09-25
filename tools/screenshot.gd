@@ -46,7 +46,7 @@ func _initialize() -> void:
             sim.stations[sim.level.node_stations[sim.level.find("Anchor2")]].burning = true
             sim.players[1].health = 0
             sim.players[1].down = true
-            sim.players[0].hands[0] = SimItem.new(Simulation.EXTINGUISHER)
+            sim.players[0].item = SimItem.new(Simulation.EXTINGUISHER)
         "recap":
             night.play_local(2)
             var sim := night.simulation
@@ -72,12 +72,12 @@ func _initialize() -> void:
             var sim := night.simulation
             var player := sim.players[0]
             player.node = sim.level.find("Anchor9")
-            player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+            player.item = SimItem.new(Fryer.FRIES_GOOD)
             player.menu = sim.level.node_stations[player.node]
             player.menu_choice = 1
             sim.rules.arrival_min = 15
             sim.rules.arrival_max = 15
-            sim.rules.order_sizes = PackedFloat32Array([1, 1, 2])
+
             sim.crowd.next_arrival = 1
         "hints":
             # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
@@ -85,7 +85,7 @@ func _initialize() -> void:
             var sim := night.simulation
             sim.players[0].node = sim.level.find("Anchor2")
             sim.players[1].node = sim.level.find("Anchor4")
-            sim.players[1].hands[0] = SimItem.new(Fryer.FRIES_BLANCHED)
+            sim.players[1].item = SimItem.new(Fryer.FRIES_BLANCHED)
     await create_timer(seconds).timeout
     await process_frame
     viewport.get_texture().get_image().save_png(output)

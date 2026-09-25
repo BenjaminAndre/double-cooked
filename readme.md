@@ -14,15 +14,15 @@ Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole cr
 1. At CUISSON 1, interact to drop a batch of fries in the oil, and again when the gauge is blue: the batch (5 portions) waits on the fryer. Each further press takes one portion.
 2. Put a portion in a CUISSON 2 and lift it in the blue. VIANDES gives a fricadelle (fry it the same way) or a cervelas (cold as is, or warm once fried).
 3. At SAUCES, pick mayo or andalouse (or skip it for "nature"). FRIGO gives a cola or a bière. Menus: open with interact, arrows to pick, interact to take, Escape to close.
-4. Serve at the CAISSE, line by line. The first three customers' tickets show their orders.
+4. Serve at the CAISSE: whatever you hold goes to the front customer. The right order, done right, makes them happy; anything else sends them off angry. A beer always pleases. The first three customers' tickets show their orders.
 5. Forgotten fryers catch fire. Grab the EXTINCTEUR and interact at the fire. At 0 hearts you're K.O.: a teammate next to you gets you up, or you crawl to SOINS.
 
 ## Controls
 Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.
-* Solo: arrows to move, Q / F to focus the left / right hand, Space to interact, Escape to close a station menu, Tab to take damage (debug)
+* Solo: arrows to move, Space to interact, Escape to close a station menu, Tab to take damage (debug)
 * F2 toggles two players on one keyboard:
-  * P1: WASD, Q / E, Space, Escape
-  * P2: arrows, `.` / `/`, Right Shift, Backspace
+  * P1: WASD, Space, Escape
+  * P2: arrows, Right Shift, Backspace
 * Online (one player per machine): H hosts and shows a code to share, J joins with a code, Enter starts the night (host), Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
 
 ## Tests

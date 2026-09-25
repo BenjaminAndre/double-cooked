@@ -93,14 +93,14 @@ func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
             .at(done + 60, 0, C.INTERACT)
     var sim := scenario.run_until(done + 1)
     assert_eq(level.station_kind_at(sim.players[0].node), &"cuisson_2")
-    assert_eq(sim.players[0].focused_item().kind, Fryer.FRIES_GOOD)
+    assert_eq(sim.players[0].item.kind, Fryer.FRIES_GOOD)
     # Orders are random; this customer wants what the script makes (SAUCES' first option).
-    sim.crowd.front().order = [&"frites:mayo"] as Array[StringName]
+    sim.crowd.front().order = &"frites:mayo"
     sim = scenario.run_until(done + 61)
     assert_eq(level.station_kind_at(sim.players[0].node), &"caisse")
-    assert_null(sim.players[0].focused_item(), "handed over")
-    assert_eq(sim.stats.dishes, 1)
-    assert_eq(sim.stats.bad_dishes, 0)
+    assert_null(sim.players[0].item, "handed over")
+    assert_eq(sim.stats.served, 1)
+    assert_eq(sim.stats.angry, 0)
 
 
 ## Playtest bug: knocked out alone, crawling to SOINS didn't get the player back up.

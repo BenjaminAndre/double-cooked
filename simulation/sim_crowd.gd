@@ -1,6 +1,7 @@
 class_name SimCrowd
 extends RefCounted
-## The line of customers and the room mood (GDD §6). Only the front customer shows an order.
+## The line of customers and the room mood (GDD §6). Each customer orders a single line
+## (see Menu.order_key); the first SimRules.visible_orders show it.
 
 enum Level { CALME, TENDU, CHAUD, EMEUTE }
 
@@ -8,8 +9,8 @@ enum Level { CALME, TENDU, CHAUD, EMEUTE }
 class Customer:
     ## Unique within a night, so the display can follow each customer.
     var id: int
-    ## Order lines still to hand over (see Menu.order_key), one to three.
-    var order: Array[StringName] = []
+    ## What they want, see Menu.order_key.
+    var order: StringName
     var patience: int
 
     func fingerprint() -> Array:
@@ -37,7 +38,7 @@ func front() -> Customer:
 
 
 ## One tick of the room: arrivals, patience, walk-outs and the mood's own drift.
-## events receives {"type": &"arrival"} and {"type": &"walk_out"}.
+## events receives {"type": &"arrival"} and {"type": &"walk_out", "index": place in line}.
 func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
     if tick >= next_arrival:
         if line.size() < rules.max_line:
@@ -50,34 +51,49 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         if customer.patience <= 0:
             line.remove_at(index)
             change_mood(rules.mood_walk_out)
-            events.append({"type": &"walk_out"})
+            events.append({"type": &"walk_out", "index": index})
     if tick > 0 and tick % _drift_every(tick) == 0:
         change_mood(1)
     if tick > 0 and tick % rules.line_pressure_every == 0:
         change_mood(maxi(line.size() - 1, 0))
 
 
-## Hands item to the front customer if it's part of their order. Returns whether it was taken.
+## Serving is handing over whatever is held (GDD §6.2). The right order, done right, sends
+## the customer off happy; anything else sends them off angry. A beer is the exception:
+## everyone is glad of one (see give_beer). Returns whether the item was handed over.
 func serve(item: SimItem, events: Array[Dictionary]) -> bool:
     var customer := front()
     if not customer or not item:
         return false
-    var dish := Menu.order_key(item)
-    if not dish in customer.order:
-        return false
-    customer.order.erase(dish)
-    var good := Menu.done_right(item)
-    change_mood(rules.mood_good_item if good else rules.mood_bad_item)
-    events.append({"type": &"served", "good": good})
-    if customer.order.is_empty():
-        line.pop_front()
-        events.append({"type": &"order_done"})
+    if item.kind == Menu.BEER and customer.order != Menu.BEER:
+        give_beer(0, events)
+        return true
+    line.pop_front()
+    var right := Menu.order_key(item) == customer.order and Menu.done_right(item)
+    if right:
+        change_mood(rules.mood_served)
+        events.append({"type": &"served"})
+    else:
+        change_mood(rules.mood_angry)
+        events.append({"type": &"angry", "index": 0})
     return true
+
+
+## A beer for the customer at index, served or caught: if they ordered one, they're served;
+## otherwise it buys back some patience and they keep waiting.
+func give_beer(index: int, events: Array[Dictionary]) -> void:
+    var customer := line[index]
+    if customer.order == Menu.BEER:
+        line.remove_at(index)
+        change_mood(rules.mood_served)
+        events.append({"type": &"served"})
+    else:
+        customer.patience = mini(customer.patience + rules.beer_patience, rules.patience)
+        events.append({"type": &"beer_gift", "index": index})
 
 
 func change_mood(amount: int) -> void:
     mood = clampi(mood + amount, 0, rules.riot)
-
 
 
 func fingerprint() -> Array:
@@ -92,7 +108,7 @@ func _new_customer(rng: RandomNumberGenerator) -> Customer:
     customer.id = _next_id
     _next_id += 1
     customer.patience = rules.patience
-    customer.order = Menu.random_order(rng, rules.order_sizes)
+    customer.order = Menu.random_order(rng, rules.order_categories)
     return customer
 
 
@@ -100,21 +116,9 @@ func _arrival_delay(tick: int, player_count: int, rng: RandomNumberGenerator) ->
     var delay := float(rng.randi_range(rules.arrival_min, rules.arrival_max))
     # One player: as is. Each extra player shortens the wait (2 players: x2/3, 4: x2/5).
     delay *= 2.0 / (player_count + 1)
-    if _phase(tick) == 1:
-        delay *= rules.rush_arrival_factor
+    delay *= lerpf(rules.calm_arrival_factor, rules.mad_arrival_factor, rules.intensity(tick))
     return maxi(1, roundi(delay))
 
 
 func _drift_every(tick: int) -> int:
-    match _phase(tick):
-        0:
-            return rules.drift_every_soiree
-        1:
-            return rules.drift_every_rush
-    return rules.drift_every_after
-
-
-## 0 Soirée, 1 Rush, 2 After.
-func _phase(tick: int) -> int:
-    var progress := float(tick) / rules.night_ticks
-    return 0 if progress < rules.rush_start else 1 if progress < rules.after_start else 2
+    return maxi(1, roundi(lerpf(rules.calm_drift_every, rules.mad_drift_every, rules.intensity(tick))))

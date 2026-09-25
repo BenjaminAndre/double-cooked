@@ -201,7 +201,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         spawn_nodes.append(level.find(spawns[slot].name))
         spawn_names.append(String(spawns[slot].name))
     simulation = Simulation.new(level, spawn_nodes, seed_value)
-    _replay = {"version": 1, "level": owner.scene_file_path if owner else "", "seed": seed_value,
+    _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
             "spawns": spawn_names}
     _log.clear()
     _local_slots = local_slots

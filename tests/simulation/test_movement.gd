@@ -81,12 +81,13 @@ func test_a_node_is_free_once_its_occupant_sets_off() -> void:
     assert_true(scenario.events.is_empty())
 
 
-func test_swapping_places_bumps_both() -> void:
+func test_swapping_places_the_lower_slot_bumps_and_stuns_the_other() -> void:
     var scenario := Scenario.new(level, [a, b]).at(0, 0, RIGHT).at(0, 1, LEFT)
     var sim := scenario.run_until(1)
     assert_eq(sim.players[0].node, a)
     assert_eq(sim.players[1].node, b)
-    assert_eq(scenario.events.size(), 2)
+    assert_eq(scenario.events.size(), 1, "the stunned player doesn't bump back")
+    assert_gt(sim.players[1].stun, 0)
 
 
 func test_interacting_at_soins_restores_hearts() -> void:
@@ -109,14 +110,6 @@ func test_health_never_goes_below_zero() -> void:
     for i in SimPlayer.MAX_HEALTH + 2:
         scenario.at(0, 0, Simulation.Command.DEBUG_DAMAGE)
     assert_eq(scenario.run_until(1).players[0].health, 0)
-
-
-func test_focus_switches_hands() -> void:
-    var scenario := Scenario.new(level, [a]).at(0, 0, Simulation.Command.FOCUS_RIGHT)
-    var player := scenario.run_until(1).players[0]
-    assert_eq(player.focus, SimPlayer.Hand.RIGHT)
-    scenario.at(1, 0, Simulation.Command.FOCUS_LEFT).run_until(2)
-    assert_eq(player.focus, SimPlayer.Hand.LEFT)
 
 
 func test_same_inputs_give_the_same_night() -> void:

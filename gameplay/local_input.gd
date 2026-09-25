@@ -4,30 +4,24 @@ extends RefCounted
 ## Actions are bound to physical keys, so they sit at the same place on AZERTY and QWERTY.
 ## Key names below are QWERTY positions.
 
-## One player: arrows, Q/F to focus a hand, Space to interact, Escape to close a menu, Tab to
-## take damage (debug).
+## One player: arrows, Space to interact, Escape to close a menu, Tab to take damage (debug).
 const SOLO := [{
     &"ui_up": Simulation.Command.MOVE_UP,
     &"ui_down": Simulation.Command.MOVE_DOWN,
     &"ui_left": Simulation.Command.MOVE_LEFT,
     &"ui_right": Simulation.Command.MOVE_RIGHT,
-    &"ui_use_left_hand": Simulation.Command.FOCUS_LEFT,
-    &"ui_use_right_hand": Simulation.Command.FOCUS_RIGHT,
     &"ui_interact": Simulation.Command.INTERACT,
     &"ui_cancel": Simulation.Command.CANCEL,
     &"ui_debug_damage": Simulation.Command.DEBUG_DAMAGE,
 }]
 
 ## Two players on one keyboard, one hand each:
-## P1 on the left (WASD, Q/E, Space, Escape), P2 on the right (arrows, . and /, Right Shift,
-## Backspace).
+## P1 on the left (WASD, Space, Escape), P2 on the right (arrows, Right Shift, Backspace).
 const DUO := [{
     &"p1_up": Simulation.Command.MOVE_UP,
     &"p1_down": Simulation.Command.MOVE_DOWN,
     &"p1_left": Simulation.Command.MOVE_LEFT,
     &"p1_right": Simulation.Command.MOVE_RIGHT,
-    &"p1_focus_left": Simulation.Command.FOCUS_LEFT,
-    &"p1_focus_right": Simulation.Command.FOCUS_RIGHT,
     &"p1_interact": Simulation.Command.INTERACT,
     &"p1_cancel": Simulation.Command.CANCEL,
     &"ui_debug_damage": Simulation.Command.DEBUG_DAMAGE,
@@ -36,8 +30,6 @@ const DUO := [{
     &"p2_down": Simulation.Command.MOVE_DOWN,
     &"p2_left": Simulation.Command.MOVE_LEFT,
     &"p2_right": Simulation.Command.MOVE_RIGHT,
-    &"p2_focus_left": Simulation.Command.FOCUS_LEFT,
-    &"p2_focus_right": Simulation.Command.FOCUS_RIGHT,
     &"p2_interact": Simulation.Command.INTERACT,
     &"p2_cancel": Simulation.Command.CANCEL,
 }]

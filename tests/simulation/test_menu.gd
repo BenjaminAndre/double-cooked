@@ -24,19 +24,19 @@ func before_each() -> void:
 
 func test_viandes_hands_out_the_chosen_meat() -> void:
     var sim := Scenario.new(level, [meats]).at(0, 0, INTERACT).at(1, 0, INTERACT).run_until(2)
-    assert_eq(sim.players[0].focused_item().kind, Menu.CERVELAS, "first option")
+    assert_eq(sim.players[0].item.kind, Menu.CERVELAS, "first option")
     sim = Scenario.new(level, [meats]).at(0, 0, INTERACT).at(1, 0, RIGHT).at(2, 0, INTERACT).run_until(3)
-    assert_eq(sim.players[0].focused_item().kind, Menu.FRICADELLE_RAW)
+    assert_eq(sim.players[0].item.kind, Menu.FRICADELLE_RAW)
 
 
 func test_frigo_hands_out_the_chosen_drink() -> void:
     var sim := Scenario.new(level, [fridge]).at(0, 0, INTERACT).at(1, 0, RIGHT).at(2, 0, INTERACT).run_until(3)
-    assert_eq(sim.players[0].focused_item().kind, Menu.BEER)
+    assert_eq(sim.players[0].item.kind, Menu.BEER)
 
 
 func test_menu_stations_need_a_free_hand() -> void:
     var scenario := Scenario.new(level, [fridge])
-    scenario.simulation.players[0].hands[0] = SimItem.new(Menu.COLA)
+    scenario.simulation.players[0].item = SimItem.new(Menu.COLA)
     assert_eq(scenario.simulation.action_for(scenario.simulation.players[0]), &"")
     scenario.at(0, 0, INTERACT).run_until(1)
     assert_eq(scenario.simulation.players[0].menu, SimLevel.NONE)
@@ -60,7 +60,7 @@ func test_nothing_with_sauce_goes_into_the_fryer() -> void:
     var scenario := Scenario.new(level, [fryer])
     var cervelas := SimItem.new(Menu.CERVELAS)
     cervelas.sauce = Menu.MAYO
-    scenario.simulation.players[0].hands[0] = cervelas
+    scenario.simulation.players[0].item = cervelas
     scenario.at(0, 0, INTERACT).run_until(1)
     assert_null(scenario.simulation.stations[1].basket)
 
@@ -77,6 +77,6 @@ func test_order_keys_name_the_dish_and_the_sauce() -> void:
 ## Puts item in CUISSON 2 at tick 0 and lifts it after cook ticks; returns what came out.
 func _fried(kind: StringName, cook: int) -> SimItem:
     var scenario := Scenario.new(level, [fryer])
-    scenario.simulation.players[0].hands[0] = SimItem.new(kind)
+    scenario.simulation.players[0].item = SimItem.new(kind)
     var sim := scenario.at(0, 0, INTERACT).at(cook, 0, INTERACT).run_until(cook + 1)
-    return sim.players[0].focused_item()
+    return sim.players[0].item

@@ -30,7 +30,8 @@ func before_each() -> void:
     rules = SimRules.new()
     rules.first_arrival = NEVER
     rules.night_ticks = NEVER
-    rules.drift_every_soiree = NEVER
+    rules.calm_drift_every = NEVER
+    rules.mad_drift_every = NEVER
     rules.fire_margin = 20
     fire_tick = Fryer.FIRST_FRY_MAX + rules.fire_margin
     rules.fire_damage_every = 10
@@ -86,12 +87,12 @@ func test_the_extinguisher_puts_a_fire_out_and_stays_in_hand() -> void:
     scenario.at(start, 0, INTERACT).at(start + 1, 0, RIGHT).at(start + 6, 0, INTERACT)
     var sim := scenario.run_until(start + 7)
     assert_false(sim.stations[1].burning)
-    assert_eq(sim.players[0].focused_item().kind, Simulation.EXTINGUISHER)
+    assert_eq(sim.players[0].item.kind, Simulation.EXTINGUISHER)
 
 
 func test_the_extinguisher_goes_back_on_its_station() -> void:
     var sim := _scenario([extinguisher]).at(0, 0, INTERACT).at(1, 0, INTERACT).run_until(2)
-    assert_null(sim.players[0].focused_item())
+    assert_null(sim.players[0].item)
 
 
 func test_zero_hearts_knocks_a_player_out_and_they_crawl() -> void:
@@ -108,10 +109,10 @@ func test_zero_hearts_knocks_a_player_out_and_they_crawl() -> void:
 func test_a_knocked_out_player_can_only_use_soins() -> void:
     var scenario := _scenario([sauces])
     var sim := scenario.run_until(1)
-    sim.players[0].hands[0] = SimItem.new(Fryer.FRIES_GOOD)
+    sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
     sim.players[0].health = 1
     scenario.at(1, 0, DAMAGE).at(2, 0, INTERACT).run_until(3)
-    assert_eq(sim.players[0].hands[0].sauce, &"", "no sauce while knocked out")
+    assert_eq(sim.players[0].item.sauce, &"", "no sauce while knocked out")
     scenario.at(3, 0, RIGHT).at(3 + rules.crawl_ticks + 1, 0, INTERACT).run_until(rules.crawl_ticks + 6)
     assert_false(sim.players[0].down, "SOINS gets them back up")
     assert_eq(sim.players[0].health, SimPlayer.MAX_HEALTH)
@@ -176,7 +177,7 @@ func test_the_hint_puts_reviving_first_and_offers_the_extinguisher() -> void:
     sim.players[0].node = extinguisher
     sim.players[0].down = false
     assert_eq(sim.action_for(sim.players[0]), &"take_extinguisher")
-    sim.players[0].hands[0] = SimItem.new(Simulation.EXTINGUISHER)
+    sim.players[0].item = SimItem.new(Simulation.EXTINGUISHER)
     assert_eq(sim.action_for(sim.players[0]), &"return_extinguisher")
     sim.players[0].node = fryer
     sim.stations[1].burning = true

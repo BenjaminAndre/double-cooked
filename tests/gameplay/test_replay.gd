@@ -13,7 +13,7 @@ func test_a_played_night_replays_to_the_same_state() -> void:
     night.submit(1, Simulation.Command.MOVE_DOWN)
     await wait_seconds(0.3)
     night.submit(0, Simulation.Command.MOVE_RIGHT)
-    night.submit(1, Simulation.Command.FOCUS_RIGHT)
+    night.submit(1, Simulation.Command.MOVE_UP)
     await wait_seconds(0.3)
     var replay: Dictionary = JSON.parse_string(JSON.stringify(night.replay()))
     var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))

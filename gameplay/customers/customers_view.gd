@@ -18,8 +18,6 @@ const TICKET_GAP_BELOW := 6.0
 const TICKET_GAP := 8.0
 const FRONT_FONT_SIZE := 20
 const BACK_FONT_SIZE := 16
-## Order lines per customer: fries, a meat, a drink.
-const MAX_ORDER_LINES := 3
 
 @export var night: Night
 @export var line_step := Vector3(-0.45, 0, 0)
@@ -71,13 +69,16 @@ func clear() -> void:
 
 ## Each ticket sits under its customer on screen; a ticket that would overlap the previous one
 ## is pushed along the line, so the order of the tickets always matches the line. A ticket
-## has one sub-panel per order line (dish, then sauce) and the customer's patience below.
+## shows the order (dish, then sauce) and the customer's patience. Tickets never leave the
+## screen: the row slides left or up by whatever overflows.
 func _show_tickets(crowd: SimCrowd) -> void:
     var camera := get_viewport().get_camera_3d()
+    var screen := get_viewport().get_visible_rect().size
     var shown := mini(crowd.line.size(), crowd.rules.visible_orders)
     while _tickets.size() < shown:
         _tickets.append(_new_ticket())
     var previous_right := -INF
+    var lowest := 0.0
     for index in _tickets.size():
         var ticket := _tickets[index]
         ticket.visible = index < shown and camera != null
@@ -85,41 +86,29 @@ func _show_tickets(crowd: SimCrowd) -> void:
             continue
         var customer := crowd.line[index]
         var figure: Node3D = _figures[customer.id]
-        var lines: VBoxContainer = ticket.get_child(0).get_child(0)
+        var label: Label = ticket.get_child(0).get_child(0)
         var bar: DrainingBar = ticket.get_child(0).get_child(1)
-        var size := FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE
-        for line in lines.get_child_count():
-            var panel: PanelContainer = lines.get_child(line)
-            panel.visible = line < customer.order.size()
-            if panel.visible:
-                var label: Label = panel.get_child(0)
-                label.text = "\n".join(ItemNames.order_line(customer.order[line])).strip_edges()
-                label.add_theme_font_size_override("font_size", size)
+        label.text = "\n".join(ItemNames.order_line(customer.order)).strip_edges()
+        label.add_theme_font_size_override("font_size", FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE)
         bar.show_fraction(float(customer.patience) / crowd.rules.patience)
         ticket.reset_size()
         var anchor := camera.unproject_position(figure.global_position)
-        var left := maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP)
+        var left := maxf(maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP), TICKET_GAP)
         ticket.position = Vector2(left, anchor.y + TICKET_GAP_BELOW)
         previous_right = left + ticket.size.x
-    # Keep the last ticket on screen: slide them all left by what overflows.
-    var overflow := previous_right + TICKET_GAP - get_viewport().get_visible_rect().size.x
-    if overflow > 0:
-        for ticket in _tickets:
-            ticket.position.x -= overflow
+        lowest = maxf(lowest, ticket.position.y + ticket.size.y)
+    var overflow := Vector2(maxf(previous_right + TICKET_GAP - screen.x, 0), maxf(lowest + TICKET_GAP - screen.y, 0))
+    for ticket in _tickets:
+        ticket.position -= overflow
 
 
 func _new_ticket() -> PanelContainer:
     var ticket := _panel(Color(0, 0, 0, 0.7), 6)
     var column := VBoxContainer.new()
     ticket.add_child(column)
-    var lines := VBoxContainer.new()
-    column.add_child(lines)
-    for line in MAX_ORDER_LINES:
-        var panel := _panel(Color(1, 1, 1, 0.12), 4)
-        var label := Label.new()
-        label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-        panel.add_child(label)
-        lines.add_child(panel)
+    var label := Label.new()
+    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    column.add_child(label)
     column.add_child(DrainingBar.new(0, 8))
     _layer.add_child(ticket)
     return ticket

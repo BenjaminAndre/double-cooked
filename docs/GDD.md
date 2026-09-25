@@ -25,10 +25,11 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ## 4. Session: one night
 
 - One game is one night, with the clock compressed to about 6–8 minutes of real time.
-- **(proposal)** The clock runs from 18:00 to 04:00, in three phases:
-  - **Soirée** (18–22h): families and calm regulars; teaches the menu.
-  - **Rush** (22–01h): the bar crowd; many orders at once.
-  - **After** (01–04h): drunks and barakis; fewer orders, much more danger.
+- The pace follows the clock (changed after the second playtest):
+  - **18:00–23:00, calm:** few customers, a slow mood drift; time to learn the kitchen.
+  - **23:00–01:00, rising:** customers come faster and faster.
+  - **After 01:00, mad:** flat out, the drunks and barakis hour.
+  - Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors.
 - **(proposal)** Variety comes from difficulty levels and random events, not from progression between nights.
 - **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37") plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no economy behind it.
 
@@ -52,21 +53,19 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 ### 5.3 Collisions (knocking)
 - Knocking happens **through collisions only**, with no dedicated key.
-- Moving into an occupied node bumps its occupant.
-- The bumped player drops the item in their **non-focused hand** (see §5.4). If that hand is empty, they lose nothing. The item in the focused hand is always safe.
-- **(proposal)** The player who bumps stops. A dropped drink or sauce leaves a spill. On a wet floor, the bumped player instead slides to the next node in the direction of the push.
+- Moving into an occupied node **stops the bumper**, who has to pick another path, and **stuns the bumped player for 0.5 s**: they can neither move nor act (stars and a shake show it). Nobody drops anything.
+- The pressure comes from the space itself: more players mean more orders, and more collisions in the same cramped kitchen (changed after the second playtest, which dropped the second hand).
+- **(proposal)** A dropped drink or sauce leaves a spill. On a wet floor, the bumped player slides to the next node in the direction of the push.
 
-### 5.4 Hands and interaction
-- Each player has two hands. **Q and F choose the focused hand** (left or right). The focused hand is the one the next interaction changes.
-- **Space interacts** with the station at the player's node, and the station **transforms or fills the focused hand directly**. Items are never put down on the counter first; there are no intermediate steps.
-  - Example: press Q to focus the left hand, which holds a bread, then interact at VIANDES. The left hand now holds a pain-saucisse.
+### 5.4 Hand and interaction
+- Each player has **one hand** (changed after the second playtest: two hands were too hard at first).
+- **Space interacts** with the station at the player's node, and the station **transforms or fills the hand directly**. Items are never put down on the counter first; there are no intermediate steps.
 - **Station menus:** SAUCES, FRIGO and VIANDES offer a choice. The first press opens a menu. While it is open, the arrows move the selection instead of the player, a second press takes the selected option, and Échap closes the menu without taking anything (Backspace for P2 in duo).
 - Station rules:
-  - With an empty focused hand, interacting at a supply station (PAIN, BOISSONS, EXTINCTEUR…) takes the base item.
-  - Interacting at the POUBELLE empties the focused hand.
-  - Serving means interacting at the CAISSE with an ordered item in the focused hand (see §6.2).
+  - With an empty hand, interacting at a supply station (FRIGO, VIANDES, EXTINCTEUR…) takes an item.
+  - Interacting at the POUBELLE empties the hand.
+  - Interacting at the CAISSE serves whatever is held to the front customer (§6.2).
   - Fryers keep their own state (§7.1).
-- Tactical depth: you choose which item you protect (focused) and which one you risk (non-focused) whenever you move through a crowd.
 - The station a player stands at is highlighted, with a hint of what their interact key does there (`Simulation.action_for`). Text for now; the aim is icons, and as little text as possible overall.
 
 ## 6. The room mood (ambiance)
@@ -85,11 +84,12 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 ### 6.2 Queue and orders
 - Customers wait in a single line at the counter.
-- An order has **one to three lines**, at most **one per category**: fries with a sauce, a meat with a sauce, a drink. Each line fits in one hand, and the biggest order is frites + meat + drink, shown as three sub-panels on the ticket.
-- **The first 3 customers in line show a ticket** (order + patience bar) above their head; the rest of the line is visible, but their orders stay unknown. One ticket per stage of the fries (first fry, second fry, ready), so players can start the next basket while finishing the current one. Tunable: `SimRules.visible_orders` (changed from "front only" after the first playtest).
+- **Each customer orders a single line** that fits in one hand: fries with a sauce, a meat with a sauce, or a drink (changed after the second playtest).
+- **The first 3 customers in line show a ticket** (order + patience bar) under them; the rest of the line is visible, but their orders stay unknown. One ticket per stage of the fries (first fry, second fry, ready), so players can start the next basket in time. Tunable: `SimRules.visible_orders`.
 - **Everyone in the line loses patience**, slowly, and the customer at the front loses it much faster. A long line raises the mood on its own, even if nobody is served badly.
-- **(slice default)** A customer whose patience runs out **walks out**, which raises the mood a lot. Players can tune it or replace it once other hazards exist.
-- **Lines are handed over one at a time.** Each interaction at the CAISSE delivers the focused item if it matches a line (dish **and** sauce), and the ticket ticks it off.
+- A customer whose patience runs out **walks out**, which raises the mood a lot.
+- **Interacting at the CAISSE is serving:** the held item always goes to the front customer. The right order (dish **and** sauce), done right, sends them off happy and calms the room. The wrong order, or anything badly done (burnt, soggy, undercooked, lukewarm), sends them off **angry**, which raises the mood.
+- **A beer always pleases** (the one exception): if it wasn't their order, it buys back some patience and they keep waiting.
 
 ## 7. Cooking
 
@@ -97,7 +97,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a second fry at CUISSON 2, one portion at a time. Every step is one interaction with the focused hand. (Revised after the first playtest: resting was removed, and the first fry now makes a batch so both CUISSON 2 get used.)
 
-**CUISSON 1: first fry (about 8–14 s)**
+**CUISSON 1: first fry (ready from 8 to 20 s)**
 1. **Drop.** Interacting with an empty CUISSON 1 drops a batch of raw fries into the oil. No supply station is needed.
 2. **Lift.** Interacting again lifts the batch:
    - **Too early:** the whole batch comes into the hand as **cold fries**, fit only for the bin.
@@ -105,7 +105,7 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
    - **Too late:** the whole batch comes into the hand as **overcooked fries**, fit only for the bin.
 3. **Take.** Each further interaction takes **one blanched portion** into the hand. CUISSON 1 stays occupied until all 5 portions are taken.
 
-**CUISSON 2: second fry (about 3–5 s)**
+**CUISSON 2: second fry (ready from 3 to 7 s)**
 4. **Put in** a blanched portion.
 5. **Lift:** too early gives **soggy** fries, in time **good** fries, too late **burnt** fries.
 

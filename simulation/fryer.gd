@@ -18,10 +18,10 @@ const FRIES_BURNT := &"frites_brulees"
 const BATCH := 5
 ## First fry window, in ticks: lifting earlier gives cold fries, later overcooked ones.
 const FIRST_FRY_MIN := 8 * Simulation.TICK_RATE
-const FIRST_FRY_MAX := 14 * Simulation.TICK_RATE
+const FIRST_FRY_MAX := 20 * Simulation.TICK_RATE
 ## Second fry window: lifting earlier gives soggy fries, later burnt ones.
 const SECOND_FRY_MIN := 3 * Simulation.TICK_RATE
-const SECOND_FRY_MAX := 5 * Simulation.TICK_RATE
+const SECOND_FRY_MAX := 7 * Simulation.TICK_RATE
 
 
 ## The [min, max] ticks in the oil for what this fryer is cooking.
@@ -47,8 +47,8 @@ static func use_first(station: SimStation, player: SimPlayer) -> void:
             station.frying = false
         else:
             _lift_into_hand(station, player, FRIES_OVERCOOKED)
-    elif not player.focused_item():
-        player.set_focused_item(SimItem.new(FRIES_BLANCHED))
+    elif not player.item:
+        player.item = SimItem.new(FRIES_BLANCHED)
         station.basket.portions -= 1
         if station.basket.portions == 0:
             station.basket = null
@@ -57,13 +57,13 @@ static func use_first(station: SimStation, player: SimPlayer) -> void:
 ## CUISSON 2: takes what it can fry (a blanched portion, a raw fricadelle, a cold cervelas)
 ## from the focused hand, or lifts the frying one into it (see Menu.SECOND_FRY).
 static func use_second(station: SimStation, player: SimPlayer) -> void:
-    var held := player.focused_item()
+    var held := player.item
     if not station.basket:
         if can_second_fry(held):
             station.basket = held
             station.frying = true
             station.cook = 0
-            player.set_focused_item(null)
+            player.item = null
         return
     var outcomes: Array = Menu.SECOND_FRY[station.basket.kind]
     if station.cook < SECOND_FRY_MIN:
@@ -85,10 +85,10 @@ static func advance(station: SimStation) -> void:
 
 
 static func _lift_into_hand(station: SimStation, player: SimPlayer, kind: StringName) -> void:
-    if player.focused_item():
+    if player.item:
         return
     station.basket.kind = kind
-    player.set_focused_item(station.basket)
+    player.item = station.basket
     station.basket = null
     station.frying = false
     station.cook = 0
