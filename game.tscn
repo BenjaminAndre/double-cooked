@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://b2ngr5721d878" path="res://gameplay/anchor.tscn" id="1_80nbo"]
 [ext_resource type="PackedScene" uid="uid://0tj5r2gkkage" path="res://assets/kenney_prototype-kit/Models/GLB format/floor-small-square.glb" id="1_e2o6t"]
-[ext_resource type="PackedScene" uid="uid://dabulh3sf8ldc" path="res://gameplay/player.tscn" id="3_feb5d"]
+[ext_resource type="Script" path="res://gameplay/night.gd" id="6_night"]
 [ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
 [ext_resource type="Script" uid="uid://chjroa20q6yy3" path="res://gameplay/interactions/heal.gd" id="5_ryrav"]
 
@@ -224,10 +224,6 @@ up = NodePath("../Anchor7")
 left = NodePath("../Anchor13")
 interactible = NodePath("../../../Interactibles/Bin")
 
-[node name="Player" parent="DemoLevel" node_paths=PackedStringArray("spawn") instance=ExtResource("3_feb5d")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.84076595)
-spawn = NodePath("../Anchors/Anchor")
-
 [node name="Camera3D" type="Camera3D" parent="DemoLevel"]
 transform = Transform3D(-0.963453, -0.22027381, 0.15243961, 7.188714e-08, 0.56906426, 0.82229304, -0.26787755, 0.79224074, -0.54826665, 0.20805016, 2.1942425, -2.2725782)
 fov = 92.279335
@@ -386,3 +382,9 @@ VIANDES"
 transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.9801572, -0.06712246, 0, 0)
 size = Vector3(1.0434093, 1, 0.7739258)
 material = SubResource("StandardMaterial3D_feb5d")
+
+[node name="Night" type="Node" parent="." node_paths=PackedStringArray("anchors_root", "spawns", "players_parent")]
+script = ExtResource("6_night")
+anchors_root = NodePath("../DemoLevel/Anchors")
+spawns = [NodePath("../DemoLevel/Anchors/Anchor"), NodePath("../DemoLevel/Anchors/Anchor7")]
+players_parent = NodePath("../DemoLevel")

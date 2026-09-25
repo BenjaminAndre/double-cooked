@@ -24,7 +24,7 @@ func _process(delta: float) -> void:
             _heart2.visible = false
             _heart3.visible = false
     else:
-        _pseudo.text = "You"
+        _pseudo.text = player.pseudo
         if player.health >= 3:
             _heart1.visible = true
             _heart2.visible = true

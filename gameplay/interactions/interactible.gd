@@ -1,15 +1,7 @@
 class_name Interactible
 extends Node3D
+## A station the player can interact with from an Anchor. What it does is a Simulation
+## rule, keyed by kind (see Simulation._interact).
 
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-    pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-    pass
-
-func interact(player : Player) -> void:
-    pass
+## Empty means the station does nothing yet.
+var kind : StringName = &""

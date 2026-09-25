@@ -9,6 +9,16 @@ Assets to have loaded (should be found on another repo like SVN or even a USB st
 
 `bash tools/fetch_deps.sh` (Git Bash on Windows) downloads the Kenney kit, tube and debug_draw_3d at the versions CI uses. WebRTC for desktop is still manual.
 
+## Controls
+Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.
+* Solo: arrows to move, Q / F to focus the left / right hand, Space to interact, Tab to take damage (debug)
+* F2 toggles two players on one keyboard:
+  * P1: WASD, Q / E, Space
+  * P2: arrows, `.` / `/`, Right Shift
+
+## Tests
+`godot --headless --path . -s addons/gut/gut_cmdln.gd` runs the GUT tests in `tests/`. CI runs them before every build.
+
 ## Build
 Every push builds the Web export on GitHub Actions (`.github/workflows/build.yml`). Download it from the run's artifacts. Pushes to `main` also publish it to GitHub Pages: https://benjaminandre.github.io/double-cooked/
 
