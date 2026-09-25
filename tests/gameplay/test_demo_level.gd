@@ -12,26 +12,11 @@ func test_reads_every_anchor_with_its_links_and_stations() -> void:
     assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Anchor2"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.DOWN), level.find("Anchor8"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.UP), SimLevel.NONE)
-    assert_eq(level.station_kind_at(level.find("Anchor7")), &"soins")
+    assert_eq(level.station_kind_at(level.find("Anchor")), &"frigo")
     assert_eq(level.node_stations[level.find("Anchor2")], level.node_stations[level.find("Anchor3")],
             "both anchors reach the same CUISSON 1")
-    assert_eq(level.station_kinds.size(), 11)
+    assert_eq(level.station_kinds.size(), 10)
     game.free()
-
-
-func test_walks_from_the_spawn_to_soins_and_heals() -> void:
-    var game := GAME_SCENE.instantiate()
-    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
-    game.free()
-    var scenario := Scenario.new(level, [level.find("Anchor")]) \
-            .at(0, 0, Simulation.Command.DEBUG_DAMAGE)
-    for i in 6:
-        scenario.at(0, 0, Simulation.Command.MOVE_RIGHT)
-    var player := scenario.run_until(60).players[0]
-    assert_eq(level.names[player.node], "Anchor7")
-    assert_eq(player.health, SimPlayer.MAX_HEALTH - 1)
-    scenario.at(60, 0, Simulation.Command.INTERACT).run_until(61)
-    assert_eq(player.health, SimPlayer.MAX_HEALTH)
 
 
 func test_the_game_scene_starts_a_night_and_toggles_duo() -> void:
@@ -103,40 +88,46 @@ func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
     assert_eq(sim.stats.angry, 0)
 
 
-## Playtest bug: knocked out alone, crawling to SOINS didn't get the player back up.
-func test_knocked_out_alone_a_player_crawls_to_soins_and_gets_up() -> void:
+## Knocked out alone, a player crawls to the FRIGO, takes a beer and drinks it to get up.
+func test_knocked_out_alone_a_player_crawls_to_the_fridge_and_drinks() -> void:
     var game := GAME_SCENE.instantiate()
     var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
     game.free()
     const C := Simulation.Command
-    var scenario := Scenario.new(level, [level.find("Anchor")], 1)
+    var scenario := Scenario.new(level, [level.find("Anchor2")], 1)
     for i in SimPlayer.MAX_HEALTH:
         scenario.at(0, 0, C.DEBUG_DAMAGE)
-    # Arrows pressed one at a time, as a player would, while crawling.
-    for i in 6:
-        scenario.at(1 + i * 70, 0, C.MOVE_RIGHT)
-    var sim := scenario.run_until(1 + 6 * 70)
+    var sim := scenario.at(1, 0, C.MOVE_LEFT).run_until(1 + 2 * sim_rules().crawl_ticks)
     var player := sim.players[0]
-    assert_eq(level.names[player.node], "Anchor7", "at SOINS")
-    assert_false(player.is_moving())
-    assert_eq(sim.action_for(player), &"heal")
-    scenario.at(sim.tick, 0, C.INTERACT).run_until(sim.tick + 1)
+    assert_true(player.down)
+    assert_eq(level.station_kind_at(player.node), &"frigo")
+    assert_eq(sim.action_for(player), &"fridge", "the fridge still works when down")
+    var t := sim.tick
+    scenario.at(t, 0, C.INTERACT).at(t + 1, 0, C.MOVE_RIGHT).at(t + 2, 0, C.INTERACT).run_until(t + 3)
+    assert_eq(player.item.kind, Menu.BEER)
+    assert_eq(sim.action_for(player), &"drink")
+    scenario.at(t + 3, 0, C.INTERACT).at(t + 3, 0, C.RELEASE).run_until(t + 4)
     assert_false(player.down)
-    assert_eq(player.health, SimPlayer.MAX_HEALTH)
+    assert_eq(player.health, 1)
+    assert_eq(player.fat, 1)
 
 
-func test_the_heal_hint_shows_when_knocked_out_at_soins() -> void:
+func test_the_drink_hint_shows_when_knocked_out_with_a_beer() -> void:
     var game: Node = add_child_autofree(GAME_SCENE.instantiate())
     var night: Night = game.get_node("Night")
     await wait_process_frames(1)
-    var sim := night.simulation
-    var player := sim.players[0]
-    player.node = sim.level.find("Anchor7")
+    var player := night.simulation.players[0]
     player.health = 0
     player.down = true
+    player.item = SimItem.new(Menu.BEER)
     await wait_process_frames(2)
     var view: Player = night._views[0]
-    assert_eq(view._hint_label.text, "Espace : se soigner")
+    assert_eq(view._hint_label.text, "Espace : boire")
     night.submit(0, Simulation.Command.INTERACT)
+    night.submit(0, Simulation.Command.RELEASE)
     await wait_seconds(0.2)
     assert_false(player.down)
+
+
+func sim_rules() -> SimRules:
+    return SimRules.new()

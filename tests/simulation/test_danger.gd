@@ -1,5 +1,6 @@
 extends GutTest
-## Grease fires, the extinguisher, knock-outs, revives and the recap counters (GDD §5.1, §8).
+## Grease fires, the extinguisher, knock-outs, eating, drinking, rescues and the recap
+## counters (GDD §5.1, §8).
 
 const INTERACT := Simulation.Command.INTERACT
 const RIGHT := Simulation.Command.MOVE_RIGHT
@@ -11,20 +12,20 @@ var level: SimLevel
 var extinguisher: int
 var fryer: int
 var sauces: int
-var soins: int
+var fridge: int
 var rules: SimRules
 ## The tick a CUISSON 1 basket dropped at tick 0 catches fire.
 var fire_tick: int
 
 
-## A row EXTINCTEUR - CUISSON 1 - SAUCES - SOINS, one unit apart, no customers, short fires.
+## A row EXTINCTEUR - CUISSON 1 - SAUCES - FRIGO, one unit apart, no customers, short fires.
 func before_each() -> void:
     level = SimLevel.new()
     extinguisher = level.add_node(Vector3(0, 0, 0), level.add_station(&"extincteur"), "X")
     fryer = level.add_node(Vector3(1, 0, 0), level.add_station(&"cuisson_1"), "F")
     sauces = level.add_node(Vector3(2, 0, 0), level.add_station(&"sauces"), "S")
-    soins = level.add_node(Vector3(3, 0, 0), level.add_station(&"soins"), "H")
-    for pair in [[extinguisher, fryer], [fryer, sauces], [sauces, soins]]:
+    fridge = level.add_node(Vector3(3, 0, 0), level.add_station(&"frigo"), "K")
+    for pair in [[extinguisher, fryer], [fryer, sauces], [sauces, fridge]]:
         level.link(pair[0], SimLevel.Direction.RIGHT, pair[1])
         level.link(pair[1], SimLevel.Direction.LEFT, pair[0])
     rules = SimRules.new()
@@ -73,7 +74,7 @@ func test_leaving_the_fire_resets_the_exposure() -> void:
 
 
 func test_a_fire_spreads_to_a_neighbour_but_never_to_the_extinguisher() -> void:
-    var sim := _burning_fryer([soins]).run_until(fire_tick + 1 + rules.fire_spread_after)
+    var sim := _burning_fryer([fridge]).run_until(fire_tick + 1 + rules.fire_spread_after)
     assert_true(sim.stations[2].burning, "SAUCES caught fire")
     assert_false(sim.stations[0].burning, "EXTINCTEUR is fireproof")
     assert_eq(sim.stats.fires, 2)
@@ -104,30 +105,87 @@ func test_zero_hearts_knocks_a_player_out_and_they_crawl() -> void:
     assert_eq(sim.stats.knockouts[0], 1)
 
 
-func test_a_knocked_out_player_can_only_use_soins() -> void:
+func test_knocked_out_a_player_can_still_eat_what_they_hold() -> void:
     var scenario := _scenario([sauces])
     var sim := scenario.run_until(1)
-    sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
-    sim.players[0].health = 1
-    scenario.at(1, 0, DAMAGE).at(2, 0, INTERACT).run_until(3)
-    assert_eq(sim.players[0].item.sauce, &"", "no sauce while knocked out")
-    scenario.at(3, 0, RIGHT).at(3 + rules.crawl_ticks + 1, 0, INTERACT).run_until(rules.crawl_ticks + 6)
-    assert_false(sim.players[0].down, "SOINS gets them back up")
-    assert_eq(sim.players[0].health, SimPlayer.MAX_HEALTH)
+    var player := sim.players[0]
+    player.item = SimItem.new(Fryer.FRIES_GOOD)
+    player.health = 1
+    scenario.at(1, 0, DAMAGE).run_until(2)
+    assert_true(player.down)
+    assert_eq(sim.action_for(player), &"eat", "no sauce while down, but eating is fine")
+    scenario.at(2, 0, INTERACT).run_until(3)
+    assert_false(player.down)
+    assert_eq(player.health, 1)
+    assert_null(player.item)
 
 
-func test_a_teammate_next_to_them_gets_them_up_with_one_heart() -> void:
-    var scenario := _scenario([sauces, soins])
+func test_eating_or_drinking_gives_a_heart_and_fat_even_at_full_health() -> void:
+    var scenario := _scenario([extinguisher])
+    var sim := scenario.run_until(1)
+    var player := sim.players[0]
+    player.health = 1
+    player.item = SimItem.new(Menu.CERVELAS)
+    scenario.at(1, 0, INTERACT).run_until(2)
+    assert_eq(player.health, 2)
+    player.item = SimItem.new(Menu.COLA)
+    scenario.at(2, 0, INTERACT).run_until(3)
+    assert_eq(player.health, 3)
+    player.item = SimItem.new(Fryer.FRIES_BURNT)
+    scenario.at(3, 0, INTERACT).run_until(4)
+    assert_eq(player.health, SimPlayer.MAX_HEALTH, "capped")
+    assert_eq(player.fat, 3, "but it all counts")
+    assert_true(scenario.events.any(func(e: Dictionary) -> bool: return e.type == &"fattened"))
+
+
+func test_the_station_comes_before_eating() -> void:
+    var scenario := _scenario([sauces])
+    var player := scenario.simulation.players[0]
+    player.item = SimItem.new(Fryer.FRIES_GOOD)
+    assert_eq(scenario.simulation.action_for(player), &"sauce", "SAUCES has a use for fries")
+    player.item = SimItem.new(Simulation.EXTINGUISHER)
+    assert_eq(scenario.simulation.action_for(player), &"", "an extinguisher isn't food")
+
+
+func test_every_bite_makes_the_walk_slower() -> void:
+    var scenario := _scenario([extinguisher])
+    var sim := scenario.run_until(1)
+    scenario.at(1, 0, RIGHT).run_until(2)
+    var lean := sim.players[0].edge_ticks
+    sim.players[0].node = extinguisher
+    sim.players[0].path.clear()
+    sim.players[0].edge_ticks = 0
+    sim.players[0].fat = 5
+    scenario.at(2, 0, RIGHT).run_until(3)
+    assert_gt(sim.players[0].edge_ticks, lean)
+
+
+func test_a_beer_thrown_to_a_knocked_out_teammate_gets_them_up() -> void:
+    var scenario := _scenario([sauces, fridge])
     for i in SimPlayer.MAX_HEALTH:
         scenario.at(0, 0, DAMAGE)
-    scenario.at(1, 1, INTERACT)
-    var sim := scenario.run_until(2)
+    var sim := scenario.run_until(1)
+    sim.players[1].item = SimItem.new(Menu.BEER)
+    scenario.at(1, 1, INTERACT).at(2, 1, Simulation.Command.MOVE_UP) \
+            .at(2 + rules.aim_hold, 1, Simulation.Command.RELEASE)
+    scenario.run_until(3)
+    assert_eq(sim.players[1].aim_player, 0, "up aims at the teammate")
+    scenario.run_until(3 + rules.aim_hold + rules.beer_flight)
     assert_false(sim.players[0].down)
-    assert_eq(sim.players[0].health, rules.revive_health)
-    assert_eq(sim.players[1].health, SimPlayer.MAX_HEALTH, "the revive came before SOINS")
+    assert_eq(sim.players[0].health, 1)
+    assert_eq(sim.players[0].fat, 1, "rescue beers count too")
     assert_eq(sim.stats.revives[1], 1)
 
 
+func test_a_beer_thrown_to_a_teammate_lands_in_an_empty_hand() -> void:
+    var scenario := _scenario([sauces, fridge])
+    var sim := scenario.run_until(1)
+    sim.players[1].item = SimItem.new(Menu.BEER)
+    scenario.at(1, 1, INTERACT).at(2, 1, Simulation.Command.MOVE_UP) \
+            .at(2 + rules.aim_hold, 1, Simulation.Command.RELEASE)
+    scenario.run_until(3 + rules.aim_hold + rules.beer_flight)
+    assert_eq(sim.players[0].item.kind, Menu.BEER)
+    assert_eq(sim.players[0].fat, 0, "caught, not drunk")
 func test_the_night_is_lost_when_the_whole_crew_is_down() -> void:
     var scenario := _scenario([sauces, extinguisher])
     for slot in 2:
@@ -146,7 +204,7 @@ func test_alone_and_down_the_night_goes_on() -> void:
 
 
 func test_bumps_are_counted_per_player() -> void:
-    var sim := _scenario([sauces, soins]).at(0, 1, LEFT).at(5, 1, LEFT).run_until(6)
+    var sim := _scenario([sauces, fridge]).at(0, 1, LEFT).at(5, 1, LEFT).run_until(6)
     assert_eq(sim.stats.bumps, [0, 2])
 
 
@@ -163,14 +221,15 @@ func _burning_fryer(spawns: Array) -> Scenario:
     return scenario
 
 
-func test_the_hint_puts_reviving_first_and_offers_the_extinguisher() -> void:
-    var scenario := _scenario([sauces, soins])
+func test_the_hint_offers_the_fridge_when_down_and_the_extinguisher() -> void:
+    var scenario := _scenario([sauces, fridge])
     var sim := scenario.simulation
-    sim.players[1].health = 1
-    assert_eq(sim.action_for(sim.players[1]), &"heal")
+    sim.players[1].health = 0
+    sim.players[1].down = true
+    assert_eq(sim.action_for(sim.players[1]), &"fridge", "down at the FRIGO: a beer")
     sim.players[0].health = 0
     sim.players[0].down = true
-    assert_eq(sim.action_for(sim.players[1]), &"revive", "before SOINS")
+    assert_eq(sim.action_for(sim.players[0]), &"", "down at SAUCES with empty hands: nothing")
     assert_eq(sim.action_for(sim.players[0]), &"", "down, and not at SOINS")
     sim.players[0].node = extinguisher
     sim.players[0].down = false

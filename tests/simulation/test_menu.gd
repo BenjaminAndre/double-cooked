@@ -37,7 +37,7 @@ func test_frigo_hands_out_the_chosen_drink() -> void:
 func test_menu_stations_need_a_free_hand() -> void:
     var scenario := Scenario.new(level, [fridge])
     scenario.simulation.players[0].item = SimItem.new(Menu.COLA)
-    assert_eq(scenario.simulation.action_for(scenario.simulation.players[0]), &"")
+    assert_eq(scenario.simulation.action_for(scenario.simulation.players[0]), &"drink", "no menu, so a drink")
     scenario.at(0, 0, INTERACT).run_until(1)
     assert_eq(scenario.simulation.players[0].menu, SimLevel.NONE)
 

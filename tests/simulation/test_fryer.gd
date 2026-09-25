@@ -95,7 +95,8 @@ func test_cuisson_2_only_takes_blanched_fries() -> void:
     scenario.simulation.players[0].item = SimItem.new(Fryer.FRIES_COLD)
     scenario.at(0, 0, INTERACT).run_until(1)
     assert_null(scenario.simulation.stations[1].basket)
-    assert_eq(scenario.simulation.players[0].item.kind, Fryer.FRIES_COLD)
+    assert_null(scenario.simulation.players[0].item, "the fryer won't take them, so they get eaten")
+    assert_eq(scenario.simulation.players[0].fat, 1)
 
 
 func test_the_sauces_menu_puts_the_chosen_sauce_on() -> void:
@@ -198,11 +199,11 @@ func test_the_hint_matches_what_each_fryer_step_would_do() -> void:
     scenario.at(0, 0, INTERACT).run_until(10)
     assert_eq(sim.action_for(player), &"lift", "frying, free hand")
     player.item = SimItem.new(Fryer.FRIES_COLD)
-    assert_eq(sim.action_for(player), &"", "too early with a full hand does nothing")
+    assert_eq(sim.action_for(player), &"eat", "too early with a full hand: the fryer can't, so you eat")
     scenario.run_until(Fryer.FIRST_FRY_MIN)
     assert_eq(sim.action_for(player), &"lift", "in the window the basket stays, so a full hand is fine")
     scenario.at(Fryer.FIRST_FRY_MIN, 0, INTERACT).run_until(Fryer.FIRST_FRY_MIN + 1)
-    assert_eq(sim.action_for(player), &"", "batch waiting, but the hand is full")
+    assert_eq(sim.action_for(player), &"eat", "batch waiting, but the hand is full")
     player.item = null
     assert_eq(sim.action_for(player), &"take")
 
@@ -218,7 +219,7 @@ func test_the_hint_at_cuisson_2_sauces_and_the_bin() -> void:
     player.item = SimItem.new(Fryer.FRIES_GOOD)
     assert_eq(sim.action_for(player), &"sauce")
     player.item.sauce = Menu.MAYO
-    assert_eq(sim.action_for(player), &"", "already has mayo")
+    assert_eq(sim.action_for(player), &"eat", "already has mayo, so it's dinner")
     player.node = bin
     assert_eq(sim.action_for(player), &"trash")
     player.item = null

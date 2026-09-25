@@ -50,12 +50,12 @@ var fire_damage_every := 2 * SECOND
 var fire_spread_after := 10 * SECOND
 ## Stations fire never reaches, so the crew can always fight back.
 var fireproof: Array[StringName] = [&"extincteur"]
-## A knocked-out player crawls one node in this many ticks.
+## A knocked-out player crawls one node in this many ticks, to a beer.
 var crawl_ticks := 2 * SECOND
-## Hearts of a player a teammate gets back up.
-var revive_health := 1
 ## A bumped player is stunned this long: no moving, no acting (GDD §5.3).
 var bump_stun := 15
+## Each thing eaten or drunk makes a player this much slower, for the rest of the night.
+var fat_slowdown := 0.08
 
 ## Throwing a beer (GDD §8): hold interact this long with a beer in hand to aim instead of
 ## using the station; release to throw.

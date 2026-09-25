@@ -112,6 +112,19 @@ func _initialize() -> void:
             camera.fov = 22
             viewport.add_child(camera)
             camera.make_current()
+        "fat":
+            # P1 has eaten a lot (and just ate again); P2 aims a beer at P1.
+            night.play_local(2)
+            var sim := night.simulation
+            sim.players[0].fat = 4
+            sim.players[0].node = sim.level.find("Anchor3")
+            night._views[0].show_fat_gain()
+            var p2 := sim.players[1]
+            p2.node = sim.level.find("Anchor11")
+            p2.item = SimItem.new(Menu.BEER)
+            p2.aim = 0
+            p2.aim_player = 0
+            p2.aim_ticks = 100
         "hints":
             # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
             night.play_local(2)

@@ -189,6 +189,8 @@ func _step() -> void:
     for event in simulation.events:
         if event.type == &"bump":
             _views[event.target].show_bump()
+        elif event.type == &"fattened":
+            _views[event.slot].show_fat_gain()
 
 
 func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p_role: Role) -> void:
@@ -260,7 +262,9 @@ func _show(p_alpha: float) -> void:
             var action := simulation.action_for(player)
             if action != &"":
                 hint = "%s : %s" % [_input.interact_key_name(local_index), ItemNames.action(action)]
-            if player.item and player.item.kind == Menu.BEER and player.aim < 0:
+                if action == &"throw" and simulation.players.size() > 1:
+                    hint += "  ·  ↑ équipier"
+            if player.item and player.item.kind == Menu.BEER and player.aim < 0 and not player.down:
                 # A beer can always be thrown: hold the key to aim at the line.
                 var throw := "%s maintenu : lancer" % _input.interact_key_name(local_index)
                 hint = throw if hint == "" else "%s\n%s" % [hint, throw]

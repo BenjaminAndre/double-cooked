@@ -95,3 +95,9 @@ static func random_order(rng: RandomNumberGenerator, category_weights: PackedFlo
 static func _with_sauce(dish: StringName, rng: RandomNumberGenerator) -> StringName:
     var sauces := [NATURE, MAYO, ANDALOUSE]
     return StringName("%s:%s" % [dish, sauces[rng.randi_range(0, sauces.size() - 1)]])
+
+
+## Whether a player can eat or drink this to get a heart back: anything from the kitchen,
+## however badly done, but not the extinguisher (GDD §5.1).
+static func edible(item: SimItem) -> bool:
+    return item != null and item.kind != Simulation.EXTINGUISHER

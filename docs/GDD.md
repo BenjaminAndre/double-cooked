@@ -37,15 +37,13 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 - **1 to 4 players, in the same kitchen.** Solo is roomy and four players is packed; the layout does not change. The customer rate scales with the player count.
 
-### 5.1 Health and knock-out
-- Each player has 3 hearts (already implemented).
-- At 0 hearts a player is **knocked out**. They lie on their node and **block it**, until a teammate gets them back up by interacting with them.
-- The night is **lost when every player is knocked out at the same time**, or **when the room riots**: the mood meter reaches its top (§6).
-- The SOINS station restores hearts.
-- **Solo play is supported.** A knocked-out player can **crawl** slowly toward SOINS to get back up alone. In solo this is the only way to recover, and the night is lost if the room riots first.
-- A revived player comes back with 1 heart. Crawling takes about 2 s per node.
-- Getting a knocked-out neighbour up takes priority over using your own station. A knocked-out player can only use SOINS.
-- **(slice default)** Losing "when every player is knocked out" applies from two players up. A solo player who is knocked out keeps crawling toward SOINS.
+### 5.1 Health, eating and knock-out
+- Each player has 3 hearts, shown as ♥ over their head.
+- **There is no healing station** (SOINS was removed after the third playtest). A player heals by **eating or drinking what they hold**: interacting where the station has nothing to do with it (or where there is no station) eats it, 1 heart at a time. Any food works, however badly done, and so do drinks, which can be had almost anywhere except the CAISSE and the POUBELLE. Eating the burnt fries instead of walking to the bin is a real choice.
+- **Every bite or drink makes the player fatter and a little slower for the rest of the night**, even at full health (a death spiral). The figure widens and a discreet "+Gras" pops up.
+- At 0 hearts a player is **knocked out**: they lie on their node and **block it**, crawl slowly (about 2 s per node, one node at a time), and can only eat or drink what they hold, or use the FRIGO.
+- **Rescue:** a teammate throws them a beer (§8), which they drink at once to get back up with 1 heart. Alone, a knocked-out player crawls to the FRIGO and drinks a beer. Rescue beers count toward the fat too.
+- The night is **lost when every player is knocked out at the same time** (from two players up), or **when the room riots**: the mood meter reaches its top (§6).
 
 ### 5.2 Movement
 - Players move from node to node with the arrow keys, and moves can be queued (already implemented: `Anchor` graph, `future_path`).
@@ -73,7 +71,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - The whole fritkot shares **one mood meter**.
 - Orders served on time lower it. Late, wrong or abandoned orders raise it.
 - A higher mood means more frequent and nastier hazards.
-- **(proposal)** Mood levels: *Calme → Tendu → Chaud → Émeute*. The meter also drifts upward on its own as the night goes on, so the After phase is dangerous even for a good crew.
+- Mood levels: *Calme → Tendu → Chaud → Émeute*. Only what happens in the fritkot moves the meter: it no longer drifts with the hour (the hour already speeds up arrivals, §4). It shows as a half-moon dial, green to red, with a needle.
 
 ### 6.1 Customer types
 - Customers differ in two values:
@@ -131,9 +129,9 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 | Hazard | Cause | Effect | Counter |
 |---|---|---|---|
 | Spill | Dropped drinks/sauce, bumps, customers | Wet node: players slide through it **(proposal)** | Mop? Avoid it? |
-| Thrown can | A customer leaving angry (wrong order, badly done, patience run out) throws one on the way out; past Chaud, waiting customers also throw at random, more often the worse the mood | The can flies a visible arc (dotted line) to a red ring where the target stood; 1 heart to every player inside the ring when it lands, **no bump** | Step out of the ring; keep the mood low |
+| Thrown can | A customer leaving angry throws one on the way out, at **whoever served them badly** (or gave them one beer too many); walk-outs and random throws past Chaud go to the **player closest to the counter** | The can flies a visible arc (dotted line) to a red ring where the target stood; 1 heart to every player inside the ring when it lands, **no bump** | Step out of the ring; keep the mood low |
 | Grease fire | A basket left in the oil far too long (§7.1) | Blocks the station. **Standing** on its node costs 1 heart every ~2 s (walking past is safe). Spreads to a neighbouring station after ~10 s; EXTINCTEUR itself never burns | Take the extinguisher at EXTINCTEUR (it stays in your hand and goes back on its station), then one interaction at the fire |
-| Beer (throwing) | A player holding a beer holds interact | Aim: a ▼ over a customer in line, moved with the arrows; release to throw. Whoever stands where it lands catches it: their order is served if they asked for a beer, otherwise it buys back a quarter of their patience. A beer that lands on nobody is lost. A quick tap still uses the station | A breather for an impatient line |
+| Beer (throwing) | A player holding a beer holds interact | Aim: a ▼ over a customer in line (left / right), or **up** for a teammate. Release to throw. A customer who ordered a beer is served; otherwise their **first** unordered beer buys back a quarter of their patience, and a **second** one sends them off angry. A teammate who is knocked out drinks it and gets up; otherwise it lands in an empty hand, or falls. A quick tap still uses the station | A breather for an impatient line |
 | Beer (drinking) | **(proposal)** A player drinks one | Heals 1 heart but scrambles controls for a while | Temptation |
 
 ## 9. Technical notes
@@ -193,3 +191,8 @@ From the first playtest:
 
 - **Batch frying?** In a real fritkot a whole batch is fried, then served from continuously. One basket = one portion (now) keeps every order a small cooking puzzle; batches would shift the game towards stock management and anticipation. Not decided.
 - **The start is slow**: the first customer waits while the first basket cooks. Maybe fine as a calm opening (Soirée phase); revisit with the batch question.
+
+## 12. Towards v1.0
+
+- **Campaign mode:** successive nights get progressively harder, with more complex orders (the mitraillette) and much more choice of meats and sauces.
+- **Grid menus:** station menus as a 3×3 grid (5×5 at harder levels), the cursor starting in the middle, moved with the arrows. Efficient with a keyboard and quick to learn.

@@ -159,34 +159,50 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
     return true
 
 
-## A menu closes if its player falls, moves away or the station catches fire.
+## A menu closes if its player falls (except at the FRIGO, where a beer gets them back up),
+## moves away or the station catches fire.
 func _check_menu(player: SimPlayer) -> void:
     if player.menu == SimLevel.NONE:
         return
-    if player.down or player.is_moving() or level.node_stations[player.node] != player.menu \
-            or stations[player.menu].burning:
+    var station := stations[player.menu]
+    if (player.down and station.kind != &"frigo") or player.is_moving() \
+            or level.node_stations[player.node] != player.menu or station.burning:
         player.menu = SimLevel.NONE
 
 
-## While a beer is held down, the arrows pick a customer in line instead of moving. Releasing
-## early uses the station as a tap would; releasing after SimRules.aim_hold throws the beer.
-## Escape puts the beer down (keeps it). Returns whether the command was used by the aim.
+## While a beer is held down, the arrows aim instead of moving: left and right pick a customer
+## in line; up switches to the teammates (left and right then pick one), down goes back to the
+## line. Releasing early uses the station as a tap would; releasing after SimRules.aim_hold
+## throws the beer. Escape stops aiming and keeps the beer. Returns whether the command was
+## used by the aim.
 func _use_aim(player: SimPlayer, command: int) -> bool:
+    var mates := players.filter(func(p: SimPlayer) -> bool: return p != player)
     match command:
-        Command.MOVE_LEFT, Command.MOVE_UP:
-            player.aim = maxi(player.aim - 1, 0)
-        Command.MOVE_RIGHT, Command.MOVE_DOWN:
-            player.aim = mini(player.aim + 1, maxi(crowd.line.size() - 1, 0))
+        Command.MOVE_UP:
+            if player.aim_player < 0 and not mates.is_empty():
+                player.aim_player = mates[0].slot
+        Command.MOVE_DOWN:
+            player.aim_player = -1
+        Command.MOVE_LEFT, Command.MOVE_RIGHT:
+            var step := 1 if command == Command.MOVE_RIGHT else -1
+            if player.aim_player >= 0:
+                var index := mates.find(players[player.aim_player])
+                player.aim_player = mates[posmod(index + step, mates.size())].slot
+            else:
+                player.aim = clampi(player.aim + step, 0, maxi(crowd.line.size() - 1, 0))
         Command.RELEASE:
             var held_long := player.aim_ticks >= rules.aim_hold
             var target := player.aim
+            var mate := player.aim_player
             player.aim = -1
+            player.aim_player = -1
             if held_long:
-                _throw_beer(player, target)
+                _throw_beer(player, target, mate)
             else:
                 _interact(player)
         Command.CANCEL:
             player.aim = -1
+            player.aim_player = -1
         Command.INTERACT:
             pass
         _:
@@ -200,17 +216,43 @@ func _check_aim(player: SimPlayer) -> void:
         return
     if player.down or player.stun > 0 or not player.item or player.item.kind != Menu.BEER:
         player.aim = -1
+        player.aim_player = -1
     else:
         player.aim_ticks += 1
 
 
-func _throw_beer(player: SimPlayer, target: int) -> void:
+## To the customer at place target in line, or to teammate mate (a slot) if mate >= 0, aimed
+## where they stand now.
+func _throw_beer(player: SimPlayer, target: int, mate: int) -> void:
+    var to := level.queue_position(target) + Vector3.UP * CATCH_HEIGHT
+    if mate >= 0:
+        to = player_position(players[mate]) + Vector3.UP * CATCH_HEIGHT
     var can := SimProjectile.new(SimProjectile.BEER, player_position(player) + Vector3.UP * THROW_HEIGHT,
-            level.queue_position(target) + Vector3.UP * CATCH_HEIGHT, tick, rules.beer_flight)
+            to, tick, rules.beer_flight)
     can.by = player.slot
+    can.at_player = mate
     projectiles.append(can)
     player.item = null
-    events.append({"type": &"beer_thrown", "by": player.slot, "target": target})
+    events.append({"type": &"beer_thrown", "by": player.slot, "target": target, "mate": mate})
+
+
+## A beer landing on the crew: whoever stands close enough catches it. Knocked out, they drink
+## it and get back up; otherwise it goes to an empty hand, or falls if their hand is full.
+func _beer_to_mate(can: SimProjectile) -> void:
+    var landing := Vector3(can.to.x, 0, can.to.z)
+    for player in players:
+        if player.slot == can.by or player_position(player).distance_to(landing) > rules.can_radius:
+            continue
+        if player.down:
+            player.item = SimItem.new(Menu.BEER)
+            _consume(player)
+            events.append({"type": &"revived", "slot": player.slot, "by": can.by})
+            return
+        if not player.item:
+            player.item = SimItem.new(Menu.BEER)
+            events.append({"type": &"beer_caught", "slot": player.slot})
+            return
+    events.append({"type": &"beer_missed"})
 
 
 ## Customers who leave angry throw a can on the way out, at whoever served them badly; past
@@ -248,7 +290,9 @@ func _advance_projectiles() -> void:
         if tick + 1 < can.lands_at():
             continue
         projectiles.erase(can)
-        if can.kind == SimProjectile.BEER:
+        if can.kind == SimProjectile.BEER and can.at_player >= 0:
+            _beer_to_mate(can)
+        elif can.kind == SimProjectile.BEER:
             var index := level.queue_index_at(can.to)
             if index >= 0 and index < crowd.line.size():
                 crowd.give_beer(index, can.by, events)
@@ -313,20 +357,28 @@ func _advance(player: SimPlayer) -> void:
         events.append({"type": &"bump", "by": player.slot, "target": occupant.slot})
         occupant.stun = rules.bump_stun
         return
-    player.edge_ticks = rules.crawl_ticks if player.down else _walk_ticks(player.node, target)
+    # Every bite or drink of the night makes the walk a little slower (GDD §5.1).
+    player.edge_ticks = rules.crawl_ticks if player.down \
+            else roundi(_walk_ticks(player.node, target) * (1.0 + player.fat * rules.fat_slowdown))
 
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
-## One of: choose (a menu is open), revive, extinguish, heal, fry, lift, take, sauce, drink,
-## meat, trash, serve, take_extinguisher, return_extinguisher. _interact() only acts when this
-## isn't empty, so the two always agree.
+## One of: throw, choose (a menu is open), extinguish, fry, lift, take, sauce, fridge, meat,
+## trash, serve, take_extinguisher, return_extinguisher, and eat / drink when the station has
+## nothing to do with what is held (GDD §5.1). _interact() only acts when this isn't empty,
+## so the two always agree. A knocked-out player can only eat, drink, and use the FRIGO.
 func action_for(player: SimPlayer) -> StringName:
     if player.aim >= 0:
         return &"throw" if player.aim_ticks >= rules.aim_hold else &""
     if player.menu != SimLevel.NONE:
         return &"choose"
-    if not player.down and _fallen_neighbour(player.node):
-        return &"revive"
+    var action := _station_action(player)
+    if action == &"" and Menu.edible(player.item):
+        return &"drink" if player.item.kind in Menu.DRINKS else &"eat"
+    return action
+
+
+func _station_action(player: SimPlayer) -> StringName:
     var index := level.node_stations[player.node]
     if index == SimLevel.NONE:
         return &""
@@ -334,11 +386,9 @@ func action_for(player: SimPlayer) -> StringName:
     var held := player.item
     if station.burning:
         return &"extinguish" if held and held.kind == EXTINGUISHER and not player.down else &""
-    if player.down and station.kind != &"soins":
+    if player.down and station.kind != &"frigo":
         return &""
     match station.kind:
-        &"soins":
-            return &"heal" if player.down or player.health < SimPlayer.MAX_HEALTH else &""
         &"cuisson_1":
             if not station.basket:
                 return &"fry"
@@ -364,33 +414,30 @@ func action_for(player: SimPlayer) -> StringName:
     return &""
 
 
-## Whether a menu station can serve the player's focused hand: SAUCES needs a food without
-## sauce, FRIGO and VIANDES an empty hand.
+## Whether a menu station can serve the player's hand: SAUCES needs a food without sauce,
+## FRIGO and VIANDES an empty hand.
 func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
     var held := player.item
     match station.kind:
         &"sauces":
             return &"sauce" if Menu.takes_sauce(held) else &""
         &"frigo":
-            return &"drink" if not held else &""
+            return &"fridge" if not held else &""
         &"viandes":
             return &"meat" if not held else &""
     return &""
 
 
-## Getting a knocked-out neighbour back up comes first; otherwise the player uses the station
-## at their last reached node with the focused hand (GDD §5.4). A knocked-out player can
-## only use SOINS. Menu stations open their menu; the choice is made in _use_menu().
+## Uses the station at the player's last reached node with what they hold (GDD §5.4), or eats
+## or drinks it when the station has nothing to do with it. Menu stations open their menu; the
+## choice is made in _use_menu().
 func _interact(player: SimPlayer) -> void:
-    if action_for(player) == &"":
+    var action := action_for(player)
+    if action == &"":
         return
-    if not player.down:
-        var fallen := _fallen_neighbour(player.node)
-        if fallen:
-            fallen.down = false
-            fallen.health = rules.revive_health
-            events.append({"type": &"revived", "slot": fallen.slot, "by": player.slot})
-            return
+    if action in [&"eat", &"drink"]:
+        _consume(player)
+        return
     var index := level.node_stations[player.node]
     var station := stations[index]
     var held := player.item
@@ -400,9 +447,6 @@ func _interact(player: SimPlayer) -> void:
         events.append({"type": &"fire_out", "station": index, "by": player.slot})
         return
     match station.kind:
-        &"soins":
-            player.health = SimPlayer.MAX_HEALTH
-            player.down = false
         &"cuisson_1":
             Fryer.use_first(station, player)
         &"cuisson_2":
@@ -420,6 +464,16 @@ func _interact(player: SimPlayer) -> void:
                 player.item = SimItem.new(EXTINGUISHER)
             elif held.kind == EXTINGUISHER:
                 player.item = null
+
+
+## Eating or drinking what is held: a heart back (and back on their feet if knocked out), and
+## a little fatter and slower for the rest of the night, even at full health (GDD §5.1).
+func _consume(player: SimPlayer) -> void:
+    player.item = null
+    player.health = mini(player.health + 1, SimPlayer.MAX_HEALTH)
+    player.down = false
+    player.fat += 1
+    events.append({"type": &"fattened", "slot": player.slot})
 
 
 ## Fryers left in the oil too long catch fire; fires burn whoever stands at them and spread
@@ -489,16 +543,6 @@ func _hurt(player: SimPlayer) -> void:
         # A falling player finishes the step under way, and nothing more.
         player.path.resize(1 if player.is_moving() else 0)
         events.append({"type": &"knocked_out", "slot": player.slot})
-
-
-func _fallen_neighbour(node: int) -> SimPlayer:
-    for neighbour in level.links[node]:
-        if neighbour == SimLevel.NONE:
-            continue
-        var other := _occupant(neighbour)
-        if other and other.down and not other.is_moving():
-            return other
-    return null
 
 
 func _count(step_events: Array[Dictionary]) -> void:

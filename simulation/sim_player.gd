@@ -15,8 +15,11 @@ var edge_ticks := 0
 var health := MAX_HEALTH
 ## What the player holds (one hand, GDD §5.4). null is an empty hand.
 var item: SimItem
-## Knocked out at 0 hearts: crawls, blocks their node, and can only use SOINS (GDD §5.1).
+## Knocked out at 0 hearts: crawls, blocks their node, and can only eat, drink or use the
+## FRIGO (GDD §5.1).
 var down := false
+## How much this player ate and drank tonight: each one slows them down (GDD §5.1).
+var fat := 0
 ## Ticks left stunned after being bumped: no moving, no acting (GDD §5.3).
 var stun := 0
 ## Ticks spent standing next to a fire since the last heart it cost.
@@ -29,6 +32,8 @@ var menu_choice := 0
 ## been held (GDD §8).
 var aim := -1
 var aim_ticks := 0
+## When aiming at a teammate instead of the line: their slot, else -1.
+var aim_player := -1
 
 
 func _init(p_slot: int, p_node: int) -> void:
@@ -47,4 +52,4 @@ func occupied_node() -> int:
 
 func fingerprint() -> Array:
     return [node, path, progress, edge_ticks, health, item.fingerprint() if item else null, down,
-            stun, exposure, menu, menu_choice, aim, aim_ticks]
+            stun, exposure, menu, menu_choice, aim, aim_ticks, aim_player, fat]

@@ -13,13 +13,13 @@ var c: int
 var d: int
 
 
-## A straight corridor A - B - C - D, one unit apart, with SOINS at D.
+## A straight corridor A - B - C - D, one unit apart.
 func before_each() -> void:
     level = SimLevel.new()
     a = level.add_node(Vector3(0, 0, 0), SimLevel.NONE, "A")
     b = level.add_node(Vector3(1, 0, 0), SimLevel.NONE, "B")
     c = level.add_node(Vector3(2, 0, 0), SimLevel.NONE, "C")
-    d = level.add_node(Vector3(3, 0, 0), level.add_station(&"soins"), "D")
+    d = level.add_node(Vector3(3, 0, 0), SimLevel.NONE, "D")
     for pair in [[a, b], [b, c], [c, d]]:
         level.link(pair[0], SimLevel.Direction.RIGHT, pair[1])
         level.link(pair[1], SimLevel.Direction.LEFT, pair[0])
@@ -88,21 +88,6 @@ func test_swapping_places_the_lower_slot_bumps_and_stuns_the_other() -> void:
     assert_eq(sim.players[1].node, b)
     assert_eq(scenario.events.size(), 1, "the stunned player doesn't bump back")
     assert_gt(sim.players[1].stun, 0)
-
-
-func test_interacting_at_soins_restores_hearts() -> void:
-    var damage := Simulation.Command.DEBUG_DAMAGE
-    var scenario := Scenario.new(level, [d]).at(0, 0, damage).at(0, 0, damage)
-    var player := scenario.run_until(1).players[0]
-    assert_eq(player.health, SimPlayer.MAX_HEALTH - 2)
-    scenario.at(1, 0, Simulation.Command.INTERACT).run_until(2)
-    assert_eq(player.health, SimPlayer.MAX_HEALTH)
-
-
-func test_interacting_elsewhere_does_nothing() -> void:
-    var scenario := Scenario.new(level, [a]).at(0, 0, Simulation.Command.DEBUG_DAMAGE) \
-            .at(1, 0, Simulation.Command.INTERACT)
-    assert_eq(scenario.run_until(2).players[0].health, SimPlayer.MAX_HEALTH - 1)
 
 
 func test_health_never_goes_below_zero() -> void:

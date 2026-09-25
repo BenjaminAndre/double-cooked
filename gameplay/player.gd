@@ -4,6 +4,8 @@ extends Node3D
 ## show_state() every frame.
 
 const BUMP_HOP := 0.15
+## How much wider a player gets per thing eaten or drunk.
+const FAT_WIDTH := 0.12
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
@@ -55,6 +57,9 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)
         shown = shown.lerp(level.positions[state.path[0]], t)
     global_position = shown
+    # Wider with every bite of the night (GDD §5.1).
+    var girth := 1.0 + FAT_WIDTH * state.fat
+    $PlayerModel.scale = Vector3(girth, 1.0, girth)
     # Knocked out: lying on the floor.
     $PlayerModel.rotation.z = PI / 2 if state.down else 0.0
     for node in state.path:
@@ -80,3 +85,16 @@ func show_bump() -> void:
     _bump_tween = create_tween()
     _bump_tween.tween_property(model, "position:y", BUMP_HOP, 0.06)
     _bump_tween.tween_property(model, "position:y", 0.0, 0.09)
+
+
+## A discreet "+Gras" rising and fading over the player's head.
+func show_fat_gain() -> void:
+    var label := _label(1.1, 30)
+    # To the side, clear of the hint and hand above the head.
+    label.position.x = 0.45
+    label.text = "+Gras"
+    label.modulate = Color(1.0, 0.8, 0.45)
+    var tween := create_tween().set_parallel()
+    tween.tween_property(label, "position:y", 2.0, 1.2)
+    tween.tween_property(label, "modulate:a", 0.0, 1.2)
+    tween.chain().tween_callback(label.queue_free)
