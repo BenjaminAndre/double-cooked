@@ -68,3 +68,34 @@ func test_enter_starts_a_new_night_once_it_is_over() -> void:
     night._unhandled_input(enter)
     assert_ne(night.simulation, before)
     assert_eq(night.simulation.outcome, &"")
+
+
+## The whole slice on the real kitchen: fry twice, rest, sauce, serve the first customer.
+func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
+    var game := GAME_SCENE.instantiate()
+    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    game.free()
+    const C := Simulation.Command
+    var lift := 10 + Fryer.FIRST_FRY_MIN
+    var put_in := lift + Fryer.REST_NEEDED
+    var done := put_in + Fryer.SECOND_FRY_MIN
+    var scenario := Scenario.new(level, [level.find("Anchor")], 1) \
+            .at(0, 0, C.MOVE_RIGHT) \
+            .at(10, 0, C.INTERACT) \
+            .at(lift, 0, C.INTERACT) \
+            .at(lift + 1, 0, C.INTERACT) \
+            .at(lift + 2, 0, C.MOVE_RIGHT).at(lift + 2, 0, C.MOVE_RIGHT) \
+            .at(put_in, 0, C.INTERACT) \
+            .at(done, 0, C.INTERACT) \
+            .at(done + 1, 0, C.MOVE_DOWN).at(done + 1, 0, C.MOVE_LEFT).at(done + 1, 0, C.MOVE_LEFT) \
+            .at(done + 30, 0, C.INTERACT) \
+            .at(done + 31, 0, C.MOVE_RIGHT).at(done + 31, 0, C.MOVE_DOWN) \
+            .at(done + 60, 0, C.INTERACT)
+    var sim := scenario.run_until(done + 1)
+    assert_eq(level.station_kind_at(sim.players[0].node), &"cuisson_2")
+    assert_eq(sim.players[0].focused_item().kind, Fryer.FRIES_GOOD)
+    sim = scenario.run_until(done + 61)
+    assert_eq(level.station_kind_at(sim.players[0].node), &"caisse")
+    assert_null(sim.players[0].focused_item(), "handed over")
+    assert_eq(sim.stats.dishes, 1)
+    assert_eq(sim.stats.bad_dishes, 0)
