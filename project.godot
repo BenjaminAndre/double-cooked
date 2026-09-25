@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="double-cooked"
-config/version="0.1.2"
+config/version="0.1.3"
 run/main_scene="uid://bolij82abbnan"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -22,7 +22,7 @@ settings/addon_root_folder="res://addons/debug_draw_3d"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/tube/plugin.cfg")
+enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/tube/plugin.cfg")
 
 [input]
 

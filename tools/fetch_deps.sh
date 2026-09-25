@@ -10,6 +10,7 @@ set -euo pipefail
 KENNEY_URL="https://kenney.nl/media/pages/assets/prototype-kit/4d3b7073ed-1724832076/kenney_prototype-kit.zip"
 DEBUG_DRAW_3D_URL="https://github.com/DmitriySalnikov/godot_debug_draw_3d/releases/download/1.7.3/debug-draw-3d_1.7.3.zip"
 TUBE_URL="https://github.com/jonandrewdavis/tube/archive/0370fa40dd4988b0bff8ebee15225761c327208d.zip"
+GUT_URL="https://github.com/bitwes/Gut/archive/refs/tags/v9.7.1.zip"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d)"
@@ -18,7 +19,9 @@ trap 'rm -rf "$TMP"' EXIT
 # fetch <url> <name>: downloads and extracts into $TMP/<name>
 fetch() {
     echo "Downloading $2..."
-    curl -fsSL "$1" -o "$TMP/$2.zip"
+    # CURL_EXTRA: optional extra flags, e.g. --ssl-revoke-best-effort on Windows
+    # networks where the certificate revocation check is blocked.
+    curl -fsSL ${CURL_EXTRA:-} "$1" -o "$TMP/$2.zip"
     unzip -q "$TMP/$2.zip" -d "$TMP/$2"
 }
 
@@ -44,6 +47,7 @@ install_addon() {
 
 install_addon "$DEBUG_DRAW_3D_URL" debug_draw_3d
 install_addon "$TUBE_URL" tube
+install_addon "$GUT_URL" gut
 
 # godot-extension-webrtc is not fetched: browsers provide WebRTC natively, so
 # only desktop builds need it.

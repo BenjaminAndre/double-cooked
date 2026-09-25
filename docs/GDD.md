@@ -149,7 +149,7 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 
 ### 9.2 Testing
 
-- **(proposal)** Use **GUT 9.7.1**, which targets Godot 4.7. Tests are written in GDScript and run headless (`godot --headless -s addons/gut/gut_cmdln.gd`), so CI runs them before building. A failing test blocks the deploy.
+- Tests use **GUT 9.7.1**, which targets Godot 4.7. Tests are written in GDScript and run headless (`godot --headless -s addons/gut/gut_cmdln.gd`), so CI runs them before building. A failing test blocks the deploy.
 - **Unit tests** cover the rule classes: fryer states and windows, item transformations, mood meter, bump resolution, order matching.
 - **Scenario tests** (Factorio-style) run a full multiplayer game in one process with no network. A scenario is: a level (built in the test or loaded), a seed, a timeline of `{tick, player, command}`, and assertions at given ticks.
   - Example: *two players both move into the CAISSE node on tick 100; at tick 101, slot 0 is on it, slot 1 is bumped and dropped its non-focused item.*
