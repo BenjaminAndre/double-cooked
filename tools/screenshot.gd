@@ -56,15 +56,24 @@ func _initialize() -> void:
             sim.players[0].down = true
             sim.players[1].health = 0
             sim.players[1].down = true
+        "fryers":
+            # CUISSON 1 in its window, one CUISSON 2 undercooked, the other too late.
+            var sim := night.simulation
+            var fry := func(anchor: String, cook: int) -> void:
+                var station := sim.stations[sim.level.node_stations[sim.level.find(anchor)]]
+                station.basket = SimItem.new(Fryer.FRIES_RAW)
+                station.frying = true
+                station.cook = cook
+            fry.call("Anchor2", Fryer.FIRST_FRY_MIN + 60)
+            fry.call("Anchor4", Fryer.SECOND_FRY_MIN / 2)
+            fry.call("Anchor5", Fryer.SECOND_FRY_MAX + 120)
         "hints":
             # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
             night.play_local(2)
             var sim := night.simulation
             sim.players[0].node = sim.level.find("Anchor2")
             sim.players[1].node = sim.level.find("Anchor4")
-            var fries := SimItem.new(Fryer.FRIES_RESTING)
-            fries.rest = Fryer.REST_NEEDED
-            sim.players[1].hands[0] = fries
+            sim.players[1].hands[0] = SimItem.new(Fryer.FRIES_BLANCHED)
     await create_timer(seconds).timeout
     await process_frame
     viewport.get_texture().get_image().save_png(output)

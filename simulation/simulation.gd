@@ -70,9 +70,6 @@ func step(commands: Array) -> void:
         _advance(player)
     for station in stations:
         Fryer.advance(station)
-    for player in players:
-        for item in player.hands:
-            Fryer.advance_item(item)
     _advance_fires()
     crowd.advance(tick, players.size(), rng, events)
     tick += 1
@@ -183,7 +180,7 @@ func action_for(player: SimPlayer) -> StringName:
             return &"take" if not held else &""
         &"cuisson_2":
             if not station.basket:
-                return &"fry" if held and held.kind == Fryer.FRIES_RESTING else &""
+                return &"fry" if held and held.kind == Fryer.FRIES_BLANCHED else &""
             return &"lift" if not held else &""
         &"sauces":
             return &"sauce" if held and held.kind in Fryer.FINISHED and not held.sauce else &""
@@ -253,7 +250,7 @@ func _interact(player: SimPlayer) -> void:
 func _advance_fires() -> void:
     for index in stations.size():
         var station := stations[index]
-        if station.frying and station.cook > rules.fire_after:
+        if station.frying and station.cook > Fryer.window(station).y + rules.fire_margin:
             station.basket = null
             station.frying = false
             station.cook = 0

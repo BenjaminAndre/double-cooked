@@ -70,14 +70,14 @@ func test_enter_starts_a_new_night_once_it_is_over() -> void:
     assert_eq(night.simulation.outcome, &"")
 
 
-## The whole slice on the real kitchen: fry twice, rest, sauce, serve the first customer.
+## The whole slice on the real kitchen: fry a batch, finish a portion, sauce, serve the first customer.
 func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
     var game := GAME_SCENE.instantiate()
     var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
     game.free()
     const C := Simulation.Command
     var lift := 10 + Fryer.FIRST_FRY_MIN
-    var put_in := lift + Fryer.REST_NEEDED
+    var put_in := lift + 20
     var done := put_in + Fryer.SECOND_FRY_MIN
     var scenario := Scenario.new(level, [level.find("Anchor")], 1) \
             .at(0, 0, C.MOVE_RIGHT) \

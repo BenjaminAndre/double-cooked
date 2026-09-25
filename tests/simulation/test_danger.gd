@@ -13,6 +13,8 @@ var fryer: int
 var sauces: int
 var soins: int
 var rules: SimRules
+## The tick a CUISSON 1 basket dropped at tick 0 catches fire.
+var fire_tick: int
 
 
 ## A row EXTINCTEUR - CUISSON 1 - SAUCES - SOINS, one unit apart, no customers, short fires.
@@ -29,7 +31,8 @@ func before_each() -> void:
     rules.first_arrival = NEVER
     rules.night_ticks = NEVER
     rules.drift_every_soiree = NEVER
-    rules.fire_after = 20
+    rules.fire_margin = 20
+    fire_tick = Fryer.FIRST_FRY_MAX + rules.fire_margin
     rules.fire_damage_every = 10
     rules.fire_spread_after = 50
     rules.crawl_ticks = 12
@@ -37,7 +40,7 @@ func before_each() -> void:
 
 func test_a_basket_left_too_long_starts_a_fire() -> void:
     var scenario := _scenario([fryer]).at(0, 0, INTERACT)
-    var sim := scenario.run_until(rules.fire_after + 1)
+    var sim := scenario.run_until(fire_tick + 1)
     var station := sim.stations[1]
     assert_true(station.burning)
     assert_null(station.basket, "the fries are gone")
@@ -45,7 +48,7 @@ func test_a_basket_left_too_long_starts_a_fire() -> void:
 
 
 func test_a_burning_station_cannot_be_used() -> void:
-    var sim := _burning_fryer([sauces]).run_until(rules.fire_after + 5)
+    var sim := _burning_fryer([sauces]).run_until(fire_tick + 5)
     sim.stations[1].burning = true
     sim.players[0].node = fryer
     sim.step([[INTERACT]])
@@ -54,7 +57,7 @@ func test_a_burning_station_cannot_be_used() -> void:
 
 func test_standing_at_a_fire_costs_a_heart_every_few_seconds() -> void:
     var scenario := _burning_fryer([sauces])
-    var sim := scenario.run_until(rules.fire_after + 1)
+    var sim := scenario.run_until(fire_tick + 1)
     sim.players[0].node = fryer
     scenario.run_until(sim.tick + rules.fire_damage_every * 2)
     assert_eq(sim.players[0].health, SimPlayer.MAX_HEALTH - 2)
@@ -62,7 +65,7 @@ func test_standing_at_a_fire_costs_a_heart_every_few_seconds() -> void:
 
 func test_leaving_the_fire_resets_the_exposure() -> void:
     var scenario := _burning_fryer([sauces])
-    var sim := scenario.run_until(rules.fire_after + 1)
+    var sim := scenario.run_until(fire_tick + 1)
     sim.players[0].node = fryer
     var start := sim.tick
     scenario.at(start + rules.fire_damage_every - 2, 0, RIGHT)
@@ -71,7 +74,7 @@ func test_leaving_the_fire_resets_the_exposure() -> void:
 
 
 func test_a_fire_spreads_to_a_neighbour_but_never_to_the_extinguisher() -> void:
-    var sim := _burning_fryer([soins]).run_until(rules.fire_after + 1 + rules.fire_spread_after)
+    var sim := _burning_fryer([soins]).run_until(fire_tick + 1 + rules.fire_spread_after)
     assert_true(sim.stations[2].burning, "SAUCES caught fire")
     assert_false(sim.stations[0].burning, "EXTINCTEUR is fireproof")
     assert_eq(sim.stats.fires, 2)
@@ -79,7 +82,7 @@ func test_a_fire_spreads_to_a_neighbour_but_never_to_the_extinguisher() -> void:
 
 func test_the_extinguisher_puts_a_fire_out_and_stays_in_hand() -> void:
     var scenario := _burning_fryer([extinguisher])
-    var start := rules.fire_after + 1
+    var start := fire_tick + 1
     scenario.at(start, 0, INTERACT).at(start + 1, 0, RIGHT).at(start + 6, 0, INTERACT)
     var sim := scenario.run_until(start + 7)
     assert_false(sim.stations[1].burning)
@@ -153,7 +156,7 @@ func _scenario(spawns: Array) -> Scenario:
 
 
 ## A basket put in CUISSON 1 at tick 0 by a player standing there, who then walks away.
-## It catches fire at tick fire_after; the players start where spawns say.
+## It catches fire at fire_tick; the players start where spawns say.
 func _burning_fryer(spawns: Array) -> Scenario:
     var scenario := _scenario(spawns)
     scenario.simulation.stations[1].basket = SimItem.new(Fryer.FRIES_RAW)

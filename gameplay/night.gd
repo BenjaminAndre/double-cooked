@@ -246,7 +246,7 @@ func _show(alpha: float) -> void:
                 hint = "%s : %s" % [_input.interact_key_name(local_index), ItemNames.action(action)]
         _views[slot].show_hint(hint)
     for index in _station_views.size():
-        _station_views[index].show_station(simulation.stations[index])
+        _station_views[index].show_station(simulation.stations[index], simulation.rules)
         _station_views[index].set_highlighted(highlighted.has(index))
 
 

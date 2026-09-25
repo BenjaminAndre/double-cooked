@@ -41,8 +41,8 @@ var drift_every_after := 15
 ## +1 per customer waiting behind the front one, every this many ticks.
 var line_pressure_every := 2 * SECOND
 
-## A basket left in the oil this long, at either fryer, starts a grease fire (GDD §8).
-var fire_after := 15 * SECOND
+## A basket left in the oil this long past the end of its window starts a grease fire (GDD §8).
+var fire_margin := 10 * SECOND
 ## Standing on a burning station's node costs a heart this often.
 var fire_damage_every := 2 * SECOND
 ## A fire left burning this long spreads to a neighbouring station.

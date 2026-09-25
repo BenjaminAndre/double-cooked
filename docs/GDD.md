@@ -93,31 +93,26 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ## 7. Cooking
 
 ### 7.1 Double cuisson (signature mechanic)
-Fries go through a first fry at CUISSON 1, then rest, then a second fry at CUISSON 2. Every step is one interaction with the focused hand.
 
-**CUISSON 1: first fry**
-1. **Put in.** Interacting with an empty CUISSON 1 **spawns a basket of raw fries** straight into the oil, and the cooking timer starts. No supply station is needed.
-2. **Lift.** Interacting again lifts the basket. What happens depends on the timing:
-   - **Too early:** you get **cold fries** in your hand, fit only for the bin.
-   - **Just in time:** the basket **stays on the fryer, resting**, with a rest timer.
-   - **Too late:** you get **overcooked fries** in your hand, fit only for the bin.
-3. **Take.** On a basket that is resting, a third interaction puts it in your hand. The **rest timer keeps running in your hand**.
+Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a second fry at CUISSON 2, one portion at a time. Every step is one interaction with the focused hand. (Revised after the first playtest: resting was removed, and the first fry now makes a batch so both CUISSON 2 get used.)
 
-**CUISSON 2: second fry**
-4. **Put in.** The outcome depends on the rest timer at that moment:
-   - **Rested too little:** the fries will come out **soggy**, even if the second fry goes well.
-   - **Rested enough:** the fries will come out **good**, if the second fry goes well too.
-5. **Lift.** Same as at CUISSON 1: too early gives **soggy** fries, too late gives **burnt** fries, and in time gives the result decided at step 4 (soggy or good). The fries go straight into the focused hand.
+**CUISSON 1: first fry (about 8–14 s)**
+1. **Drop.** Interacting with an empty CUISSON 1 drops a batch of raw fries into the oil. No supply station is needed.
+2. **Lift.** Interacting again lifts the batch:
+   - **Too early:** the whole batch comes into the hand as **cold fries**, fit only for the bin.
+   - **Just in time:** the batch stays on the fryer, blanched and ready.
+   - **Too late:** the whole batch comes into the hand as **overcooked fries**, fit only for the bin.
+3. **Take.** Each further interaction takes **one blanched portion** into the hand. CUISSON 1 stays occupied until all 5 portions are taken.
+
+**CUISSON 2: second fry (about 3–5 s)**
+4. **Put in** a blanched portion.
+5. **Lift:** too early gives **soggy** fries, in time **good** fries, too late **burnt** fries.
 
 **Rules around the fryers**
-- A basket left in the oil far too long, at either fryer, starts a **grease fire**. That makes the first slice's only hazard come out of the cooking itself.
-- Resting fries **never spoil**, on the fryer or in a hand. The punishment for forgetting them is the lost time and the occupied fryer or hand.
-- A resting basket **occupies CUISSON 1** until someone takes it, which puts pressure on the team to keep the fryer free.
-- Bad fries (cold, overcooked, soggy, burnt) **can be served**, at a mood penalty. The bin is the clean way out.
-- **Reading the timing:** a small gauge over each fryer shows the cook progress and a coloured "just right" zone, readable at a glance. A sound cue will be added once there is audio.
-- The fryers are shared between players (CUISSON 1 and the two CUISSON 2 / VIANDES fryers in the demo level).
-
-Fry states: raw (in oil), cold, overcooked, resting, soggy, good, burnt.
+- Anything left in the oil 10 s past the end of its window starts a **grease fire**.
+- Bad fries (soggy, burnt) can be served, at a mood penalty. The bin is the clean way out.
+- **Reading the timing:** a horizontal gauge over each fryer, 25% transparent: yellow while undercooked, blue when ready, red from too late up to the fire at its end, with a white line for the progress. A batch waiting on CUISSON 1 shows its portions left (×5).
+- The fryers are shared between players.
 
 ### 7.2 Menu
 - **(proposal)** Frites with sauce (mayo, andalouse, samouraï…), fried snacks (fricadelle, boulette), a mitraillette (bread + meat + fries + sauce), and canned drinks and beer.

@@ -4,10 +4,8 @@ extends RefCounted
 
 ## See Fryer for the fries kinds.
 var kind: StringName
-## Ticks rested since the first fry, for FRIES_RESTING.
-var rest := 0
-## Whether the fries had rested long enough when they went into CUISSON 2.
-var rested := false
+## How many portions this is: a whole CUISSON 1 batch, or 1.
+var portions := 1
 var sauce := false
 
 
@@ -16,4 +14,4 @@ func _init(p_kind: StringName) -> void:
 
 
 func fingerprint() -> Array:
-    return [kind, rest, rested, sauce]
+    return [kind, portions, sauce]

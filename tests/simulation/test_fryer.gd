@@ -39,16 +39,23 @@ func test_lifting_too_early_gives_cold_fries() -> void:
     assert_null(sim.stations[0].basket)
 
 
-func test_lifting_in_time_leaves_the_basket_resting_on_the_fryer() -> void:
+func test_lifting_in_time_leaves_the_batch_on_the_fryer() -> void:
     var sim := _first_fry_lifted_at(Fryer.FIRST_FRY_MIN)
     assert_null(sim.players[0].focused_item())
-    assert_eq(sim.stations[0].basket.kind, Fryer.FRIES_RESTING)
+    assert_eq(sim.stations[0].basket.kind, Fryer.FRIES_BLANCHED)
+    assert_eq(sim.stations[0].basket.portions, Fryer.BATCH)
     assert_false(sim.stations[0].frying)
 
 
 func test_lifting_too_late_gives_overcooked_fries() -> void:
     var sim := _first_fry_lifted_at(Fryer.FIRST_FRY_MAX + 1)
     assert_eq(sim.players[0].focused_item().kind, Fryer.FRIES_OVERCOOKED)
+
+
+func test_a_ruined_batch_goes_whole_into_the_hand() -> void:
+    var item := _first_fry_lifted_at(Fryer.FIRST_FRY_MIN - 1).players[0].focused_item()
+    assert_eq(item.kind, Fryer.FRIES_COLD)
+    assert_eq(item.portions, Fryer.BATCH)
 
 
 func test_lifting_into_the_hand_needs_the_focused_hand_free() -> void:
@@ -61,37 +68,31 @@ func test_lifting_into_the_hand_needs_the_focused_hand_free() -> void:
     assert_eq(player.hands[SimPlayer.Hand.RIGHT].kind, Fryer.FRIES_COLD)
 
 
-func test_rest_keeps_running_in_the_hand() -> void:
+func test_portions_are_taken_one_at_a_time_until_the_fryer_is_free() -> void:
     var lift := Fryer.FIRST_FRY_MIN
-    var scenario := Scenario.new(level, [fryer_1]).at(0, 0, INTERACT).at(lift, 0, INTERACT) \
-            .at(lift + 10, 0, INTERACT)
-    var player := scenario.run_until(lift + 30).players[0]
-    assert_eq(player.focused_item().kind, Fryer.FRIES_RESTING)
-    assert_eq(player.focused_item().rest, 30)
-    assert_null(scenario.simulation.stations[0].basket, "CUISSON 1 is free again")
+    var scenario := Scenario.new(level, [fryer_1]).at(0, 0, INTERACT).at(lift, 0, INTERACT)
+    var sim := scenario.run_until(lift + 1)
+    var player := sim.players[0]
+    for taken in Fryer.BATCH:
+        scenario.at(sim.tick, 0, INTERACT).run_until(sim.tick + 1)
+        assert_eq(player.focused_item().kind, Fryer.FRIES_BLANCHED)
+        assert_eq(player.focused_item().portions, 1)
+        player.hands[player.focus] = null
+    assert_null(sim.stations[0].basket, "CUISSON 1 is free once the batch is used up")
 
 
-func test_rested_fries_come_out_good() -> void:
-    var put_in := Fryer.FIRST_FRY_MIN + Fryer.REST_NEEDED
-    var sim := _second_fry(put_in, Fryer.SECOND_FRY_MIN)
+func test_a_blanched_portion_comes_out_good_from_a_timely_second_fry() -> void:
+    var sim := _second_fry(Fryer.SECOND_FRY_MIN)
     assert_eq(sim.players[0].focused_item().kind, Fryer.FRIES_GOOD)
-
-
-func test_fries_that_didnt_rest_enough_come_out_soggy() -> void:
-    var put_in := Fryer.FIRST_FRY_MIN + Fryer.REST_NEEDED - 1
-    var sim := _second_fry(put_in, Fryer.SECOND_FRY_MIN)
-    assert_eq(sim.players[0].focused_item().kind, Fryer.FRIES_SOGGY)
+    assert_eq(sim.stations[0].basket.portions, Fryer.BATCH - 1, "the rest of the batch waits")
 
 
 func test_second_fry_lifted_too_early_is_soggy_and_too_late_is_burnt() -> void:
-    var put_in := Fryer.FIRST_FRY_MIN + Fryer.REST_NEEDED
-    assert_eq(_second_fry(put_in, Fryer.SECOND_FRY_MIN - 1).players[0].focused_item().kind,
-            Fryer.FRIES_SOGGY)
-    assert_eq(_second_fry(put_in, Fryer.SECOND_FRY_MAX + 1).players[0].focused_item().kind,
-            Fryer.FRIES_BURNT)
+    assert_eq(_second_fry(Fryer.SECOND_FRY_MIN - 1).players[0].focused_item().kind, Fryer.FRIES_SOGGY)
+    assert_eq(_second_fry(Fryer.SECOND_FRY_MAX + 1).players[0].focused_item().kind, Fryer.FRIES_BURNT)
 
 
-func test_cuisson_2_only_takes_resting_fries() -> void:
+func test_cuisson_2_only_takes_blanched_fries() -> void:
     var scenario := Scenario.new(level, [fryer_2])
     scenario.simulation.players[0].hands[0] = SimItem.new(Fryer.FRIES_COLD)
     scenario.at(0, 0, INTERACT).run_until(1)
@@ -140,10 +141,11 @@ func _first_fry_lifted_at(tick: int) -> Simulation:
     return Scenario.new(level, [fryer_1]).at(0, 0, INTERACT).at(tick, 0, INTERACT).run_until(tick + 1)
 
 
-## The whole route: first fry lifted in time, fries taken at once, carried to CUISSON 2 and
-## put in at put_in, then lifted after second_fry ticks.
-func _second_fry(put_in: int, second_fry: int) -> Simulation:
+## The whole route: first fry lifted in time, one portion taken and carried to CUISSON 2,
+## put in, then lifted after second_fry ticks.
+func _second_fry(second_fry: int) -> Simulation:
     var lift := Fryer.FIRST_FRY_MIN
+    var put_in := lift + 10
     var scenario := Scenario.new(level, [fryer_1]).at(0, 0, INTERACT).at(lift, 0, INTERACT) \
             .at(lift + 1, 0, INTERACT).at(lift + 2, 0, RIGHT) \
             .at(put_in, 0, INTERACT).at(put_in + second_fry, 0, INTERACT)
@@ -162,7 +164,7 @@ func test_the_hint_matches_what_each_fryer_step_would_do() -> void:
     scenario.run_until(Fryer.FIRST_FRY_MIN)
     assert_eq(sim.action_for(player), &"lift", "in the window the basket stays, so a full hand is fine")
     scenario.at(Fryer.FIRST_FRY_MIN, 0, INTERACT).run_until(Fryer.FIRST_FRY_MIN + 1)
-    assert_eq(sim.action_for(player), &"", "resting basket, but the hand is full")
+    assert_eq(sim.action_for(player), &"", "batch waiting, but the hand is full")
     player.hands[0] = null
     assert_eq(sim.action_for(player), &"take")
 
@@ -172,7 +174,7 @@ func test_the_hint_at_cuisson_2_sauces_and_the_bin() -> void:
     var sim := scenario.simulation
     var player := sim.players[0]
     assert_eq(sim.action_for(player), &"", "nothing to put in")
-    player.hands[0] = SimItem.new(Fryer.FRIES_RESTING)
+    player.hands[0] = SimItem.new(Fryer.FRIES_BLANCHED)
     assert_eq(sim.action_for(player), &"fry")
     player.node = sauces
     player.hands[0] = SimItem.new(Fryer.FRIES_GOOD)
