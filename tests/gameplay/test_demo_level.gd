@@ -7,7 +7,7 @@ const GAME_SCENE := preload("res://game.tscn")
 func test_reads_every_anchor_with_its_links_and_stations() -> void:
     var game := GAME_SCENE.instantiate()
     var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
-    assert_eq(level.positions.size(), 15)
+    assert_eq(level.positions.size(), 13)
     var spawn := level.find("Anchor")
     assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Anchor2"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.DOWN), level.find("Anchor8"))

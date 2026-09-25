@@ -78,12 +78,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -1)
 [node name="floor-small-square13" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -1)
 
-[node name="floor-small-square14" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
-
-[node name="floor-small-square15" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -1)
-
 [node name="floor-small-square16" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
 
@@ -102,9 +96,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -2)
 [node name="floor-small-square21" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -2)
 
-[node name="floor-small-square22" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
-
 [node name="floor-small-square23" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33401155, 0, 1)
 
@@ -122,9 +113,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 1)
 
 [node name="floor-small-square28" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 1)
-
-[node name="floor-small-square29" parent="DemoLevel/Ground" instance=ExtResource("1_e2o6t")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 1)
 
 [node name="Anchors" type="Node3D" parent="DemoLevel"]
 
@@ -161,17 +149,11 @@ left = NodePath("../Anchor4")
 right = NodePath("../Anchor6")
 interactible = NodePath("../../../Interactibles/Fries3")
 
-[node name="Anchor6" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+[node name="Anchor6" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "interactible") instance=ExtResource("1_80nbo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
 down = NodePath("../Anchor13")
 left = NodePath("../Anchor5")
-right = NodePath("../Anchor7")
 interactible = NodePath("../../../Interactibles/Bread")
-
-[node name="Anchor7" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left") instance=ExtResource("1_80nbo")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
-down = NodePath("../Anchor14")
-left = NodePath("../Anchor6")
 
 [node name="Anchor8" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "right", "interactible") instance=ExtResource("1_80nbo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -1)
@@ -214,21 +196,14 @@ left = NodePath("../Anchor11")
 right = NodePath("../Anchor13")
 interactible = NodePath("../../../Interactibles/Meats")
 
-[node name="Anchor13" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
+[node name="Anchor13" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "interactible") instance=ExtResource("1_80nbo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -1)
 up = NodePath("../Anchor6")
 left = NodePath("../Anchor12")
-right = NodePath("../Anchor14")
-interactible = NodePath("../../../Interactibles/Meats")
-
-[node name="Anchor14" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "interactible") instance=ExtResource("1_80nbo")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -1)
-up = NodePath("../Anchor7")
-left = NodePath("../Anchor13")
 interactible = NodePath("../../../Interactibles/Bin")
 
 [node name="Camera3D" type="Camera3D" parent="DemoLevel"]
-transform = Transform3D(-0.963453, -0.22027381, 0.15243961, 7.188714e-08, 0.56906426, 0.82229304, -0.26787755, 0.79224074, -0.54826665, 0.82318485, 5.5124154, -4.484981)
+transform = Transform3D(-0.963453, -0.22027381, 0.15243961, 7.188714e-08, 0.56906426, 0.82229304, -0.26787755, 0.79224074, -0.54826665, 1.241432, 5.071422, -4.1909475)
 fov = 45.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="DemoLevel"]
@@ -323,7 +298,7 @@ size = Vector3(0.96152496, 0.6805115, 0.37475586)
 material = SubResource("StandardMaterial3D_j5wjh")
 
 [node name="Meats" type="Node3D" parent="Interactibles"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0482602, 0, -1.6349995)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -1.6349995)
 script = ExtResource("4_7jktm")
 kind = &"viandes"
 
@@ -332,12 +307,12 @@ transform = Transform3D(-0.921633, -0.38749763, -0.020931998, -8.649803e-08, -0.
 text = "VIANDES"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Interactibles/Meats"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.025615692, -0.12600708, -0.1088562)
-size = Vector3(2.8847427, 0.74798584, 0.79766846)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12600708, -0.1088562)
+size = Vector3(1.9, 0.74798584, 0.79766846)
 material = SubResource("StandardMaterial3D_vef74")
 
 [node name="Bin" type="Node3D" parent="Interactibles"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0125074, 0, -1.6443329)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0, 0, -1.6443329)
 script = ExtResource("4_7jktm")
 kind = &"poubelle"
 
@@ -381,7 +356,7 @@ material = SubResource("StandardMaterial3D_feb5d")
 [node name="Night" type="Node" parent="." node_paths=PackedStringArray("anchors_root", "spawns", "players_parent", "queue")]
 script = ExtResource("6_night")
 anchors_root = NodePath("../DemoLevel/Anchors")
-spawns = [NodePath("../DemoLevel/Anchors/Anchor"), NodePath("../DemoLevel/Anchors/Anchor7"), NodePath("../DemoLevel/Anchors/Anchor8"), NodePath("../DemoLevel/Anchors/Anchor14")]
+spawns = [NodePath("../DemoLevel/Anchors/Anchor"), NodePath("../DemoLevel/Anchors/Anchor6"), NodePath("../DemoLevel/Anchors/Anchor8"), NodePath("../DemoLevel/Anchors/Anchor13")]
 players_parent = NodePath("../DemoLevel")
 queue = NodePath("../Customers")
 

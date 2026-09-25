@@ -45,7 +45,7 @@ func test_the_client_joins_the_hosts_night() -> void:
 func test_both_players_moves_reach_both_peers_identically() -> void:
     host_night.host_online()
     await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
-    # The host (slot 0, at Anchor) walks right; the client (slot 1, at Anchor7) walks down.
+    # The host (slot 0, at Anchor) walks right; the client (slot 1, at Anchor6) walks down.
     host_night.submit(0, Simulation.Command.MOVE_RIGHT)
     client_night.submit(0, Simulation.Command.MOVE_DOWN)
     await wait_until(func() -> bool: return _walked(host_night) and _walked(client_night), 5.0)
@@ -56,7 +56,7 @@ func test_both_players_moves_reach_both_peers_identically() -> void:
     var level := host_night.simulation.level
     for night in [host_night, client_night]:
         assert_eq(level.names[night.simulation.players[0].node], "Anchor2")
-        assert_eq(level.names[night.simulation.players[1].node], "Anchor14")
+        assert_eq(level.names[night.simulation.players[1].node], "Anchor13")
     assert_eq(client_night.simulation.state_hash(), host_night.simulation.state_hash())
     assert_true(client_night.simulation.tick >= Night.CHECK_EVERY, "at least one fingerprint check ran")
     assert_eq(client_night.desyncs, 0)
@@ -74,5 +74,5 @@ func _peer_root(root_name: String) -> Node:
 func _walked(night: Night) -> bool:
     var players := night.simulation.players
     return players[0].node != night.simulation.level.find("Anchor") \
-            and players[1].node != night.simulation.level.find("Anchor7") \
+            and players[1].node != night.simulation.level.find("Anchor6") \
             and night.simulation.tick > Night.CHECK_EVERY
