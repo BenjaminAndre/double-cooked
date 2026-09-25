@@ -84,7 +84,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ### 6.2 Queue and orders
 - Customers wait in a single line at the counter.
 - An order has **one or two items at most** (e.g. frites + bière, or two mitraillettes).
-- **Only the customer at the front of the line shows a ticket**: their order plus a patience bar, above their head. The rest of the line is visible, but their orders stay unknown until they reach the front.
+- **The first 3 customers in line show a ticket** (order + patience bar) above their head; the rest of the line is visible, but their orders stay unknown. One ticket per stage of the fries (first fry, second fry, ready), so players can start the next basket while finishing the current one. Tunable: `SimRules.visible_orders` (changed from "front only" after the first playtest).
 - **Everyone in the line loses patience**, slowly, and the customer at the front loses it much faster. A long line raises the mood on its own, even if nobody is served badly.
 - **(slice default)** A customer whose patience runs out **walks out**, which raises the mood a lot. Players can tune it or replace it once other hazards exist.
 - **Items are handed over one at a time.** Each interaction at the CAISSE delivers the focused item, and the ticket ticks it off. A two-item order can be served with both hands in a row (switching focus with Q/F), or the second item can be brought later.
@@ -183,3 +183,8 @@ To tune by playing the slice, not on paper:
 4. Fire timings (damage interval, spread delay).
 
 To decide after the slice: the other hazards (§8), the rest of the menu (§7.2), and customer types beyond the first (§6.1).
+
+From the first playtest:
+
+- **Batch frying?** In a real fritkot a whole batch is fried, then served from continuously. One basket = one portion (now) keeps every order a small cooking puzzle; batches would shift the game towards stock management and anticipation. Not decided.
+- **The start is slow**: the first customer waits while the first basket cooks. Maybe fine as a calm opening (Soirée phase); revisit with the batch question.

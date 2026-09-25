@@ -1,7 +1,8 @@
 class_name CustomersView
 extends Node3D
 ## Shows the line of customers in front of the counter. This node's position is the front of
-## the line; the rest queue up along line_step. Only the front customer shows a ticket (GDD §6.2).
+## the line; the rest queue up along line_step. The first SimRules.visible_orders customers
+## show a ticket with their order and patience (GDD §6.2).
 
 const MODEL := preload("res://assets/kenney_prototype-kit/Models/GLB format/figurine-cube.glb")
 const PATIENCE_CELLS := 8
@@ -12,25 +13,26 @@ const ENTRANCE := Vector3(-6, 0, 0)
 const EXIT := Vector3(2.5, 0, -1)
 ## The camera is close to the line, so customers are drawn smaller than the players.
 const FIGURE_SCALE := 0.6
+## Tickets are drawn on screen above their customer, and pushed apart so they never overlap.
+const TICKET_HEIGHT := 0.55
+const TICKET_GAP := 8.0
+const FRONT_FONT_SIZE := 24
+const BACK_FONT_SIZE := 18
 
 @export var night: Night
 @export var line_step := Vector3(-0.45, 0, 0)
 
-## Customer id -> its node.
+## Customer id -> its figure.
 var _figures := {}
 var _leaving: Array[Node3D] = []
-var _ticket: Label3D
+var _tickets: Array[PanelContainer] = []
+var _layer: CanvasLayer
 
 
 func _ready() -> void:
-    _ticket = Label3D.new()
-    _ticket.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    _ticket.font_size = 30
-    _ticket.outline_size = 10
-    # On top of the CAISSE, where the players look when serving.
-    _ticket.position = Vector3(0, 1.0, 0.4)
-    add_child(_ticket)
     night.began.connect(clear)
+    _layer = CanvasLayer.new()
+    add_child(_layer)
 
 
 func _process(delta: float) -> void:
@@ -54,7 +56,7 @@ func _process(delta: float) -> void:
         if figure.position.is_equal_approx(EXIT):
             _leaving.erase(figure)
             figure.queue_free()
-    _show_ticket(crowd)
+    _show_tickets(crowd)
 
 
 ## Forgets every figure, e.g. when a new night starts.
@@ -65,24 +67,63 @@ func clear() -> void:
     _leaving.clear()
 
 
-func _show_ticket(crowd: SimCrowd) -> void:
-    var front := crowd.front()
-    _ticket.visible = front != null
-    if not front:
-        return
+## Each ticket sits above its customer on screen; a ticket that would overlap the previous one
+## is pushed along the line, so the order of the tickets always matches the line.
+func _show_tickets(crowd: SimCrowd) -> void:
+    var camera := get_viewport().get_camera_3d()
+    var shown := mini(crowd.line.size(), crowd.rules.visible_orders)
+    while _tickets.size() < shown:
+        _tickets.append(_new_ticket())
+    var previous_right := -INF
+    for index in _tickets.size():
+        var ticket := _tickets[index]
+        ticket.visible = index < shown and camera != null
+        if not ticket.visible:
+            continue
+        var customer := crowd.line[index]
+        var figure: Node3D = _figures[customer.id]
+        var label: Label = ticket.get_child(0)
+        var patience := float(customer.patience) / crowd.rules.patience
+        label.text = "%s\n%s" % [_order_text(customer.order), _bar(patience)]
+        label.add_theme_font_size_override("font_size", FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE)
+        label.modulate = Color(1, 1, 1) if patience > 0.5 else Color(1, 0.8, 0.2) if patience > 0.25 \
+                else Color(1, 0.3, 0.2)
+        ticket.reset_size()
+        var anchor := camera.unproject_position(figure.global_position + Vector3.UP * TICKET_HEIGHT)
+        var left := maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP)
+        ticket.position = Vector2(left, anchor.y - ticket.size.y)
+        previous_right = left + ticket.size.x
+
+
+## "frites mayo ×2", one line per dish.
+func _order_text(order: Array[StringName]) -> String:
     var counts := {}
-    for dish in front.order:
+    for dish in order:
         counts[dish] = counts.get(dish, 0) + 1
     var lines := []
     for dish in counts:
         lines.append("%s ×%d" % [ItemNames.dish(dish), counts[dish]] if counts[dish] > 1 \
                 else ItemNames.dish(dish))
-    var patience := float(front.patience) / crowd.rules.patience
-    var filled := clampi(ceili(patience * PATIENCE_CELLS), 0, PATIENCE_CELLS)
-    lines.append("■".repeat(filled) + "□".repeat(PATIENCE_CELLS - filled))
-    _ticket.text = "\n".join(lines)
-    _ticket.modulate = Color(1, 1, 1) if patience > 0.5 else Color(1, 0.8, 0.2) if patience > 0.25 \
-            else Color(1, 0.3, 0.2)
+    return "\n".join(lines)
+
+
+func _bar(fraction: float) -> String:
+    var filled := clampi(ceili(fraction * PATIENCE_CELLS), 0, PATIENCE_CELLS)
+    return "■".repeat(filled) + "□".repeat(PATIENCE_CELLS - filled)
+
+
+func _new_ticket() -> PanelContainer:
+    var ticket := PanelContainer.new()
+    var style := StyleBoxFlat.new()
+    style.bg_color = Color(0, 0, 0, 0.7)
+    style.set_content_margin_all(6)
+    style.set_corner_radius_all(4)
+    ticket.add_theme_stylebox_override("panel", style)
+    var label := Label.new()
+    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    ticket.add_child(label)
+    _layer.add_child(ticket)
+    return ticket
 
 
 func _new_figure() -> Node3D:

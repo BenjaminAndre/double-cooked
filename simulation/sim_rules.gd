@@ -18,6 +18,9 @@ var arrival_max := 22 * SECOND
 var rush_arrival_factor := 0.6
 var first_arrival := 3 * SECOND
 var max_line := 6
+## How many customers, from the front of the line, show their order (GDD §6.2). One per stage of
+## the fries (first fry, second fry, ready), so players can start the next basket in time.
+var visible_orders := 3
 ## Chance that an order has two items instead of one.
 var two_items_chance := 0.3
 
