@@ -3,6 +3,8 @@
 [ext_resource type="PackedScene" uid="uid://b2ngr5721d878" path="res://gameplay/anchor.tscn" id="1_80nbo"]
 [ext_resource type="PackedScene" uid="uid://0tj5r2gkkage" path="res://assets/kenney_prototype-kit/Models/GLB format/floor-small-square.glb" id="1_e2o6t"]
 [ext_resource type="Script" path="res://gameplay/night.gd" id="6_night"]
+[ext_resource type="Script" path="res://network/night_link.gd" id="7_link"]
+[ext_resource type="Script" path="res://network/lobby.gd" id="8_lobby"]
 [ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
 [ext_resource type="Script" uid="uid://chjroa20q6yy3" path="res://gameplay/interactions/heal.gd" id="5_ryrav"]
 
@@ -386,5 +388,12 @@ material = SubResource("StandardMaterial3D_feb5d")
 [node name="Night" type="Node" parent="." node_paths=PackedStringArray("anchors_root", "spawns", "players_parent")]
 script = ExtResource("6_night")
 anchors_root = NodePath("../DemoLevel/Anchors")
-spawns = [NodePath("../DemoLevel/Anchors/Anchor"), NodePath("../DemoLevel/Anchors/Anchor7")]
+spawns = [NodePath("../DemoLevel/Anchors/Anchor"), NodePath("../DemoLevel/Anchors/Anchor7"), NodePath("../DemoLevel/Anchors/Anchor8"), NodePath("../DemoLevel/Anchors/Anchor14")]
 players_parent = NodePath("../DemoLevel")
+
+[node name="Link" type="Node" parent="Night"]
+script = ExtResource("7_link")
+
+[node name="Lobby" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
+script = ExtResource("8_lobby")
+night = NodePath("../Night")

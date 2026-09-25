@@ -32,7 +32,13 @@ godot --headless --path . --quit-after 300           # run the game briefly and 
   - `Night` owns the simulation, turns keys into commands (`LocalInput`) and calls `Player.show_state()`;
   - `LevelReader` turns the `Anchor` graph into a `SimLevel`;
   - stations are `Interactible` nodes identified by `kind`, and their effects live in `Simulation`.
-- `tests/` contains unit tests and Scenario tests: a level, spawns, a seed and a timeline of `{tick, slot, command}` (`tests/scenario.gd`). A bug found while playing should become a scenario.
+- `network/` handles online play:
+  - `NightLink` holds the RPCs. The host relays each tick's commands to the clients, who re-simulate, plus a fingerprint every second.
+  - `Lobby` is the keyboard-only Tube UI. It creates the `TubeClient` only on demand, because the client takes over the tree's multiplayer API.
+- `tests/` contains unit tests and Scenario tests: a level, spawns, a seed and a timeline of `{tick, slot, command}` (`tests/scenario.gd`).
+  - A bug found while playing should become a scenario: `Scenario.from_replay()` reads the replays that Night saves in `user://replays`.
+  - Online tests run a host and a client in one process, connected by `LoopbackPeer` (in memory).
+  - **Tests must never open sockets or ports.** This machine has no firewall rights, and CI doesn't need network access either.
 
 ## Conventions
 

@@ -15,6 +15,7 @@ Keys are given by their position on a QWERTY keyboard, so they sit at the same p
 * F2 toggles two players on one keyboard:
   * P1: WASD, Q / E, Space
   * P2: arrows, `.` / `/`, Right Shift
+* Online (one player per machine): H hosts and shows a code to share, J joins with a code, Enter starts the night (host), Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
 
 ## Tests
 `godot --headless --path . -s addons/gut/gut_cmdln.gd` runs the GUT tests in `tests/`. CI runs them before every build.

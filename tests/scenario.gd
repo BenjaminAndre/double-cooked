@@ -17,8 +17,21 @@ func _init(level: SimLevel, spawns: PackedInt32Array, seed_value := 0) -> void:
     simulation = Simulation.new(level, spawns, seed_value)
 
 
+## Rebuilds a recorded night (Night.replay(), or a file from user://replays) on its level.
+## run_until(replay.ticks) then reproduces it exactly.
+static func from_replay(level: SimLevel, replay: Dictionary) -> Scenario:
+    var spawns := PackedInt32Array()
+    for spawn_name: String in replay.spawns:
+        spawns.append(level.find(spawn_name))
+    var scenario := Scenario.new(level, spawns, int(replay.seed))
+    var commands: Array = replay.commands
+    for index in range(0, commands.size(), 3):
+        scenario.at(int(commands[index]), int(commands[index + 1]), int(commands[index + 2]))
+    return scenario
+
+
 ## Queues a command for a player at a tick. Chainable.
-func at(tick: int, slot: int, command: Simulation.Command) -> Scenario:
+func at(tick: int, slot: int, command: int) -> Scenario:
     if not _timeline.has(tick):
         _timeline[tick] = []
     _timeline[tick].append([slot, command])

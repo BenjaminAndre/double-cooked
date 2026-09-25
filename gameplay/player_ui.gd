@@ -17,31 +17,11 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-    if not player.is_local_player:
-        _pseudo.text = player.pseudo
-        if player.health > 1:
-            _heart1.visible = false
-            _heart2.visible = false
-            _heart3.visible = false
-    else:
-        _pseudo.text = player.pseudo
-        if player.health >= 3:
-            _heart1.visible = true
-            _heart2.visible = true
-            _heart3.visible = true
-        elif player.health == 2:
-            _heart1.visible = true
-            _heart2.visible = true
-            _heart3.visible = false
-        elif player.health == 1:
-            _heart1.visible = true
-            _heart2.visible = false
-            _heart3.visible = false
-        else:
-            _heart1.visible = false
-            _heart2.visible = false
-            _heart3.visible = false
-            
+    _pseudo.text = player.pseudo
+    _heart1.visible = player.health >= 1
+    _heart2.visible = player.health >= 2
+    _heart3.visible = player.health >= 3
+
     if _heart3.visible :
         _heart1.global_position.x = player.global_position.x
         _heart2.global_position.x = player.global_position.x - 0.2

@@ -37,7 +37,7 @@ func test_the_game_scene_starts_a_night_and_toggles_duo() -> void:
     await wait_process_frames(2)
     assert_eq(night.simulation.players.size(), 1)
     assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 1)
-    night.start(2)
+    night.play_local(2)
     await wait_process_frames(2)
     assert_eq(night.simulation.players.size(), 2)
     assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 2)

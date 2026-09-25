@@ -133,7 +133,7 @@ Fry states: raw (in oil), cold, overcooked, resting, soggy, good, burnt.
 - Godot 4.7, GDScript, Web export first (GitHub Pages), with GL Compatibility rendering.
 - In-game text is **French only**: stations, tickets and the menu, like a real fritkot.
 - Multiplayer: peer-to-peer WebRTC through the Tube addon, with sessions shared by ID.
-- **(proposal)** The host is authoritative over node occupancy, collisions, the mood meter and hazards. Movement on discrete nodes is cheap to synchronise and makes conflicts easy to resolve: the host decides who got to a node first.
+- The host is authoritative: it decides which tick every command applies on, so it settles who got to a node first.
 
 ### 9.1 Deterministic simulation
 
@@ -145,7 +145,7 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 - **Explicit tie-breaks.** Simultaneous events are resolved by a fixed rule. **(proposal)** Commands are applied in player-slot order, so when two players enter the same node on the same tick, the lower slot gets it and the other is bumped.
 - **Level as data.** The anchor graph and station types are read from the scene into plain data. The simulation doesn't depend on nodes, so a test can build a tiny three-node kitchen by hand or load the real level.
 - **Scenes only display.** Scenes read the simulation state and draw it: positions, gauges, hearts, tickets. This extends the readme's "decouple UI" principle to the whole game.
-- **Networking.** The host runs the simulation; clients send their commands and receive the state or events back. Clients never need to run the simulation themselves, so the exact tick-by-tick agreement a lockstep network needs is not required, even though the simulation is deterministic.
+- **Networking.** The host runs the simulation and relays the **command stream** (every tick's commands, in the order it applied them) to the clients, who run the same deterministic simulation from it. Every second the host also sends a state fingerprint, so a client notices any desync. Clients never wait for each other (no lockstep), but a client's own key presses take a round trip before they apply, because there is no client-side prediction yet. Players join between nights, not during one. The command stream is also the replay (§9.2).
 
 ### 9.2 Testing
 
