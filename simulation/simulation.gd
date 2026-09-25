@@ -10,15 +10,21 @@ const WALK_SPEED := 10.0
 
 ## What a player can do in one tick. The move values match SimLevel.Direction.
 ## New commands go at the end, so saved replays keep their meaning.
-enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL }
+## RELEASE is the interact key going up, for throwing (GDD §8).
+enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL, RELEASE }
 
 const EXTINGUISHER := &"extincteur"
+## Cans leave a hand at this height and are caught at that one.
+const THROW_HEIGHT := 1.0
+const CATCH_HEIGHT := 0.6
 
 var tick := 0
 var level: SimLevel
 var players: Array[SimPlayer] = []
 ## One per level station, in the same order.
 var stations: Array[SimStation] = []
+## Cans in the air.
+var projectiles: Array[SimProjectile] = []
 ## What happened during the last step, for the display, e.g. {"type": &"bump", "by": 0, "target": 1}.
 var events: Array[Dictionary] = []
 ## The only source of randomness, so that a seed replays the same night.
@@ -74,7 +80,10 @@ func step(commands: Array) -> void:
     _advance_fires()
     for player in players:
         _check_menu(player)
+        _check_aim(player)
     crowd.advance(tick, players.size(), rng, events)
+    _customers_throw()
+    _advance_projectiles()
     tick += 1
     _count(events)
     if players.size() > 1 and players.all(func(p: SimPlayer) -> bool: return p.down):
@@ -92,6 +101,8 @@ func state_hash() -> int:
         state.append(p.fingerprint())
     for station in stations:
         state.append(station.fingerprint())
+    for projectile in projectiles:
+        state.append(projectile.fingerprint())
     state.append(crowd.fingerprint())
     state.append(outcome)
     state.append(stats)
@@ -100,6 +111,14 @@ func state_hash() -> int:
 
 func _apply(player: SimPlayer, command: int) -> void:
     if player.stun > 0:
+        return
+    if player.aim >= 0 and _use_aim(player, command):
+        return
+    if command == Command.INTERACT and player.item and player.item.kind == Menu.BEER \
+            and not player.down and player.menu == SimLevel.NONE:
+        # Holding a beer: aim first; a quick release still uses the station (see _use_aim).
+        player.aim = 0
+        player.aim_ticks = 0
         return
     if player.menu != SimLevel.NONE and _use_menu(player, command):
         return
@@ -147,6 +166,103 @@ func _check_menu(player: SimPlayer) -> void:
     if player.down or player.is_moving() or level.node_stations[player.node] != player.menu \
             or stations[player.menu].burning:
         player.menu = SimLevel.NONE
+
+
+## While a beer is held down, the arrows pick a customer in line instead of moving. Releasing
+## early uses the station as a tap would; releasing after SimRules.aim_hold throws the beer.
+## Escape puts the beer down (keeps it). Returns whether the command was used by the aim.
+func _use_aim(player: SimPlayer, command: int) -> bool:
+    match command:
+        Command.MOVE_LEFT, Command.MOVE_UP:
+            player.aim = maxi(player.aim - 1, 0)
+        Command.MOVE_RIGHT, Command.MOVE_DOWN:
+            player.aim = mini(player.aim + 1, maxi(crowd.line.size() - 1, 0))
+        Command.RELEASE:
+            var held_long := player.aim_ticks >= rules.aim_hold
+            var target := player.aim
+            player.aim = -1
+            if held_long:
+                _throw_beer(player, target)
+            else:
+                _interact(player)
+        Command.CANCEL:
+            player.aim = -1
+        Command.INTERACT:
+            pass
+        _:
+            return false
+    return true
+
+
+## Aiming counts up while held, and stops if the player falls, is stunned or loses the beer.
+func _check_aim(player: SimPlayer) -> void:
+    if player.aim < 0:
+        return
+    if player.down or player.stun > 0 or not player.item or player.item.kind != Menu.BEER:
+        player.aim = -1
+    else:
+        player.aim_ticks += 1
+
+
+func _throw_beer(player: SimPlayer, target: int) -> void:
+    var can := SimProjectile.new(SimProjectile.BEER, player_position(player) + Vector3.UP * THROW_HEIGHT,
+            level.queue_position(target) + Vector3.UP * CATCH_HEIGHT, tick, rules.beer_flight)
+    can.by = player.slot
+    projectiles.append(can)
+    player.item = null
+    events.append({"type": &"beer_thrown", "by": player.slot, "target": target})
+
+
+## Customers who leave angry throw a can on the way out, and past SimRules.can_mood waiting
+## customers throw at random, more often the worse the mood (GDD §8).
+func _customers_throw() -> void:
+    for event in events.duplicate():
+        if event.type in [&"angry", &"walk_out"]:
+            _throw_can(event.index)
+    var anger := (float(crowd.mood) / rules.riot - rules.can_mood) / (1.0 - rules.can_mood)
+    if anger > 0.0 and not crowd.line.is_empty() and rng.randf() < anger / rules.can_every:
+        _throw_can(rng.randi_range(0, crowd.line.size() - 1))
+
+
+## A can from the customer at index, at a player standing, aimed where they are now.
+func _throw_can(index: int) -> void:
+    var standing := players.filter(func(p: SimPlayer) -> bool: return not p.down)
+    if standing.is_empty():
+        return
+    var target: SimPlayer = standing[rng.randi_range(0, standing.size() - 1)]
+    var from := level.queue_position(index) + Vector3.UP * THROW_HEIGHT
+    var to := player_position(target)
+    projectiles.append(SimProjectile.new(SimProjectile.CAN, from, to, tick, rules.can_flight))
+    events.append({"type": &"can_thrown", "at": target.slot})
+
+
+## Cans land when their time is up: a beer goes to whoever stands where it falls, an empty can
+## costs a heart to every player close to where it falls (no bump).
+func _advance_projectiles() -> void:
+    for can in projectiles.duplicate():
+        if tick + 1 < can.lands_at():
+            continue
+        projectiles.erase(can)
+        if can.kind == SimProjectile.BEER:
+            var index := level.queue_index_at(can.to)
+            if index >= 0 and index < crowd.line.size():
+                crowd.give_beer(index, events)
+            else:
+                events.append({"type": &"beer_missed"})
+        else:
+            var landing := Vector3(can.to.x, 0, can.to.z)
+            for player in players:
+                if player_position(player).distance_to(landing) <= rules.can_radius:
+                    _hurt(player)
+                    events.append({"type": &"can_hit", "slot": player.slot})
+
+
+## Where a player is on the floor, between two nodes while walking.
+func player_position(player: SimPlayer) -> Vector3:
+    var at := level.positions[player.node]
+    if player.is_moving():
+        at = at.lerp(level.positions[player.path[0]], float(player.progress) / player.edge_ticks)
+    return at
 
 
 ## Extends the planned path from its last node. Heading back to a node already planned
@@ -200,6 +316,8 @@ func _advance(player: SimPlayer) -> void:
 ## meat, trash, serve, take_extinguisher, return_extinguisher. _interact() only acts when this
 ## isn't empty, so the two always agree.
 func action_for(player: SimPlayer) -> StringName:
+    if player.aim >= 0:
+        return &"throw" if player.aim_ticks >= rules.aim_hold else &""
     if player.menu != SimLevel.NONE:
         return &"choose"
     if not player.down and _fallen_neighbour(player.node):
@@ -385,6 +503,8 @@ func _count(step_events: Array[Dictionary]) -> void:
                 stats.served += 1
             &"angry":
                 stats.angry += 1
+            &"can_hit":
+                stats.cans_hit += 1
             &"beer_gift":
                 stats.beers += 1
             &"walk_out":

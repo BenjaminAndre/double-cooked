@@ -25,6 +25,10 @@ var exposure := 0
 ## option (GDD §5.4).
 var menu := SimLevel.NONE
 var menu_choice := 0
+## Aiming a beer: the place in line targeted, or -1; aim_ticks counts how long interact has
+## been held (GDD §8).
+var aim := -1
+var aim_ticks := 0
 
 
 func _init(p_slot: int, p_node: int) -> void:
@@ -43,4 +47,4 @@ func occupied_node() -> int:
 
 func fingerprint() -> Array:
     return [node, path, progress, edge_ticks, health, item.fingerprint() if item else null, down,
-            stun, exposure, menu, menu_choice]
+            stun, exposure, menu, menu_choice, aim, aim_ticks]

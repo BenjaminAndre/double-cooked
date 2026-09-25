@@ -18,6 +18,9 @@ var names := PackedStringArray()
 ## Kind of each station (see Interactible.kind).
 var station_kinds: Array[StringName] = []
 var station_names := PackedStringArray()
+## Where the customers stand: the front of the line, and the step from one to the next.
+var queue_front := Vector3.ZERO
+var queue_step := Vector3(-0.45, 0, 0)
 
 
 func add_station(kind: StringName, station_name: String = "") -> int:
@@ -52,3 +55,12 @@ func find(node_name: String) -> int:
 func station_kind_at(node: int) -> StringName:
     var station := node_stations[node]
     return station_kinds[station] if station != NONE else &""
+
+
+func queue_position(index: int) -> Vector3:
+    return queue_front + queue_step * index
+
+
+## The place in line nearest to a point on the floor.
+func queue_index_at(point: Vector3) -> int:
+    return roundi((point - queue_front).dot(queue_step) / queue_step.length_squared())

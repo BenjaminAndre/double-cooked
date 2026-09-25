@@ -60,6 +60,19 @@ var revive_health := 1
 ## A bumped player is stunned this long: no moving, no acting (GDD §5.3).
 var bump_stun := 15
 
+## Throwing a beer (GDD §8): hold interact this long with a beer in hand to aim instead of
+## using the station; release to throw.
+var aim_hold := 8
+var beer_flight := 24
+## Angry customers' cans: flight time (long enough to see the arc and dodge) and how close to
+## the landing spot a player must be to get hit.
+var can_flight := 45
+var can_radius := 0.45
+## Waiting customers throw at random once the mood is past can_mood (a fraction of riot):
+## at most one can every can_every ticks from the whole line, at a full riot.
+var can_mood := 0.5
+var can_every := 8 * SECOND
+
 
 ## 0 while calm, 1 once mad, for a tick of the night.
 func intensity(tick: int) -> float:

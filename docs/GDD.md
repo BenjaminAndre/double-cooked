@@ -131,9 +131,10 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 | Hazard | Cause | Effect | Counter |
 |---|---|---|---|
 | Spill | Dropped drinks/sauce, bumps, customers | Wet node: players slide through it **(proposal)** | Mop? Avoid it? |
-| Thrown can | Customer misbehaviour | 1 heart of damage to the targeted player **(proposal:** telegraphed, dodged by leaving the node) | Keep the mood low |
+| Thrown can | A customer leaving angry (wrong order, badly done, patience run out) throws one on the way out; past Chaud, waiting customers also throw at random, more often the worse the mood | The can flies a visible arc (dotted line) to a red ring where the target stood; 1 heart to every player inside the ring when it lands, **no bump** | Step out of the ring; keep the mood low |
 | Grease fire | A basket left in the oil far too long (§7.1) | Blocks the station. **Standing** on its node costs 1 heart every ~2 s (walking past is safe). Spreads to a neighbouring station after ~10 s; EXTINCTEUR itself never burns | Take the extinguisher at EXTINCTEUR (it stays in your hand and goes back on its station), then one interaction at the fire |
-| Beer | A player drinks one | **(proposal)** Heals 1 heart but scrambles controls for a while (input delay or swapped keys) | Temptation |
+| Beer (throwing) | A player holding a beer holds interact | Aim: a ▼ over a customer in line, moved with the arrows; release to throw. Whoever stands where it lands catches it: their order is served if they asked for a beer, otherwise it buys back a quarter of their patience. A beer that lands on nobody is lost. A quick tap still uses the station | A breather for an impatient line |
+| Beer (drinking) | **(proposal)** A player drinks one | Heals 1 heart but scrambles controls for a while | Temptation |
 
 ## 9. Technical notes
 

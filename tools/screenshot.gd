@@ -79,6 +79,39 @@ func _initialize() -> void:
             sim.rules.arrival_max = 15
 
             sim.crowd.next_arrival = 1
+        "throws":
+            # P1 aims a beer at the second customer, P2 has thrown one, a can flies at P1.
+            night.play_local(2)
+            var sim := night.simulation
+            sim.rules.arrival_min = 5
+            sim.rules.arrival_max = 5
+            sim.crowd.next_arrival = 1
+            var p1 := sim.players[0]
+            p1.node = sim.level.find("Anchor9")
+            p1.item = SimItem.new(Menu.BEER)
+            p1.aim = 1
+            p1.aim_ticks = 100
+            sim.players[1].node = sim.level.find("Anchor11")
+            await create_timer(0.6).timeout
+            p1.aim = 1
+            var can := SimProjectile.new(SimProjectile.CAN, sim.level.queue_position(0) + Vector3.UP,
+                    sim.player_position(p1), sim.tick - 20, 90)
+            var beer := SimProjectile.new(SimProjectile.BEER, sim.player_position(sim.players[1]) + Vector3.UP,
+                    sim.level.queue_position(2) + Vector3.UP * 0.6, sim.tick - 30, 90)
+            sim.projectiles.append_array([can, beer])
+        "can":
+            # A close-up of the can model, in front of its own camera.
+            for turn in 3:
+                var can := BeerCan.new()
+                can.position = Vector3(1000 + (turn - 1) * 0.2, 0, 0)
+                can.rotation.y = turn * 2.1
+                viewport.add_child(can)
+            var camera := Camera3D.new()
+            camera.position = Vector3(1000, 0.25, 1.6)
+            camera.rotation.x = -0.15
+            camera.fov = 22
+            viewport.add_child(camera)
+            camera.make_current()
         "hints":
             # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
             night.play_local(2)

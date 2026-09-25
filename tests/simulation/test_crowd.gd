@@ -100,6 +100,7 @@ func test_the_wrong_order_sends_them_off_angry() -> void:
         var scenario := _scenario()
         var sim := _with_order(scenario, &"frites:mayo")
         sim.players[0].item = served
+        scenario.at(2, 0, Simulation.Command.RELEASE)
         scenario.at(2, 0, INTERACT).run_until(3)
         assert_true(sim.crowd.line.is_empty(), "%s isn't frites mayo" % ItemNames.of(served))
         assert_eq(sim.stats.angry, 1)
@@ -118,7 +119,7 @@ func test_an_unordered_beer_buys_patience_and_the_customer_stays() -> void:
     var sim := _with_order(scenario, &"frites:mayo")
     sim.crowd.front().patience = 100
     sim.players[0].item = _item(Menu.BEER, &"")
-    scenario.at(2, 0, INTERACT).run_until(3)
+    scenario.at(2, 0, INTERACT).at(2, 0, Simulation.Command.RELEASE).run_until(3)
     assert_null(sim.players[0].item)
     assert_eq(sim.crowd.line.size(), 1, "still waiting for their fries")
     assert_eq(sim.crowd.front().patience, 100 + rules.beer_patience - rules.front_drain)
@@ -130,7 +131,7 @@ func test_an_ordered_beer_is_simply_served() -> void:
     var scenario := _scenario()
     var sim := _with_order(scenario, Menu.BEER)
     sim.players[0].item = _item(Menu.BEER, &"")
-    scenario.at(2, 0, INTERACT).run_until(3)
+    scenario.at(2, 0, INTERACT).at(2, 0, Simulation.Command.RELEASE).run_until(3)
     assert_true(sim.crowd.line.is_empty())
     assert_eq(sim.stats.served, 1)
 

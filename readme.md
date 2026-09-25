@@ -15,7 +15,8 @@ Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole cr
 2. Put a portion in a CUISSON 2 and lift it in the blue. VIANDES gives a fricadelle (fry it the same way) or a cervelas (cold as is, or warm once fried).
 3. At SAUCES, pick mayo or andalouse (or skip it for "nature"). FRIGO gives a cola or a bière. Menus: open with interact, arrows to pick, interact to take, Escape to close.
 4. Serve at the CAISSE: whatever you hold goes to the front customer. The right order, done right, makes them happy; anything else sends them off angry. A beer always pleases. The first three customers' tickets show their orders.
-5. Forgotten fryers catch fire. Grab the EXTINCTEUR and interact at the fire. At 0 hearts you're K.O.: a teammate next to you gets you up, or you crawl to SOINS.
+5. Hold Space with a beer to aim at a customer (arrows), release to throw it: everyone is glad of a beer. Angry customers throw cans back: step out of the red ring.
+6. Forgotten fryers catch fire. Grab the EXTINCTEUR and interact at the fire. At 0 hearts you're K.O.: a teammate next to you gets you up, or you crawl to SOINS.
 
 ## Controls
 Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.

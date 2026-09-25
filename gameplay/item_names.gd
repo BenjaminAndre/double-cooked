@@ -39,6 +39,7 @@ const DISHES := {
 ## Short verbs for the interaction hint (see Simulation.action_for).
 const ACTIONS := {
     &"choose": "choisir",
+    &"throw": "lancer",
     &"revive": "relever",
     &"extinguish": "éteindre",
     &"heal": "se soigner",

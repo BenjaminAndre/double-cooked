@@ -31,8 +31,12 @@ signal began
 @export var players_parent: Node3D
 ## 0 picks a new random seed for each night.
 @export var night_seed := 0
+## Where the customers line up; its position and line_step become the simulation's queue.
+@export var queue: CustomersView
 
 var simulation: Simulation
+## How far we are towards the next tick, for views that draw between ticks.
+var alpha := 0.0
 var role := Role.OFFLINE
 ## Fingerprint checks where this client differed from the host. Should stay 0.
 var desyncs := 0
@@ -194,6 +198,9 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         view.queue_free()
     _views.clear()
     var level := LevelReader.read(anchors_root)
+    if queue:
+        level.queue_front = queue.global_position
+        level.queue_step = queue.line_step
     _station_views = LevelReader.stations(anchors_root)
     var spawn_nodes := PackedInt32Array()
     var spawn_names := []
@@ -235,9 +242,10 @@ func _on_tick_received(tick: int, check: int, commands: PackedInt32Array) -> voi
 
 
 ## alpha: how far we are towards the next tick, to keep walking smooth between ticks.
-func _show(alpha: float) -> void:
+func _show(p_alpha: float) -> void:
+    alpha = p_alpha
     for slot in _views.size():
-        _views[slot].show_state(simulation.players[slot], simulation.level, alpha)
+        _views[slot].show_state(simulation.players[slot], simulation.level, p_alpha)
     # Each player at this keyboard sees the station they stand at highlighted, and what their
     # interact key would do there.
     var highlighted := {}
@@ -252,6 +260,10 @@ func _show(alpha: float) -> void:
             var action := simulation.action_for(player)
             if action != &"":
                 hint = "%s : %s" % [_input.interact_key_name(local_index), ItemNames.action(action)]
+            if player.item and player.item.kind == Menu.BEER and player.aim < 0:
+                # A beer can always be thrown: hold the key to aim at the line.
+                var throw := "%s maintenu : lancer" % _input.interact_key_name(local_index)
+                hint = throw if hint == "" else "%s\n%s" % [hint, throw]
         _views[slot].show_hint(hint)
         var options: Array = []
         if player.menu != SimLevel.NONE:

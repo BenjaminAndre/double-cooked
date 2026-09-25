@@ -51,10 +51,14 @@ func interact_key_name(local_index: int) -> String:
     return _interact_keys[local_index]
 
 
-## Returns [slot, command] for a key press, or [] if it isn't one of ours.
+## Returns [slot, command] for a key press, or [] if it isn't one of ours. Letting go of the
+## interact key gives RELEASE, for throwing.
 func read(event: InputEvent) -> Array:
     for slot in _layouts.size():
         for action: StringName in _layouts[slot]:
+            var command: int = _layouts[slot][action]
             if event.is_action_pressed(action):
-                return [slot, _layouts[slot][action]]
+                return [slot, command]
+            if command == Simulation.Command.INTERACT and event.is_action_released(action):
+                return [slot, Simulation.Command.RELEASE]
     return []
