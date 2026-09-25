@@ -12,9 +12,11 @@ class Customer:
     ## What they want, see Menu.order_key.
     var order: StringName
     var patience: int
+    ## Already given an unordered beer: another one sends them off angry.
+    var gifted := false
 
     func fingerprint() -> Array:
-        return [id, order, patience]
+        return [id, order, patience, gifted]
 
 var rules: SimRules
 ## Front of the line first.
@@ -37,7 +39,7 @@ func front() -> Customer:
     return line[0] if not line.is_empty() else null
 
 
-## One tick of the room: arrivals, patience, walk-outs and the mood's own drift.
+## One tick of the room: arrivals, patience, walk-outs, and a long line souring the mood.
 ## events receives {"type": &"arrival"} and {"type": &"walk_out", "index": place in line}.
 func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
     if tick >= next_arrival:
@@ -51,45 +53,51 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         if customer.patience <= 0:
             line.remove_at(index)
             change_mood(rules.mood_walk_out)
-            events.append({"type": &"walk_out", "index": index})
-    if tick > 0 and tick % _drift_every(tick) == 0:
-        change_mood(1)
+            events.append({"type": &"walk_out", "index": index, "by": -1})
     if tick > 0 and tick % rules.line_pressure_every == 0:
         change_mood(maxi(line.size() - 1, 0))
 
 
 ## Serving is handing over whatever is held (GDD §6.2). The right order, done right, sends
-## the customer off happy; anything else sends them off angry. A beer is the exception:
-## everyone is glad of one (see give_beer). Returns whether the item was handed over.
-func serve(item: SimItem, events: Array[Dictionary]) -> bool:
+## the customer off happy; anything else sends them off angry, at the player who served
+## (by). A beer is the exception (see give_beer). Returns whether the item was handed over.
+func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     var customer := front()
     if not customer or not item:
         return false
-    if item.kind == Menu.BEER and customer.order != Menu.BEER:
-        give_beer(0, events)
+    if item.kind == Menu.BEER:
+        give_beer(0, by, events)
         return true
     line.pop_front()
-    var right := Menu.order_key(item) == customer.order and Menu.done_right(item)
-    if right:
+    if Menu.order_key(item) == customer.order and Menu.done_right(item):
         change_mood(rules.mood_served)
         events.append({"type": &"served"})
     else:
-        change_mood(rules.mood_angry)
-        events.append({"type": &"angry", "index": 0})
+        _leave_angry(0, by, events)
     return true
 
 
-## A beer for the customer at index, served or caught: if they ordered one, they're served;
-## otherwise it buys back some patience and they keep waiting.
-func give_beer(index: int, events: Array[Dictionary]) -> void:
+## A beer for the customer at index, handed over or caught. If they ordered one, they're
+## served. The first unordered beer buys back some patience; a second one is too much and
+## they leave angry, at whoever gave it.
+func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     var customer := line[index]
     if customer.order == Menu.BEER:
         line.remove_at(index)
         change_mood(rules.mood_served)
         events.append({"type": &"served"})
+    elif customer.gifted:
+        line.remove_at(index)
+        _leave_angry(index, by, events)
     else:
+        customer.gifted = true
         customer.patience = mini(customer.patience + rules.beer_patience, rules.patience)
         events.append({"type": &"beer_gift", "index": index})
+
+
+func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:
+    change_mood(rules.mood_angry)
+    events.append({"type": &"angry", "index": index, "by": by})
 
 
 func change_mood(amount: int) -> void:
@@ -120,5 +128,3 @@ func _arrival_delay(tick: int, player_count: int, rng: RandomNumberGenerator) ->
     return maxi(1, roundi(delay))
 
 
-func _drift_every(tick: int) -> int:
-    return maxi(1, roundi(lerpf(rules.calm_drift_every, rules.mad_drift_every, rules.intensity(tick))))

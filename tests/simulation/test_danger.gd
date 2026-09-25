@@ -30,8 +30,6 @@ func before_each() -> void:
     rules = SimRules.new()
     rules.first_arrival = NEVER
     rules.night_ticks = NEVER
-    rules.calm_drift_every = NEVER
-    rules.mad_drift_every = NEVER
     rules.fire_margin = 20
     fire_tick = Fryer.FIRST_FRY_MAX + rules.fire_margin
     rules.fire_damage_every = 10

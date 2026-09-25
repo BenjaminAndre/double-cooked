@@ -2,14 +2,12 @@ class_name Hud
 extends CanvasLayer
 ## The night's clock and room mood (top right), and the end-of-night banner.
 
-const MOOD_NAMES := ["Calme", "Tendu", "Chaud", "Émeute"]
-const MOOD_COLORS := [Color(0.5, 1.0, 0.5), Color(1.0, 0.9, 0.3), Color(1.0, 0.55, 0.2), Color(1.0, 0.25, 0.2)]
 
 @export var night: Night
 
 var _status: Label
-## Calm left before a riot: empties as the mood rises.
-var _calm: DrainingBar
+## The room mood, as a dial.
+var _gauge: MoodGauge
 ## Centered panel shown once the night is over.
 var _banner: PanelContainer
 var _title: Label
@@ -25,8 +23,8 @@ func _ready() -> void:
     add_child(corner)
     _status = _label(24, corner)
     _status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    _calm = DrainingBar.new(220, 14)
-    corner.add_child(_calm)
+    _gauge = MoodGauge.new()
+    corner.add_child(_gauge)
     _banner = PanelContainer.new()
     var style := StyleBoxFlat.new()
     style.bg_color = Color(0, 0, 0, 0.75)
@@ -46,10 +44,8 @@ func _process(_delta: float) -> void:
     var sim := night.simulation
     if not sim:
         return
-    var level := sim.crowd.level()
-    _status.text = "%s\nAmbiance : %s" % [clock(sim.clock_minutes()), MOOD_NAMES[level]]
-    _status.modulate = MOOD_COLORS[level]
-    _calm.show_fraction(1.0 - float(sim.crowd.mood) / sim.rules.riot)
+    _status.text = clock(sim.clock_minutes())
+    _gauge.mood = float(sim.crowd.mood) / sim.rules.riot
     _banner.visible = sim.outcome != &""
     if _banner.visible:
         var next := "Entrée : nouvelle nuit"

@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://1ohc6nui7y0i" path="res://gameplay/player.gd" id="1_ysoui"]
 [ext_resource type="PackedScene" uid="uid://kqr7kbxilrw2" path="res://assets/kenney_prototype-kit/Models/GLB format/hat-cap.glb" id="2_ysoui"]
 [ext_resource type="Script" uid="uid://bd2g8fgw1310o" path="res://gameplay/player_ui.gd" id="4_wfdkp"]
-[ext_resource type="Texture2D" uid="uid://dh8n6uf6m35sw" path="res://res/heart.png" id="5_dxbr5"]
 
 [node name="Player" type="Node3D"]
 script = ExtResource("1_ysoui")
@@ -20,20 +19,13 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0.3332639, 0.9428336, -1.4567428e-
 script = ExtResource("4_wfdkp")
 player = NodePath("..")
 
-[node name="Heart1" type="Sprite3D" parent="PlayerUI"]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.0616838, 0)
+[node name="Hearts" type="Label3D" parent="PlayerUI"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.06, 0)
 billboard = 1
-texture = ExtResource("5_dxbr5")
-
-[node name="Heart2" type="Sprite3D" parent="PlayerUI"]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.0616838, 0)
-billboard = 1
-texture = ExtResource("5_dxbr5")
-
-[node name="Heart3" type="Sprite3D" parent="PlayerUI"]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.0616838, 0)
-billboard = 1
-texture = ExtResource("5_dxbr5")
+modulate = Color(0.9, 0.15, 0.2, 1)
+outline_size = 8
+font_size = 40
+text = "♥♥♥"
 
 [node name="Pseudo" type="Label3D" parent="PlayerUI"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8307141, 0)

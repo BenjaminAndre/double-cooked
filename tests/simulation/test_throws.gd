@@ -10,7 +10,7 @@ var side: int
 var rules: SimRules
 
 
-## Two plain nodes in the kitchen, and a line of customers two units away. No drift, no
+## Two plain nodes in the kitchen, and a line of customers two units away. No line pressure,
 ## random cans unless a test asks for them.
 func before_each() -> void:
     level = SimLevel.new()
@@ -27,8 +27,6 @@ func before_each() -> void:
     rules.calm_arrival_factor = 1.0
     rules.max_line = 3
     rules.night_ticks = NEVER
-    rules.calm_drift_every = NEVER
-    rules.mad_drift_every = NEVER
     rules.line_pressure_every = NEVER
 
 
@@ -165,3 +163,31 @@ func _with_line(orders: Array) -> Scenario:
         sim.crowd.line[index].patience = rules.patience
     sim.crowd.next_arrival = NEVER
     return scenario
+
+
+func test_an_angry_customer_throws_at_whoever_served_them() -> void:
+    level.node_stations[side] = level.add_station(&"caisse")
+    var scenario := Scenario.new(level, [spot, side], 5, rules)
+    scenario.run_until(2)
+    var sim := scenario.simulation
+    sim.crowd.line.resize(1)
+    sim.crowd.front().order = &"frites:mayo"
+    sim.crowd.next_arrival = NEVER
+    sim.players[1].item = SimItem.new(Fryer.FRIES_BURNT)
+    scenario.at(sim.tick, 1, C.INTERACT).run_until(sim.tick + 1)
+    var thrown := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"can_thrown")
+    assert_eq(thrown.size(), 1)
+    assert_eq(thrown[0].at, 1, "at the server, not the player nearer the counter")
+
+
+func test_without_a_culprit_the_can_goes_to_the_player_nearest_the_counter() -> void:
+    level.queue_front = Vector3(2, 0, -2)
+    var scenario := Scenario.new(level, [spot, side], 5, rules)
+    scenario.run_until(2)
+    var sim := scenario.simulation
+    sim.crowd.line.resize(1)
+    sim.crowd.front().patience = 1
+    sim.crowd.next_arrival = NEVER
+    scenario.run_until(sim.tick + 2)
+    var thrown := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"can_thrown")
+    assert_eq(thrown[0].at, 1, "slot 1 stands nearer the counter")

@@ -39,9 +39,6 @@ var mood_served := -50
 ## A customer served the wrong thing, or something badly done, leaves angry.
 var mood_angry := 120
 var mood_walk_out := 150
-## The mood creeps up on its own: +1 every this many ticks, from intensity 0 to 1.
-var calm_drift_every := 3 * SECOND
-var mad_drift_every := 12
 ## +1 per customer waiting behind the front one, every this many ticks.
 var line_pressure_every := 2 * SECOND
 

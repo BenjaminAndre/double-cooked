@@ -10,7 +10,7 @@ var rules: SimRules
 
 
 ## A single CAISSE node, and rules that isolate one effect at a time: one customer at tick 1,
-## no drift.
+## nothing else moving the mood.
 func before_each() -> void:
     level = SimLevel.new()
     till = level.add_node(Vector3.ZERO, level.add_station(&"caisse"), "C")
@@ -18,8 +18,6 @@ func before_each() -> void:
     rules.first_arrival = 1
     rules.arrival_min = NEVER
     rules.arrival_max = NEVER
-    rules.calm_drift_every = NEVER
-    rules.mad_drift_every = NEVER
     rules.line_pressure_every = NEVER
     rules.night_ticks = NEVER
 
@@ -145,16 +143,22 @@ func test_the_night_starts_calm_and_gets_mad_after_one_in_the_morning() -> void:
     assert_eq(rules.intensity(999), 1.0)
 
 
-func test_the_mood_drifts_up_faster_as_the_night_goes_on() -> void:
+func test_the_mood_doesnt_move_on_its_own() -> void:
     rules.first_arrival = NEVER
     rules.night_ticks = 1000
-    rules.calm_drift_every = 10
-    rules.mad_drift_every = 2
-    var sim := _scenario().run_until(500)
-    assert_eq(sim.crowd.mood, 49, "calm: +1 every 10 ticks")
-    var calm := sim.crowd.mood
-    _scenario_on(sim, 1000)
-    assert_gt(sim.crowd.mood - calm, 49 * 3, "much faster in the second half")
+    assert_eq(_scenario().run_until(999).crowd.mood, 0, "only what happens in the fritkot moves it")
+
+
+func test_a_second_unordered_beer_is_one_too_many() -> void:
+    var scenario := _scenario()
+    var sim := _with_order(scenario, &"frites:mayo")
+    sim.players[0].item = _item(Menu.BEER, &"")
+    scenario.at(2, 0, INTERACT).at(2, 0, Simulation.Command.RELEASE).run_until(3)
+    assert_eq(sim.crowd.line.size(), 1, "the first one is welcome")
+    sim.players[0].item = _item(Menu.BEER, &"")
+    scenario.at(3, 0, INTERACT).at(3, 0, Simulation.Command.RELEASE).run_until(4)
+    assert_true(sim.crowd.line.is_empty(), "the second sends them off")
+    assert_eq(sim.stats.angry, 1)
 
 
 func test_more_players_bring_customers_faster() -> void:

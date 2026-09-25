@@ -213,27 +213,32 @@ func _throw_beer(player: SimPlayer, target: int) -> void:
     events.append({"type": &"beer_thrown", "by": player.slot, "target": target})
 
 
-## Customers who leave angry throw a can on the way out, and past SimRules.can_mood waiting
-## customers throw at random, more often the worse the mood (GDD §8).
+## Customers who leave angry throw a can on the way out, at whoever served them badly; past
+## SimRules.can_mood waiting customers throw at random, more often the worse the mood. Without
+## a culprit, the can goes to the player closest to the counter (GDD §8).
 func _customers_throw() -> void:
     for event in events.duplicate():
         if event.type in [&"angry", &"walk_out"]:
-            _throw_can(event.index)
+            _throw_can(event.index, event.by)
     var anger := (float(crowd.mood) / rules.riot - rules.can_mood) / (1.0 - rules.can_mood)
     if anger > 0.0 and not crowd.line.is_empty() and rng.randf() < anger / rules.can_every:
-        _throw_can(rng.randi_range(0, crowd.line.size() - 1))
+        _throw_can(rng.randi_range(0, crowd.line.size() - 1), -1)
 
 
-## A can from the customer at index, at a player standing, aimed where they are now.
-func _throw_can(index: int) -> void:
-    var standing := players.filter(func(p: SimPlayer) -> bool: return not p.down)
-    if standing.is_empty():
+## A can from the customer at index, aimed where the target stands now. target is a slot,
+## or -1 for the standing player closest to the counter.
+func _throw_can(index: int, target: int) -> void:
+    var aimed: SimPlayer = players[target] if target >= 0 and not players[target].down else null
+    if not aimed:
+        for player in players:
+            if not player.down and (not aimed or player_position(player).distance_to(level.queue_front)
+                    < player_position(aimed).distance_to(level.queue_front)):
+                aimed = player
+    if not aimed:
         return
-    var target: SimPlayer = standing[rng.randi_range(0, standing.size() - 1)]
     var from := level.queue_position(index) + Vector3.UP * THROW_HEIGHT
-    var to := player_position(target)
-    projectiles.append(SimProjectile.new(SimProjectile.CAN, from, to, tick, rules.can_flight))
-    events.append({"type": &"can_thrown", "at": target.slot})
+    projectiles.append(SimProjectile.new(SimProjectile.CAN, from, player_position(aimed), tick, rules.can_flight))
+    events.append({"type": &"can_thrown", "at": aimed.slot})
 
 
 ## Cans land when their time is up: a beer goes to whoever stands where it falls, an empty can
@@ -246,7 +251,7 @@ func _advance_projectiles() -> void:
         if can.kind == SimProjectile.BEER:
             var index := level.queue_index_at(can.to)
             if index >= 0 and index < crowd.line.size():
-                crowd.give_beer(index, events)
+                crowd.give_beer(index, can.by, events)
             else:
                 events.append({"type": &"beer_missed"})
         else:
@@ -408,7 +413,7 @@ func _interact(player: SimPlayer) -> void:
         &"poubelle":
             player.item = null
         &"caisse":
-            if crowd.serve(held, events):
+            if crowd.serve(held, player.slot, events):
                 player.item = null
         &"extincteur":
             if not held:
