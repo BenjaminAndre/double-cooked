@@ -134,13 +134,12 @@ func test_an_ordered_beer_is_simply_served() -> void:
     assert_eq(sim.stats.served, 1)
 
 
-func test_the_night_starts_calm_and_gets_mad_after_one_in_the_morning() -> void:
+func test_the_night_starts_calm_and_builds_up_to_closing_time() -> void:
     rules.night_ticks = 1000
     assert_eq(rules.intensity(0), 0.0)
-    assert_eq(rules.intensity(499), 0.0, "calm until 23:00")
-    assert_almost_eq(rules.intensity(600), 0.5, 0.01, "halfway at midnight")
-    assert_eq(rules.intensity(700), 1.0, "mad from 01:00")
-    assert_eq(rules.intensity(999), 1.0)
+    assert_eq(rules.intensity(199), 0.0, "calm until 20:00")
+    assert_almost_eq(rules.intensity(600), 0.5, 0.01, "halfway through the build-up")
+    assert_eq(rules.intensity(1000), 1.0, "at its peak at 04:00")
 
 
 func test_the_mood_doesnt_move_on_its_own() -> void:
@@ -182,6 +181,7 @@ func test_arrivals_come_faster_once_the_night_is_mad() -> void:
     var calm := Simulation.new(level, [till], 1, rules)
     calm.step([])
     rules.first_arrival = 900
+    rules.mad_from = 0.9
     var mad := Simulation.new(level, [till], 1, rules)
     mad.tick = 900
     mad.step([])
@@ -203,17 +203,24 @@ func test_a_riot_loses_the_night_and_freezes_it() -> void:
     assert_ne(frozen, 0)
 
 
-func test_reaching_closing_time_wins_the_night() -> void:
+func test_closing_time_shuts_the_door_and_the_night_ends_when_the_room_is_empty() -> void:
     rules.night_ticks = 50
+    rules.arrival_min = 5
+    rules.arrival_max = 5
+    rules.calm_arrival_factor = 1.0
+    rules.patience = NEVER
     var scenario := _scenario()
-    var sim := scenario.run_until(49)
-    assert_eq(sim.outcome, &"")
-    assert_eq(sim.clock_minutes(), 49 * 600 / 50)
-    scenario.run_until(50)
-    assert_eq(sim.outcome, &"won")
+    var sim := scenario.run_until(50)
     assert_eq(sim.clock_minutes(), 600, "04:00")
+    assert_eq(sim.outcome, &"", "customers are still waiting")
+    var waiting := sim.crowd.line.size()
+    scenario.run_until(80)
+    assert_eq(sim.crowd.line.size(), waiting, "nobody comes in after closing")
+    sim.crowd.line.clear()
+    scenario.run_until(81)
+    assert_eq(sim.outcome, &"won")
     assert_eq(scenario.events.back(), {"type": &"night_over", "outcome": &"won", "reason": &"closing",
-            "tick": 49})
+            "tick": 80})
 
 
 func _scenario() -> Scenario:

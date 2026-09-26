@@ -98,7 +98,7 @@ func step(commands: Array) -> void:
         _end(&"lost", &"crew_down")
     elif crowd.mood >= rules.riot:
         _end(&"lost", &"riot")
-    elif tick >= rules.night_ticks:
+    elif tick >= rules.night_ticks and crowd.line.is_empty():
         _end(&"won", &"closing")
 
 

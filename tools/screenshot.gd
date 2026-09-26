@@ -118,7 +118,7 @@ func _initialize() -> void:
             var sim := night.simulation
             sim.players[0].bmi = 25
             sim.players[0].node = sim.level.find("Anchor3")
-            night._views[0].show_fat_gain()
+            night._views[0].show_fat_change(true)
             var p2 := sim.players[1]
             p2.node = sim.level.find("Anchor11")
             p2.bmi = 17

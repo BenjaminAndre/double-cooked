@@ -16,7 +16,7 @@ const MATE_CURSOR_HEIGHT := 1.75
 
 ## SimProjectile -> its nodes: [can, warning (or null)].
 var _shown := {}
-var _cursors: Array[Label3D] = []
+var _cursors: Array[Sprite3D] = []
 
 
 func _process(_delta: float) -> void:
@@ -40,7 +40,7 @@ func _process(_delta: float) -> void:
     _show_cursors(sim)
 
 
-## A bobbing ▼ over the customer or teammate each local player aims at, once the aim is held.
+## A bobbing arrow over the customer or teammate each local player aims at, once the aim is held.
 func _show_cursors(sim: Simulation) -> void:
     var aims: Array[Vector3] = []
     for slot in night.local_slots():
@@ -51,10 +51,9 @@ func _show_cursors(sim: Simulation) -> void:
             else:
                 aims.append(sim.level.queue_position(player.aim) + Vector3.UP * CURSOR_HEIGHT)
     while _cursors.size() < aims.size():
-        var cursor := Label3D.new()
-        cursor.text = "▼"
-        cursor.font_size = 72
-        cursor.outline_size = 12
+        var cursor := Sprite3D.new()
+        cursor.texture = Icons.arrow_down()
+        cursor.pixel_size = 0.004
         cursor.modulate = CURSOR
         cursor.billboard = BaseMaterial3D.BILLBOARD_ENABLED
         cursor.no_depth_test = true

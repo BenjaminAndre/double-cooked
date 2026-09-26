@@ -19,13 +19,8 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0.3332639, 0.9428336, -1.4567428e-
 script = ExtResource("4_wfdkp")
 player = NodePath("..")
 
-[node name="Hearts" type="Label3D" parent="PlayerUI"]
+[node name="Hearts" type="Node3D" parent="PlayerUI"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.06, 0)
-billboard = 1
-modulate = Color(0.9, 0.15, 0.2, 1)
-outline_size = 8
-font_size = 40
-text = "♥♥♥"
 
 [node name="Pseudo" type="Label3D" parent="PlayerUI"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8307141, 0)

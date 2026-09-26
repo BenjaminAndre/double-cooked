@@ -163,7 +163,7 @@ func _refresh() -> void:
             text = "H : créer une partie en ligne · J : rejoindre · F2 : deux joueurs sur ce clavier"
         State.HOSTING:
             if _tube.state != TubeClient.State.SESSION_CREATED:
-                text = "Création de la partie…"
+                text = "Création de la partie..."
             else:
                 var players := _tube.multiplayer_api.get_peers().size() + 1
                 var action := "relancer" if night.role == Night.Role.HOST else "lancer"
@@ -172,7 +172,7 @@ func _refresh() -> void:
         State.TYPING_CODE:
             text = "Tape le code puis Entrée · Échap : annuler"
         State.JOINING:
-            text = "Connexion… · Échap : annuler"
+            text = "Connexion... · Échap : annuler"
         State.JOINED:
             text = "En ligne · Joueur %d · Échap : quitter" % (_slot() + 1) \
                     if night.role == Night.Role.CLIENT else "Connecté · en attente de l'hôte · Échap : quitter"

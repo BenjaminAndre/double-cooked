@@ -5,12 +5,13 @@ extends RefCounted
 
 const SECOND := Simulation.TICK_RATE
 
-## 18:00 to 04:00 in this many ticks.
-var night_ticks := 7 * 60 * SECOND
+## 18:00 to 04:00 in this many ticks (just under 6 minutes). At 04:00 the door closes: no one
+## comes in any more, and the night ends once the last customer has left (GDD §4).
+var night_ticks := 350 * SECOND
 ## The night's intensity, from 0 (calm) to 1 (mad), follows the clock: calm until calm_until
-## (23:00), rising until mad_from (01:00), flat out after (GDD §4). Fractions of the night.
-var calm_until := 0.5
-var mad_from := 0.7
+## (20:00), then rising steadily to its peak at mad_from (04:00) (GDD §4). Fractions of the night.
+var calm_until := 0.2
+var mad_from := 1.0
 
 ## Time between two customers, for one player; more players make it shorter.
 var arrival_min := 12 * SECOND

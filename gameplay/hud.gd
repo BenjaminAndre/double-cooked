@@ -45,6 +45,8 @@ func _process(_delta: float) -> void:
     if not sim:
         return
     _status.text = clock(sim.clock_minutes())
+    if sim.tick >= sim.rules.night_ticks and sim.outcome == &"":
+        _status.text += " · fermé"
     _gauge.mood = float(sim.crowd.mood) / sim.rules.riot
     _banner.visible = sim.outcome != &""
     if _banner.visible:
@@ -52,7 +54,7 @@ func _process(_delta: float) -> void:
         if night.role == Night.Role.HOST:
             next = "Entrée : relancer la nuit"
         elif night.role == Night.Role.CLIENT:
-            next = "En attente de l'hôte…"
+            next = "En attente de l'hôte..."
         _title.text = title(sim)
         _recap.text = recap(sim)
         _next.text = next

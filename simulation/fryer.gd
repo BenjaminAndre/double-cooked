@@ -21,7 +21,7 @@ const FIRST_FRY_MIN := 8 * Simulation.TICK_RATE
 const FIRST_FRY_MAX := 20 * Simulation.TICK_RATE
 ## Second fry window: lifting earlier gives soggy fries, later burnt ones.
 const SECOND_FRY_MIN := 3 * Simulation.TICK_RATE
-const SECOND_FRY_MAX := 7 * Simulation.TICK_RATE
+const SECOND_FRY_MAX := 11 * Simulation.TICK_RATE
 
 
 ## The [min, max] ticks in the oil for what this fryer is cooking.

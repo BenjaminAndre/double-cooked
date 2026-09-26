@@ -22,7 +22,8 @@ var _bump_tween: Tween
 var _hands_label: Label3D
 var _hint_label: Label3D
 var _menu_label: Label3D
-var _stun_label: Label3D
+## Three stars circling the head while stunned.
+var _stars: Node3D
 
 
 func _ready() -> void:
@@ -31,10 +32,18 @@ func _ready() -> void:
     _hint_label.modulate = Color(1.0, 0.9, 0.3)
     _menu_label = _label(1.8, 30)
     _menu_label.modulate = Color(0.6, 0.9, 1.0)
-    _stun_label = _label(0.95, 48)
-    _stun_label.text = "✶ ✶ ✶"
-    _stun_label.modulate = Color(1.0, 0.85, 0.2)
-    _stun_label.visible = false
+    _stars = Node3D.new()
+    _stars.position.y = 1.0
+    add_child(_stars)
+    for index in 3:
+        var star := Sprite3D.new()
+        star.texture = Icons.star()
+        star.modulate = Color(1.0, 0.85, 0.2)
+        star.pixel_size = 0.0025
+        star.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        star.position = Vector3.RIGHT.rotated(Vector3.UP, index * TAU / 3) * 0.25
+        _stars.add_child(star)
+    _stars.visible = false
 
 
 ## What this player's interact key would do here, "" for nothing (only for local players).
@@ -56,7 +65,8 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     health = state.health
     _hands_label.text = ItemNames.of(state.item) if state.item else ""
     # Stunned after a bump: stars and a shake, for as long as it lasts.
-    _stun_label.visible = state.stun > 0
+    _stars.visible = state.stun > 0
+    _stars.rotation.y = Time.get_ticks_msec() * 0.008
     $PlayerModel.rotation.y = sin(Time.get_ticks_msec() * 0.06) * 0.5 if state.stun > 0 else 0.0
     var shown := level.positions[state.node]
     if state.is_moving():
@@ -95,13 +105,13 @@ func show_bump() -> void:
     _bump_tween.tween_property(model, "position:y", 0.0, 0.09)
 
 
-## A discreet "+Gras" rising and fading over the player's head.
-func show_fat_gain() -> void:
+## A discreet "+Gras" (or "-Gras" as walking burns it off) rising and fading by the head.
+func show_fat_change(gained: bool) -> void:
     var label := _label(1.1, 30)
     # To the side, clear of the hint and hand above the head.
     label.position.x = 0.45
-    label.text = "+Gras"
-    label.modulate = Color(1.0, 0.8, 0.45)
+    label.text = "+Gras" if gained else "-Gras"
+    label.modulate = Color(1.0, 0.8, 0.45) if gained else Color(0.6, 0.85, 1.0)
     var tween := create_tween().set_parallel()
     tween.tween_property(label, "position:y", 2.0, 1.2)
     tween.tween_property(label, "modulate:a", 0.0, 1.2)

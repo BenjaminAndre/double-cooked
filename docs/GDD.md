@@ -16,7 +16,8 @@ Every feature is checked against these.
 1. **Keyboard only.** Every action is a keypress: navigation between nodes plus a few action keys. No mouse, no aiming, and no menus during a night.
 2. **The space is the enemy.** The kitchen is deliberately cramped. A node holds only one player, so players block each other and knock each other over. The chaos comes from the layout, not from extra rules.
 3. **Calm the room or it turns on you.** Service quality changes the level of danger. That is the only economy: no money, no upgrades.
-4. **Short, loud nights.** Players are expected to talk to each other outside the game (voice chat), so the game has no chat, pings or other communication tools. One night lasts about 6–8 minutes, with an instant rematch.
+4. **Short, loud nights.** Players are expected to talk to each other outside the game (voice chat), so the game has no chat, pings or other communication tools. One night lasts about 6 minutes, with an instant rematch.
+5. **No pause menu, on purpose.** It keeps the pace: a night is only about 6 minutes, and the end-of-night screen is the natural pause.
 
 ## 3. Core loop
 
@@ -24,12 +25,8 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 ## 4. Session: one night
 
-- One game is one night, with the clock compressed to about 6–8 minutes of real time.
-- The pace follows the clock (changed after the second playtest):
-  - **18:00–23:00, calm:** few customers, a slow mood drift; time to learn the kitchen.
-  - **23:00–01:00, rising:** customers come faster and faster.
-  - **After 01:00, mad:** flat out, the drunks and barakis hour.
-  - Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors.
+- One game is one night, 18:00 to 04:00 in just under 6 minutes of real time. **At 04:00 the door closes**: nobody comes in any more, and the night only ends once every customer still inside has been dealt with.
+- The pace follows the clock (revised after the fourth playtest): calm until 20:00, then a steady build-up of customers until the peak at closing time. Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors.
 - **(proposal)** Variety comes from difficulty levels and random events, not from progression between nights.
 - **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37") plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no economy behind it.
 
@@ -103,7 +100,7 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
    - **Too late:** the whole batch comes into the hand as **overcooked fries**, fit only for the bin.
 3. **Take.** Each further interaction takes **one blanched portion** into the hand. CUISSON 1 stays occupied until all 5 portions are taken.
 
-**CUISSON 2: second fry (ready from 3 to 7 s)**
+**CUISSON 2: second fry (ready from 3 to 11 s)**
 4. **Put in** a blanched portion.
 5. **Lift:** too early gives **soggy** fries, in time **good** fries, too late **burnt** fries.
 

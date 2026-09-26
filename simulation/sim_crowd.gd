@@ -42,7 +42,8 @@ func front() -> Customer:
 ## One tick of the room: arrivals, patience, walk-outs, and a long line souring the mood.
 ## events receives {"type": &"arrival"} and {"type": &"walk_out", "index": place in line}.
 func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
-    if tick >= next_arrival:
+    # The door closes at 04:00.
+    if tick >= next_arrival and tick < rules.night_ticks:
         if line.size() < rules.max_line:
             line.append(_new_customer(rng))
             events.append({"type": &"arrival"})
