@@ -88,10 +88,14 @@ func _show_tickets(crowd: SimCrowd) -> void:
         var figure: Node3D = _figures[customer.id]
         var label: Label = ticket.get_child(0).get_child(0)
         var bar: DrainingBar = ticket.get_child(0).get_child(1)
-        label.text = "\n".join(ItemNames.order_line(customer.order)).strip_edges()
-        label.add_theme_font_size_override("font_size", FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE)
+        # Text and size only when they change: each change relayouts the ticket.
+        var text := "\n".join(ItemNames.order_line(customer.order)).strip_edges()
+        var font_size := FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE
+        if label.text != text or label.get_theme_font_size("font_size") != font_size:
+            label.text = text
+            label.add_theme_font_size_override("font_size", font_size)
+            ticket.reset_size()
         bar.show_fraction(float(customer.patience) / crowd.rules.patience)
-        ticket.reset_size()
         var anchor := camera.unproject_position(figure.global_position)
         var left := maxf(maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP), TICKET_GAP)
         ticket.position = Vector2(left, anchor.y + TICKET_GAP_BELOW)

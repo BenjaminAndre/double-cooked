@@ -48,7 +48,8 @@ func _ready() -> void:
 
 ## What this player's interact key would do here, "" for nothing (only for local players).
 func show_hint(text: String) -> void:
-    _hint_label.text = text
+    if _hint_label.text != text:
+        _hint_label.text = text
 
 
 ## An open station menu: its options side by side, the selected one in brackets.
@@ -57,13 +58,17 @@ func show_menu(options: Array, choice: int) -> void:
     var shown := []
     for index in options.size():
         shown.append("[%s]" % options[index] if index == choice else options[index])
-    _menu_label.text = "  ".join(shown)
+    var text := "  ".join(shown)
+    if _menu_label.text != text:
+        _menu_label.text = text
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
 func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     health = state.health
-    _hands_label.text = ItemNames.of(state.item) if state.item else ""
+    var held := ItemNames.of(state.item) if state.item else ""
+    if _hands_label.text != held:
+        _hands_label.text = held
     # Stunned after a bump: stars and a shake, for as long as it lasts.
     _stars.visible = state.stun > 0
     _stars.rotation.y = Time.get_ticks_msec() * 0.008
