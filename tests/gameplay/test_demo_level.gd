@@ -7,7 +7,7 @@ const GAME_SCENE := preload("res://game.tscn")
 func test_reads_every_anchor_with_its_links_and_stations() -> void:
     var game := GAME_SCENE.instantiate()
     var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
-    assert_eq(level.positions.size(), 13)
+    assert_eq(level.positions.size(), 12)
     var spawn := level.find("Anchor")
     assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Anchor2"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.DOWN), level.find("Anchor8"))
@@ -17,6 +17,26 @@ func test_reads_every_anchor_with_its_links_and_stations() -> void:
             "both anchors reach the same CUISSON 1")
     assert_eq(level.station_kinds.size(), 10)
     game.free()
+
+
+## The kitchen is a square grid (GDD §5.2): every link is one unit long, goes both ways, and
+## the arrow keys always mean the same direction.
+func test_the_kitchen_is_a_regular_grid() -> void:
+    var game := GAME_SCENE.instantiate()
+    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    game.free()
+    var opposite := {SimLevel.Direction.UP: SimLevel.Direction.DOWN, SimLevel.Direction.DOWN: SimLevel.Direction.UP,
+            SimLevel.Direction.LEFT: SimLevel.Direction.RIGHT, SimLevel.Direction.RIGHT: SimLevel.Direction.LEFT}
+    var step := {SimLevel.Direction.UP: Vector3(0, 0, 1), SimLevel.Direction.DOWN: Vector3(0, 0, -1),
+            SimLevel.Direction.LEFT: Vector3(1, 0, 0), SimLevel.Direction.RIGHT: Vector3(-1, 0, 0)}
+    for node in level.positions.size():
+        for direction: int in opposite:
+            var other := level.neighbour(node, direction)
+            if other == SimLevel.NONE:
+                continue
+            assert_eq(level.positions[other] - level.positions[node], step[direction],
+                    "%s -> %s" % [level.names[node], level.names[other]])
+            assert_eq(level.neighbour(other, opposite[direction]), node, "and back")
 
 
 func test_the_game_scene_starts_a_night_and_toggles_duo() -> void:

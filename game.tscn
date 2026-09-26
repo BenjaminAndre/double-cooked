@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://gameplay/customers/customers_view.gd" id="9_customers"]
 [ext_resource type="Script" path="res://gameplay/hud.gd" id="10_hud"]
 [ext_resource type="Script" path="res://gameplay/projectiles_view.gd" id="11_projectiles"]
+[ext_resource type="Script" path="res://gameplay/grid_view.gd" id="12_grid"]
 [ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_feb5d"]
@@ -130,7 +131,8 @@ right = NodePath("../Anchor3")
 interactible = NodePath("../../../Interactibles/Fries")
 
 [node name="Anchor3" parent="DemoLevel/Anchors" node_paths=PackedStringArray("down", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
-down = NodePath("../Anchor15")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+down = NodePath("../Anchor10")
 left = NodePath("../Anchor2")
 right = NodePath("../Anchor4")
 interactible = NodePath("../../../Interactibles/Fries")
@@ -165,19 +167,12 @@ interactible = NodePath("../../../Interactibles/Extinguisher")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
 up = NodePath("../Anchor2")
 left = NodePath("../Anchor8")
-right = NodePath("../Anchor15")
+right = NodePath("../Anchor10")
 interactible = NodePath("../../../Interactibles/Sauces")
 
-[node name="Anchor15" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "down", "left", "right") instance=ExtResource("1_80nbo")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.71741843)
-up = NodePath("../Anchor3")
-down = NodePath("../Anchor10")
-left = NodePath("../Anchor9")
-right = NodePath("../Anchor11")
-
 [node name="Anchor10" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.4953413)
-up = NodePath("../Anchor15")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+up = NodePath("../Anchor3")
 left = NodePath("../Anchor9")
 right = NodePath("../Anchor11")
 interactible = NodePath("../../../Interactibles/Register")
@@ -185,7 +180,7 @@ interactible = NodePath("../../../Interactibles/Register")
 [node name="Anchor11" parent="DemoLevel/Anchors" node_paths=PackedStringArray("up", "left", "right", "interactible") instance=ExtResource("1_80nbo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
 up = NodePath("../Anchor4")
-left = NodePath("../Anchor15")
+left = NodePath("../Anchor10")
 right = NodePath("../Anchor12")
 interactible = NodePath("../../../Interactibles/Meats")
 
@@ -283,7 +278,7 @@ size = Vector3(1.22052, 0.74798584, 0.5239258)
 material = SubResource("StandardMaterial3D_eow3j")
 
 [node name="Register" type="Node3D" parent="Interactibles"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072876215, 0, -1.9977882)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.644)
 script = ExtResource("4_7jktm")
 kind = &"caisse"
 
@@ -368,7 +363,7 @@ script = ExtResource("8_lobby")
 night = NodePath("../Night")
 
 [node name="Customers" type="Node3D" parent="." node_paths=PackedStringArray("night")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0, -2.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3)
 script = ExtResource("9_customers")
 night = NodePath("../Night")
 
@@ -378,4 +373,8 @@ night = NodePath("../Night")
 
 [node name="Projectiles" type="Node3D" parent="." node_paths=PackedStringArray("night")]
 script = ExtResource("11_projectiles")
+night = NodePath("../Night")
+
+[node name="Grid" type="Node3D" parent="." node_paths=PackedStringArray("night")]
+script = ExtResource("12_grid")
 night = NodePath("../Night")
