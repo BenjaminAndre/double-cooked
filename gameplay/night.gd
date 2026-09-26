@@ -272,6 +272,10 @@ func _show(p_alpha: float) -> void:
                 # A beer can always be thrown: hold the key to aim at the line.
                 var throw := "%s maintenu : lancer" % _input.interact_key_name(local_index)
                 hint = throw if hint == "" else "%s\n%s" % [hint, throw]
+        var eat := simulation.eat_action(player) if simulation.outcome == &"" else &""
+        if eat != &"":
+            var line := "%s : %s" % [_input.eat_key_name(local_index), ItemNames.action(eat)]
+            hint = line if hint == "" else "%s\n%s" % [hint, line]
         _views[slot].show_hint(hint)
         var options: Array = []
         if player.menu != SimLevel.NONE:

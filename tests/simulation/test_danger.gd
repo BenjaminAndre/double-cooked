@@ -113,8 +113,9 @@ func test_knocked_out_a_player_can_still_eat_what_they_hold() -> void:
     player.health = 1
     scenario.at(1, 0, DAMAGE).run_until(2)
     assert_true(player.down)
-    assert_eq(sim.action_for(player), &"eat", "no sauce while down, but eating is fine")
-    scenario.at(2, 0, INTERACT).run_until(3)
+    assert_eq(sim.action_for(player), &"", "no sauce while down")
+    assert_eq(sim.eat_action(player), &"eat", "but eating is fine")
+    scenario.at(2, 0, Simulation.Command.EAT).run_until(3)
     assert_false(player.down)
     assert_eq(player.health, 1)
     assert_null(player.item)
@@ -126,13 +127,13 @@ func test_eating_or_drinking_gives_a_heart_and_fat_even_at_full_health() -> void
     var player := sim.players[0]
     player.health = 1
     player.item = SimItem.new(Menu.CERVELAS)
-    scenario.at(1, 0, INTERACT).run_until(2)
+    scenario.at(1, 0, Simulation.Command.EAT).run_until(2)
     assert_eq(player.health, 2)
     player.item = SimItem.new(Menu.COLA)
-    scenario.at(2, 0, INTERACT).run_until(3)
+    scenario.at(2, 0, Simulation.Command.EAT).run_until(3)
     assert_eq(player.health, 3)
     player.item = SimItem.new(Fryer.FRIES_BURNT)
-    scenario.at(3, 0, INTERACT).run_until(4)
+    scenario.at(3, 0, Simulation.Command.EAT).run_until(4)
     assert_eq(player.health, SimPlayer.MAX_HEALTH, "capped")
     assert_eq(player.bmi, 24, "but it all counts")
     assert_true(scenario.events.any(func(e: Dictionary) -> bool: return e.type == &"fattened"))
@@ -272,7 +273,7 @@ func test_undernourished_a_player_collapses_and_a_beer_gets_them_up() -> void:
     assert_true(player.down, "starving")
     assert_eq(player.health, SimPlayer.MAX_HEALTH, "hearts have nothing to do with it")
     player.item = SimItem.new(Menu.BEER)
-    scenario.at(sim.tick, 0, INTERACT).run_until(sim.tick + 1)
+    scenario.at(sim.tick, 0, Simulation.Command.EAT).run_until(sim.tick + 1)
     assert_false(player.down)
 
 

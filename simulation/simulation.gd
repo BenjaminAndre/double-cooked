@@ -11,7 +11,8 @@ const WALK_SPEED := 10.0
 ## What a player can do in one tick. The move values match SimLevel.Direction.
 ## New commands go at the end, so saved replays keep their meaning.
 ## RELEASE is the interact key going up, for throwing (GDD §8).
-enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL, RELEASE }
+## EAT eats or drinks what is held, on its own key so it never happens by accident (GDD §5.1).
+enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL, RELEASE, EAT }
 
 const EXTINGUISHER := &"extincteur"
 ## Cans leave a hand at this height and are caught at that one.
@@ -137,6 +138,9 @@ func _apply(player: SimPlayer, command: int) -> void:
             _interact(player)
         Command.DEBUG_DAMAGE:
             _hurt(player)
+        Command.EAT:
+            if Menu.edible(player.item):
+                _consume(player)
 
 
 ## While a station menu is open, the arrows move the selection instead of the player,
@@ -379,18 +383,22 @@ func _advance(player: SimPlayer) -> void:
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
 ## One of: throw, choose (a menu is open), extinguish, fry, lift, take, sauce, fridge, meat,
-## trash, serve, take_extinguisher, return_extinguisher, and eat / drink when the station has
-## nothing to do with what is held (GDD §5.1). _interact() only acts when this isn't empty,
-## so the two always agree. A knocked-out player can only eat, drink, and use the FRIGO.
+## trash, serve, take_extinguisher, return_extinguisher. _interact() only acts when this isn't
+## empty, so the two always agree. A knocked-out player can only use the FRIGO. Eating and
+## drinking have their own key and hint (eat_action).
 func action_for(player: SimPlayer) -> StringName:
     if player.aim >= 0:
         return &"throw" if player.aim_ticks >= rules.aim_hold else &""
     if player.menu != SimLevel.NONE:
         return &"choose"
-    var action := _station_action(player)
-    if action == &"" and Menu.edible(player.item):
-        return &"drink" if player.item.kind in Menu.DRINKS else &"eat"
-    return action
+    return _station_action(player)
+
+
+## What the eat key would do: &"eat", &"drink", or &"" with nothing edible in hand.
+func eat_action(player: SimPlayer) -> StringName:
+    if not Menu.edible(player.item):
+        return &""
+    return &"drink" if player.item.kind in Menu.DRINKS else &"eat"
 
 
 func _station_action(player: SimPlayer) -> StringName:
@@ -443,15 +451,11 @@ func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
     return &""
 
 
-## Uses the station at the player's last reached node with what they hold (GDD §5.4), or eats
-## or drinks it when the station has nothing to do with it. Menu stations open their menu; the
-## choice is made in _use_menu().
+## Uses the station at the player's last reached node with what they hold (GDD §5.4). Menu
+## stations open their menu; the choice is made in _use_menu().
 func _interact(player: SimPlayer) -> void:
     var action := action_for(player)
     if action == &"":
-        return
-    if action in [&"eat", &"drink"]:
-        _consume(player)
         return
     var index := level.node_stations[player.node]
     var station := stations[index]

@@ -17,15 +17,15 @@ Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole cr
 4. Serve at the CAISSE: whatever you hold goes to the front customer. The right order, done right, makes them happy; anything else sends them off angry. A beer always pleases. The first three customers' tickets show their orders.
 5. Hold Space with a beer to aim at a customer (arrows), release to throw it: everyone is glad of a beer. Angry customers throw cans back: step out of the red ring.
 6. Forgotten fryers catch fire. Grab the EXTINCTEUR and interact at the fire.
-7. No healing station: eat or drink what you hold (interact where nothing else happens) for a heart and a BMI point. You start at BMI 21; walking burns it (1 per 25 nodes), above 21 you are slower, at 16 you collapse. The FRIGO only holds 5 beers. At 0 hearts you're K.O.: a teammate throws you a beer (aim up), or you crawl to the FRIGO.
+7. No healing station: eat or drink what you hold (Enter) for a heart and a BMI point. You start at BMI 21; walking burns it (1 per 25 nodes), above 21 you are slower, at 16 you collapse. The FRIGO only holds 5 beers. At 0 hearts you're K.O.: a teammate throws you a beer (aim up), or you crawl to the FRIGO.
 
 ## Controls
 Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.
-* Solo: arrows to move, Space to interact, Escape to close a station menu, Tab to take damage (debug)
+* Solo: arrows to move, Space to interact, Enter to eat or drink what you hold, Escape to close a station menu, Tab to take damage (debug)
 * F2 toggles two players on one keyboard:
-  * P1: WASD, Space, Escape
-  * P2: arrows, Right Shift, Backspace
-* Online (one player per machine): H hosts and shows a code to share, J joins with a code, Enter starts the night (host), Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
+  * P1: WASD, Space, E to eat, Escape
+  * P2: arrows, Right Shift, Enter to eat, Backspace
+* Online (one player per machine): H hosts and shows a code to share, J joins with a code, L starts the night (host), Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
 
 ## Tests
 `godot --headless --path . -s addons/gut/gut_cmdln.gd` runs the GUT tests in `tests/`. CI runs them before every build.

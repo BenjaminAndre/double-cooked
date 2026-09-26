@@ -1,7 +1,7 @@
 class_name Lobby
 extends CanvasLayer
 ## Keyboard-only online lobby over Tube (peer-to-peer WebRTC, sessions shared by code).
-## H hosts, J joins, Enter starts the night (host), Escape leaves. The TubeClient is only
+## H hosts, J joins, L starts the night (host), Escape leaves. The TubeClient is only
 ## created on demand, because it takes over the scene tree's multiplayer API.
 
 enum State { OFFLINE, HOSTING, TYPING_CODE, JOINING, JOINED }
@@ -63,7 +63,10 @@ func _unhandled_input(event: InputEvent) -> void:
             _code_field.text = ""
             _code_field.visible = true
             _code_field.grab_focus()
-        [State.HOSTING, KEY_ENTER], [State.HOSTING, KEY_KP_ENTER]:
+        # L launches the night; Enter too once a night is over (during one, it eats).
+        [State.HOSTING, KEY_L], [State.HOSTING, KEY_ENTER], [State.HOSTING, KEY_KP_ENTER]:
+            if key.physical_keycode != KEY_L and night.simulation.outcome == &"":
+                return
             if _tube.state == TubeClient.State.SESSION_CREATED:
                 night.host_online()
         [State.HOSTING, KEY_ESCAPE], [State.JOINING, KEY_ESCAPE], [State.JOINED, KEY_ESCAPE]:
@@ -167,7 +170,7 @@ func _refresh() -> void:
             else:
                 var players := _tube.multiplayer_api.get_peers().size() + 1
                 var action := "relancer" if night.role == Night.Role.HOST else "lancer"
-                text = "Code : %s (copié) · %d joueur%s · Entrée : %s la nuit · Échap : quitter" \
+                text = "Code : %s (copié) · %d joueur%s · L : %s la nuit · Échap : quitter" \
                         % [_tube.session_id, players, "s" if players > 1 else "", action]
         State.TYPING_CODE:
             text = "Tape le code puis Entrée · Échap : annuler"

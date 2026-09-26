@@ -52,7 +52,7 @@ func _process(_delta: float) -> void:
     if _banner.visible:
         var next := "Entrée : nouvelle nuit"
         if night.role == Night.Role.HOST:
-            next = "Entrée : relancer la nuit"
+            next = "Entrée ou L : relancer la nuit"
         elif night.role == Night.Role.CLIENT:
             next = "En attente de l'hôte..."
         _title.text = title(sim)

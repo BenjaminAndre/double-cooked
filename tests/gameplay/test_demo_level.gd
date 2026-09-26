@@ -105,8 +105,8 @@ func test_knocked_out_alone_a_player_crawls_to_the_fridge_and_drinks() -> void:
     var t := sim.tick
     scenario.at(t, 0, C.INTERACT).at(t + 1, 0, C.MOVE_RIGHT).at(t + 2, 0, C.INTERACT).run_until(t + 3)
     assert_eq(player.item.kind, Menu.BEER)
-    assert_eq(sim.action_for(player), &"drink")
-    scenario.at(t + 3, 0, C.INTERACT).at(t + 3, 0, C.RELEASE).run_until(t + 4)
+    assert_eq(sim.eat_action(player), &"drink")
+    scenario.at(t + 3, 0, C.EAT).run_until(t + 4)
     assert_false(player.down)
     assert_eq(player.health, 1)
     assert_eq(player.bmi, 22)
@@ -122,9 +122,8 @@ func test_the_drink_hint_shows_when_knocked_out_with_a_beer() -> void:
     player.item = SimItem.new(Menu.BEER)
     await wait_process_frames(2)
     var view: Player = night._views[0]
-    assert_eq(view._hint_label.text, "Espace : boire")
-    night.submit(0, Simulation.Command.INTERACT)
-    night.submit(0, Simulation.Command.RELEASE)
+    assert_eq(view._hint_label.text, "Entrée : boire")
+    night.submit(0, Simulation.Command.EAT)
     await wait_seconds(0.2)
     assert_false(player.down)
 
