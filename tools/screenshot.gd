@@ -47,6 +47,10 @@ func _initialize() -> void:
             sim.players[1].health = 0
             sim.players[1].down = true
             sim.players[0].item = SimItem.new(Simulation.EXTINGUISHER)
+        "desync":
+            # What a client sees once it drifted from the host, just after pressing F3.
+            night.desyncs = 2
+            night.notice.emit("Replay téléchargé")
         "recap":
             night.play_local(2)
             var sim := night.simulation

@@ -62,6 +62,20 @@ func test_both_players_moves_reach_both_peers_identically() -> void:
     assert_eq(client_night.desyncs, 0)
 
 
+func test_a_client_that_drifts_from_the_host_shows_it_and_keeps_it_in_its_replay() -> void:
+    host_night.host_online()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    # Something only the client sees: the next fingerprint check can't match.
+    client_night.simulation.crowd.mood += 1
+    await wait_until(func() -> bool: return client_night.desyncs > 0, 5.0)
+    assert_eq(host_night.desyncs, 0)
+    assert_ne(Hud.desync_text(client_night.desyncs), "")
+    assert_eq(Hud.desync_text(0), "")
+    var replay: Dictionary = client_night.replay()
+    assert_eq(replay.desync_ticks.size(), client_night.desyncs)
+    assert_eq(replay.desync_ticks[0] % Night.CHECK_EVERY, 0)
+
+
 func _peer_root(root_name: String) -> Node:
     var root := Node.new()
     root.name = root_name

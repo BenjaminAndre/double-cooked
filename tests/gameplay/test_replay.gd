@@ -4,6 +4,20 @@ extends GutTest
 const GAME_SCENE := preload("res://game.tscn")
 
 
+func test_f3_saves_the_night_so_far_without_ending_it() -> void:
+    var night: Night = add_child_autofree(preload("res://game.tscn").instantiate()).get_node("Night")
+    night.submit(0, Simulation.Command.MOVE_RIGHT)
+    await wait_seconds(0.3)
+    var message := night.export_replay()
+    assert_string_starts_with(message, "Replay enregistré : ")
+    var path := message.trim_prefix("Replay enregistré : ")
+    var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+    assert_false(saved.commands.is_empty())
+    assert_false(saved.has("desync_ticks"))
+    assert_false(night.replay().commands.is_empty(), "the night goes on recording")
+    DirAccess.remove_absolute(path)
+
+
 func test_a_played_night_replays_to_the_same_state() -> void:
     var game: Node = add_child_autofree(GAME_SCENE.instantiate())
     var night: Night = game.get_node("Night")

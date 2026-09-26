@@ -19,10 +19,14 @@ const CLIENT_LAG_TICKS := 3
 const CHECK_EVERY := Simulation.TICK_RATE
 ## Restarts an offline night with one or two players on this keyboard.
 const TOGGLE_DUO_KEY := KEY_F2
+## Saves the night so far as a replay file: downloaded on the web, where user:// is out of reach.
+const REPLAY_KEY := KEY_F3
 const REPLAY_DIR := "user://replays"
 const KEPT_REPLAYS := 20
 
 signal began
+## A short message for the HUD, e.g. once a replay is saved.
+signal notice(text: String)
 
 ## Parent of the level's Anchor nodes.
 @export var anchors_root: Node3D
@@ -40,6 +44,8 @@ var alpha := 0.0
 var role := Role.OFFLINE
 ## Fingerprint checks where this client differed from the host. Should stay 0.
 var desyncs := 0
+## The ticks of those checks, kept in the replay.
+var desync_ticks := PackedInt32Array()
 
 @onready var _link: NightLink = $Link
 
@@ -124,11 +130,34 @@ func replay() -> Dictionary:
     var data := _replay.duplicate()
     data.ticks = simulation.tick
     data.commands = Array(_log)
+    if not desync_ticks.is_empty():
+        data.desync_ticks = Array(desync_ticks)
     return data
+
+
+## Saves the night so far without ending it: a download on the web, a file in REPLAY_DIR
+## elsewhere. Returns what happened, for the HUD.
+func export_replay() -> String:
+    var file_name := "double-cooked-%d.json" % Time.get_unix_time_from_system()
+    var text := JSON.stringify(replay())
+    if OS.has_feature("web"):
+        JavaScriptBridge.download_buffer(text.to_utf8_buffer(), file_name, "application/json")
+        return "Replay téléchargé"
+    DirAccess.make_dir_recursive_absolute(REPLAY_DIR)
+    var path := "%s/%s" % [REPLAY_DIR, file_name]
+    var file := FileAccess.open(path, FileAccess.WRITE)
+    if not file:
+        return "Replay non enregistré"
+    file.store_string(text)
+    return "Replay enregistré : %s" % ProjectSettings.globalize_path(path)
 
 
 func _unhandled_input(event: InputEvent) -> void:
     var key := event as InputEventKey
+    if key and key.pressed and not key.echo and key.physical_keycode == REPLAY_KEY:
+        notice.emit(export_replay())
+        get_viewport().set_input_as_handled()
+        return
     if role == Role.OFFLINE and key and key.pressed and not key.echo:
         var restart := -1
         if key.physical_keycode == TOGGLE_DUO_KEY:
@@ -185,6 +214,7 @@ func _step() -> void:
     elif role == Role.CLIENT and simulation.tick % CHECK_EVERY == 0 \
             and check != simulation.state_hash():
         desyncs += 1
+        desync_ticks.append(simulation.tick)
         push_warning("Desync with the host at tick %d" % simulation.tick)
     for event in simulation.events:
         if event.type == &"bump":
@@ -221,6 +251,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     _received.clear()
     _accumulator = 0.0
     desyncs = 0
+    desync_ticks = PackedInt32Array()
     for slot in player_count:
         var view: Player = PLAYER_SCENE.instantiate()
         view.is_local_player = slot in local_slots

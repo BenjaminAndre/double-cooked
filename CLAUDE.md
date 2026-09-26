@@ -39,7 +39,7 @@ The last command renders a 1280×720 screenshot to check a layout (setups are li
   - `NightLink` holds the RPCs. The host relays each tick's commands to the clients, who re-simulate, plus a fingerprint every second.
   - `Lobby` is the keyboard-only Tube UI. It creates the `TubeClient` only on demand, because the client takes over the tree's multiplayer API.
 - `tests/` contains unit tests and Scenario tests: a level, spawns, a seed and a timeline of `{tick, slot, command}` (`tests/scenario.gd`).
-  - A bug found while playing should become a scenario: `Scenario.from_replay()` reads the replays that Night saves in `user://replays`.
+  - A bug found while playing should become a scenario: `Scenario.from_replay()` reads the replays that Night saves in `user://replays`, or that F3 downloads from the web build.
   - Online tests run a host and a client in one process, connected by `LoopbackPeer` (in memory).
   - **Tests must never open sockets or ports.** This machine has no firewall rights, and CI doesn't need network access either.
 

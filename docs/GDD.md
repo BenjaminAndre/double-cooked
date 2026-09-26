@@ -149,7 +149,7 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 - **Explicit tie-breaks.** Simultaneous events are resolved by a fixed rule. **(proposal)** Commands are applied in player-slot order, so when two players enter the same node on the same tick, the lower slot gets it and the other is bumped.
 - **Level as data.** The anchor graph and station types are read from the scene into plain data. The simulation doesn't depend on nodes, so a test can build a tiny three-node kitchen by hand or load the real level.
 - **Scenes only display.** Scenes read the simulation state and draw it: positions, gauges, hearts, tickets. This extends the readme's "decouple UI" principle to the whole game.
-- **Networking.** The host runs the simulation and relays the **command stream** (every tick's commands, in the order it applied them) to the clients, who run the same deterministic simulation from it. Every second the host also sends a state fingerprint, so a client notices any desync. Clients never wait for each other (no lockstep), but a client's own key presses take a round trip before they apply, because there is no client-side prediction yet. Players join between nights, not during one. The command stream is also the replay (§9.2).
+- **Networking.** The host runs the simulation and relays the **command stream** (every tick's commands, in the order it applied them) to the clients, who run the same deterministic simulation from it. Every second the host also sends a state fingerprint, so a client notices any desync: it shows a red warning in the HUD and keeps the ticks of the failed checks in its replay. Clients never wait for each other (no lockstep), but a client's own key presses take a round trip before they apply, because there is no client-side prediction yet. Players join between nights, not during one. The command stream is also the replay (§9.2).
 
 ### 9.2 Testing
 
@@ -158,7 +158,7 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 - **Scenario tests** (Factorio-style) run a full multiplayer game in one process with no network. A scenario is: a level (built in the test or loaded), a seed, a timeline of `{tick, player, command}`, and assertions at given ticks.
   - Example: *two players both move into the CAISSE node on tick 100; at tick 101, slot 0 is on it, slot 1 is bumped and dropped its non-focused item.*
   - Example: *a basket left in CUISSON 1 for N ticks catches fire; the extinguisher puts it out; the mood rose by X.*
-- **Replays:** the host records the seed and the command log of real games. A bug report becomes a replay file, and the replay becomes a scenario test.
+- **Replays:** every peer records the seed and the command log of the night. F3 saves the night so far at any time (a download on the web, where `user://` is out of reach), and the end banner points at it. A bug report becomes a replay file, and the replay becomes a scenario test.
 - The actual network transport (Tube/WebRTC) is tested by hand with two local instances, since everything above it is covered by scenarios.
 
 ## 10. First playable slice (v0.1.x) — implemented in 0.1.8

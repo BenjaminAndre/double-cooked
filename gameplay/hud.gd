@@ -1,13 +1,20 @@
 class_name Hud
 extends CanvasLayer
 ## The night's clock and room mood (top right), and the end-of-night banner.
+## Online, a client also shows when its night no longer matches the host's.
 
+## How long a notice (e.g. "replay saved") stays on screen, in seconds.
+const NOTICE_TIME := 4.0
 
 @export var night: Night
 
 var _status: Label
 ## The room mood, as a dial.
 var _gauge: MoodGauge
+## Red warning once this client has drifted from the host.
+var _desync: Label
+var _notice: Label
+var _notice_left := 0.0
 ## Centered panel shown once the night is over.
 var _banner: PanelContainer
 var _title: Label
@@ -24,7 +31,14 @@ func _ready() -> void:
     _status = _label(24, corner)
     _status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     _gauge = MoodGauge.new()
+    _gauge.size_flags_horizontal = Control.SIZE_SHRINK_END
     corner.add_child(_gauge)
+    _desync = _label(24, corner)
+    _desync.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    _desync.add_theme_color_override("font_color", Color(1, 0.3, 0.25))
+    _notice = _label(20, corner)
+    _notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    night.notice.connect(_show_notice)
     _banner = PanelContainer.new()
     var style := StyleBoxFlat.new()
     style.bg_color = Color(0, 0, 0, 0.75)
@@ -40,14 +54,16 @@ func _ready() -> void:
     _next = _label(28, column)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     var sim := night.simulation
     if not sim:
         return
-    _status.text = clock(sim.clock_minutes())
-    if sim.tick >= sim.rules.night_ticks and sim.outcome == &"":
-        _status.text += " · fermé"
+    _set_text(_status, clock(sim.clock_minutes()) \
+            + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _gauge.mood = float(sim.crowd.mood) / sim.rules.riot
+    _set_text(_desync, desync_text(night.desyncs))
+    _notice_left = maxf(_notice_left - delta, 0.0)
+    _notice.visible = _notice_left > 0.0
     _banner.visible = sim.outcome != &""
     if _banner.visible:
         var next := "Entrée : nouvelle nuit"
@@ -55,12 +71,25 @@ func _process(_delta: float) -> void:
             next = "Entrée ou L : relancer la nuit"
         elif night.role == Night.Role.CLIENT:
             next = "En attente de l'hôte..."
-        _title.text = title(sim)
-        _recap.text = recap(sim)
-        _next.text = next
+        next += "\nF3 : télécharger le replay"
+        _set_text(_title, title(sim))
+        _set_text(_recap, recap(sim))
+        _set_text(_next, next)
         # Recentre once the panel has taken the size of its text.
         _banner.reset_size()
         _banner.position = (_banner.get_viewport_rect().size - _banner.size) / 2
+
+
+## Empty while in sync. Points at F3, so the tester can send the night that went wrong.
+static func desync_text(desyncs: int) -> String:
+    if desyncs == 0:
+        return ""
+    return "Désynchro avec l'hôte (%d) · F3 : replay" % desyncs
+
+
+func _show_notice(text: String) -> void:
+    _notice.text = text
+    _notice_left = NOTICE_TIME
 
 
 static func title(sim: Simulation) -> String:
@@ -94,6 +123,12 @@ static func recap(sim: Simulation) -> String:
 ## "HH:MM" for minutes since 18:00.
 static func clock(minutes: int) -> String:
     return "%02d:%02d" % [(18 + minutes / 60) % 24, minutes % 60]
+
+
+## Only when it changes: each change relayouts the label.
+func _set_text(label: Label, text: String) -> void:
+    if label.text != text:
+        label.text = text
 
 
 func _label(size: int, parent: Node = self) -> Label:
