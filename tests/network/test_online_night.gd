@@ -76,6 +76,45 @@ func test_a_client_that_drifts_from_the_host_shows_it_and_keeps_it_in_its_replay
     assert_eq(replay.desync_ticks[0] % Night.CHECK_EVERY, 0)
 
 
+func test_a_client_says_when_the_host_goes_silent() -> void:
+    host_night.host_online()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    assert_eq(Hud.silence_text(client_night.host_silence()), "")
+    # A host whose tab is frozen.
+    host_night.set_process(false)
+    await wait_seconds(Hud.SILENCE_WARNING + 0.3)
+    assert_string_starts_with(Hud.silence_text(client_night.host_silence()), "L'hôte ne répond plus")
+    assert_eq(host_night.host_silence(), 0.0)
+
+
+func test_a_client_far_behind_catches_up_in_one_go() -> void:
+    host_night.host_online()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    # A client whose tab was hidden: the host's ticks pile up.
+    client_night.set_process(false)
+    await wait_seconds(1.0)
+    host_night.set_process(false)
+    var behind := host_night.simulation.tick - client_night.simulation.tick
+    assert_gt(behind, Simulation.TICK_RATE / 2)
+    client_night._advance()
+    assert_true(host_night.simulation.tick - client_night.simulation.tick <= Night.CLIENT_LAG_TICKS)
+
+
+func test_a_player_who_leaves_stays_idle_and_is_marked_on_every_peer() -> void:
+    host_night.host_online()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    host_night.peer_left(host_api.get_peers()[0])
+    await wait_until(func() -> bool: return client_night._views[1].pseudo.ends_with("(parti)"), 5.0)
+    assert_string_ends_with(host_night._views[1].pseudo, "(parti)")
+    # The host no longer takes that peer's keys, and the night goes on.
+    var node := host_night.simulation.players[1].node
+    client_night.submit(0, Simulation.Command.MOVE_UP)
+    var tick := host_night.simulation.tick
+    await wait_seconds(0.5)
+    assert_gt(host_night.simulation.tick, tick)
+    assert_eq(host_night.simulation.players[1].node, node)
+
+
 func _peer_root(root_name: String) -> Node:
     var root := Node.new()
     root.name = root_name

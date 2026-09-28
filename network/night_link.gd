@@ -6,6 +6,7 @@ extends Node
 signal command_received(peer_id: int, command: int)
 signal night_began(player_count: int, slot: int, seed_value: int)
 signal tick_received(tick: int, check: int, commands: PackedInt32Array)
+signal player_left(slot: int)
 
 
 ## Client to host: one key press.
@@ -25,3 +26,9 @@ func begin_night(player_count: int, slot: int, seed_value: int) -> void:
 @rpc("authority", "call_remote", "reliable")
 func receive_tick(tick: int, check: int, commands: PackedInt32Array) -> void:
     tick_received.emit(tick, check, commands)
+
+
+## Host to clients: the player in this slot left the night.
+@rpc("authority", "call_remote", "reliable")
+func mark_left(slot: int) -> void:
+    player_left.emit(slot)

@@ -143,6 +143,8 @@ func _on_peer_disconnected(peer_id: int) -> void:
     if state == State.JOINED and peer_id == 1:
         _error = "l'hôte est parti"
         _leave()
+    elif state == State.HOSTING:
+        night.peer_left(peer_id)
     _refresh()
 
 

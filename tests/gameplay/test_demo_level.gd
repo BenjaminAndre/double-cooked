@@ -68,7 +68,7 @@ func test_enter_starts_a_new_night_once_it_is_over() -> void:
     night._unhandled_input(enter)
     assert_eq(night.simulation, before, "Enter does nothing during the night")
     night.simulation.crowd.mood = night.simulation.rules.riot
-    await wait_process_frames(3)
+    await wait_seconds(0.2)
     assert_eq(night.simulation.outcome, &"lost")
     night._unhandled_input(enter)
     assert_ne(night.simulation, before)

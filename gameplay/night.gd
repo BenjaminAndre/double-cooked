@@ -11,8 +11,9 @@ enum Role { OFFLINE, HOST, CLIENT }
 
 const PLAYER_SCENE := preload("res://gameplay/player.tscn")
 const TICK_TIME := 1.0 / Simulation.TICK_RATE
-## Beyond this, a slow frame drops time instead of stepping the simulation in a burst.
-const MAX_STEPS_PER_FRAME := 5
+## How long one call to _advance() may spend stepping. Beyond it, the host drops time instead
+## of stepping in a burst, and a client catches up over the next frames.
+const STEP_BUDGET_USEC := 8000
 ## A client this many ticks behind the host steps faster to catch up.
 const CLIENT_LAG_TICKS := 3
 ## The host sends a state fingerprint this often, so clients notice a desync.
@@ -65,6 +66,14 @@ var _replay := {}
 ## tick, slot, command, tick, slot, command...
 var _log := PackedInt32Array()
 var _accumulator := 0.0
+## Wall clock of the last _advance(): time is measured, not summed from frame deltas, so the
+## hidden-tab heartbeat and the frames share the same clock.
+var _last_usec := 0
+## Client: wall clock of the last tick relayed by the host.
+var _last_tick_usec := 0
+## Slots whose player left the online night.
+var _left := {}
+var _web_page: WebPage
 
 
 func _ready() -> void:
@@ -73,6 +82,10 @@ func _ready() -> void:
     _link.command_received.connect(_on_command_received)
     _link.night_began.connect(_on_night_began)
     _link.tick_received.connect(_on_tick_received)
+    _link.player_left.connect(_on_player_left)
+    _web_page = WebPage.new()
+    _web_page.hidden_beat.connect(_on_hidden_beat)
+    add_child(_web_page)
     play_local(1)
 
 
@@ -115,6 +128,23 @@ func submit(local_index: int, command: int) -> void:
 ## The slot of each player at this keyboard.
 func local_slots() -> PackedInt32Array:
     return _local_slots
+
+
+## Host: a peer left. Its player stays in the night, idle, marked as gone for everyone.
+func peer_left(peer_id: int) -> void:
+    if role != Role.HOST or not _peer_slots.has(peer_id):
+        return
+    var slot: int = _peer_slots[peer_id]
+    _peer_slots.erase(peer_id)
+    _on_player_left(slot)
+    _link.mark_left.rpc(slot)
+
+
+## Client: seconds since the host last relayed a tick, 0 elsewhere.
+func host_silence() -> float:
+    if role != Role.CLIENT:
+        return 0.0
+    return (Time.get_ticks_usec() - _last_tick_usec) / 1_000_000.0
 
 
 ## Whether a player at this keyboard has a station menu open (Escape then closes it).
@@ -173,29 +203,47 @@ func _unhandled_input(event: InputEvent) -> void:
         submit(command[0], command[1])
 
 
-func _process(delta: float) -> void:
-    _accumulator += delta
+func _process(_delta: float) -> void:
+    _advance()
+    _show(_accumulator / TICK_TIME)
+
+
+## Steps the ticks that are due by the wall clock, within STEP_BUDGET_USEC.
+func _advance() -> void:
+    var now := Time.get_ticks_usec()
+    _accumulator += (now - _last_usec) / 1_000_000.0
+    _last_usec = now
     var due := int(_accumulator / TICK_TIME)
     _accumulator -= due * TICK_TIME
     if role == Role.CLIENT:
-        # Follow the host: step what has arrived, a bit faster when lagging behind.
+        # Follow the host: step what has arrived, all at once when lagging behind.
         var backlog := _received.size()
         if backlog > CLIENT_LAG_TICKS:
             due = maxi(due, backlog - CLIENT_LAG_TICKS)
         due = mini(due, backlog)
-    if due > MAX_STEPS_PER_FRAME:
-        due = MAX_STEPS_PER_FRAME
+    var stepped := 0
+    while stepped < due and Time.get_ticks_usec() - now < STEP_BUDGET_USEC:
+        if not _step():
+            break
+        stepped += 1
+    if stepped < due and role != Role.CLIENT:
         _accumulator = 0.0
-    for i in due:
-        _step()
-    _show(_accumulator / TICK_TIME)
 
 
-func _step() -> void:
+## In a hidden browser tab there are no frames: keep the network and the night going.
+func _on_hidden_beat() -> void:
+    multiplayer.poll()
+    _advance()
+
+
+## One tick. Returns false when a client doesn't have the host's next tick yet.
+func _step() -> bool:
     var tick := simulation.tick
     var commands: Array
     var check := 0
     if role == Role.CLIENT:
+        if not _received.has(tick):
+            return false
         var data: Array = _received[tick]
         _received.erase(tick)
         check = data[0]
@@ -223,6 +271,7 @@ func _step() -> void:
             _views[event.slot].show_fat_change(true)
         elif event.type == &"thinner":
             _views[event.slot].show_fat_change(false)
+    return true
 
 
 func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p_role: Role) -> void:
@@ -250,6 +299,9 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     _pending = _no_commands()
     _received.clear()
     _accumulator = 0.0
+    _last_usec = Time.get_ticks_usec()
+    _last_tick_usec = _last_usec
+    _left.clear()
     desyncs = 0
     desync_ticks = PackedInt32Array()
     for slot in player_count:
@@ -276,6 +328,15 @@ func _on_night_began(player_count: int, slot: int, seed_value: int) -> void:
 func _on_tick_received(tick: int, check: int, commands: PackedInt32Array) -> void:
     if role == Role.CLIENT:
         _received[tick] = [check, commands]
+        _last_tick_usec = Time.get_ticks_usec()
+
+
+func _on_player_left(slot: int) -> void:
+    if _left.has(slot) or slot >= _views.size():
+        return
+    _left[slot] = true
+    _views[slot].pseudo += " (parti)"
+    notice.emit("P%d est parti" % (slot + 1))
 
 
 ## alpha: how far we are towards the next tick, to keep walking smooth between ticks.

@@ -5,6 +5,8 @@ extends CanvasLayer
 
 ## How long a notice (e.g. "replay saved") stays on screen, in seconds.
 const NOTICE_TIME := 4.0
+## Seconds without a tick from the host before a client says so.
+const SILENCE_WARNING := 2.0
 
 @export var night: Night
 
@@ -61,7 +63,11 @@ func _process(delta: float) -> void:
     _set_text(_status, clock(sim.clock_minutes()) \
             + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _gauge.mood = float(sim.crowd.mood) / sim.rules.riot
-    _set_text(_desync, desync_text(night.desyncs))
+    var warnings := PackedStringArray()
+    if sim.outcome == &"":
+        warnings.append(silence_text(night.host_silence()))
+    warnings.append(desync_text(night.desyncs))
+    _set_text(_desync, "\n".join(warnings).strip_edges())
     _notice_left = maxf(_notice_left - delta, 0.0)
     _notice.visible = _notice_left > 0.0
     _banner.visible = sim.outcome != &""
@@ -85,6 +91,13 @@ static func desync_text(desyncs: int) -> String:
     if desyncs == 0:
         return ""
     return "Désynchro avec l'hôte (%d) · F3 : replay" % desyncs
+
+
+## Empty unless the host has been silent for a while during a night.
+static func silence_text(seconds: float) -> String:
+    if seconds < SILENCE_WARNING:
+        return ""
+    return "L'hôte ne répond plus (%d s)" % int(seconds)
 
 
 func _show_notice(text: String) -> void:
