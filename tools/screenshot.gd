@@ -52,6 +52,14 @@ func _initialize() -> void:
             # What a client sees once it drifted from the host, just after pressing F3.
             night.desyncs = 2
             night.notice.emit("Replay téléchargé")
+        "boss":
+            # The boss at the counter with his drink, a full line behind him.
+            var sim := night.simulation
+            sim.rules.boss_at = 0.0
+            sim.rules.boss_drink_again = 15
+            sim.rules.arrival_min = 15
+            sim.rules.arrival_max = 15
+            sim.crowd.next_arrival = 1
         "recap":
             night.play_local(2)
             var sim := night.simulation

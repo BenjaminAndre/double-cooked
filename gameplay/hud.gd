@@ -126,6 +126,8 @@ static func recap(sim: Simulation) -> String:
             % [stats.served, stats.angry, stats.walk_outs],
             "Bières offertes : %d · Canettes reçues : %d · Incendies : %d" \
             % [stats.beers, stats.cans_hit, stats.fires]]
+    if stats.boss_came:
+        lines.append("Commandes du boss servies : %d sur %d" % [stats.boss_served, sim.rules.boss_orders])
     if sim.players.size() > 1:
         var players := []
         for slot in sim.players.size():

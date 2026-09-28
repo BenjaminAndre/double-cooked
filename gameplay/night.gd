@@ -271,6 +271,8 @@ func _step() -> bool:
             _views[event.slot].show_fat_change(true)
         elif event.type == &"thinner":
             _views[event.slot].show_fat_change(false)
+        elif event.type == &"boss_arrived":
+            notice.emit("Le boss arrive !")
     return true
 
 
