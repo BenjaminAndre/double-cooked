@@ -1,8 +1,9 @@
 class_name Lobby
 extends CanvasLayer
-## Keyboard-only online lobby over Tube (peer-to-peer WebRTC, sessions shared by code).
-## H hosts, J joins, L starts the night (host), Escape leaves. The TubeClient is only
-## created on demand, because it takes over the scene tree's multiplayer API.
+## Online play over Tube (peer-to-peer WebRTC, sessions shared by code), driven from the
+## lobby's TÉLÉPHONE (Night.phone_used): create, join, two on this keyboard, leave. The host
+## starts the night at the door; Escape leaves too. The TubeClient is only created on demand,
+## because it takes over the scene tree's multiplayer API.
 
 enum State { OFFLINE, HOSTING, TYPING_CODE, JOINING, JOINED }
 
@@ -38,6 +39,7 @@ func _ready() -> void:
     _code_field.text_submitted.connect(_on_code_submitted)
     box.add_child(_code_field)
     night.began.connect(_refresh)
+    night.phone_used.connect(_on_phone)
     _refresh()
 
 
@@ -56,24 +58,33 @@ func _unhandled_input(event: InputEvent) -> void:
     if key.physical_keycode == KEY_ESCAPE and night.has_open_menu():
         return
     match [state, key.physical_keycode]:
-        [State.OFFLINE, KEY_H]:
-            _host()
-        [State.OFFLINE, KEY_J]:
-            state = State.TYPING_CODE
-            _code_field.text = ""
-            _code_field.visible = true
-            _code_field.grab_focus()
-        # L launches the night; Enter too once a night is over (during one, it eats).
-        [State.HOSTING, KEY_L], [State.HOSTING, KEY_ENTER], [State.HOSTING, KEY_KP_ENTER]:
-            if key.physical_keycode != KEY_L and night.simulation.outcome == &"":
+        # Once a night is over, Enter takes everyone back to the lobby (during one, it eats).
+        [State.HOSTING, KEY_ENTER], [State.HOSTING, KEY_KP_ENTER]:
+            if night.simulation.outcome == &"" or night.role != Night.Role.HOST:
                 return
-            if _tube.state == TubeClient.State.SESSION_CREATED:
-                night.host_online()
+            night.host_lobby()
         [State.HOSTING, KEY_ESCAPE], [State.JOINING, KEY_ESCAPE], [State.JOINED, KEY_ESCAPE]:
             _leave()
         _:
             return
     get_viewport().set_input_as_handled()
+    _refresh()
+
+
+func _on_phone(choice: StringName) -> void:
+    match [state, choice]:
+        [State.OFFLINE, Menu.PHONE_HOST]:
+            _host()
+        [State.OFFLINE, Menu.PHONE_JOIN]:
+            state = State.TYPING_CODE
+            _code_field.text = ""
+            _code_field.visible = true
+            _code_field.grab_focus()
+        [State.OFFLINE, Menu.PHONE_DUO]:
+            night.play_lobby(2 if night.local_slots().size() == 1 else 1)
+        [_, Menu.PHONE_LEAVE]:
+            if state != State.OFFLINE:
+                _leave()
     _refresh()
 
 
@@ -94,15 +105,15 @@ func _on_code_submitted(code: String) -> void:
     _refresh()
 
 
-## Back to an offline night, whatever the current state.
+## Back to an offline lobby, whatever the current state.
 func _leave() -> void:
     if _tube and _tube.state != TubeClient.State.IDLE:
         _tube.leave_session()
     _code_field.visible = false
     _code_field.release_focus()
     state = State.OFFLINE
-    if night.role != Night.Role.OFFLINE:
-        night.play_local(1)
+    if night.role != Night.Role.OFFLINE or not night.in_lobby:
+        night.play_lobby(1)
     _refresh()
 
 
@@ -119,7 +130,7 @@ func _ensure_tube() -> void:
     add_child(_tube)
     _tube.session_created.connect(_on_session_created)
     _tube.session_joined.connect(_on_session_joined)
-    _tube.peer_connected.connect(_on_peers_changed)
+    _tube.peer_connected.connect(_on_peer_connected)
     _tube.peer_disconnected.connect(_on_peer_disconnected)
     _tube.session_left.connect(_on_session_left)
     _tube.error_raised.connect(_on_error)
@@ -127,6 +138,7 @@ func _ensure_tube() -> void:
 
 func _on_session_created() -> void:
     DisplayServer.clipboard_set(_tube.session_id)
+    night.host_lobby()
     _refresh()
 
 
@@ -135,7 +147,10 @@ func _on_session_joined() -> void:
     _refresh()
 
 
-func _on_peers_changed(_peer_id: int) -> void:
+## A newcomer joins the lobby at once; during a night they wait for the next lobby.
+func _on_peer_connected(_peer_id: int) -> void:
+    if state == State.HOSTING and night.in_lobby:
+        night.host_lobby()
     _refresh()
 
 
@@ -164,27 +179,18 @@ func _on_error(code: int, message: String) -> void:
 func _refresh() -> void:
     var text := ""
     match state:
-        State.OFFLINE:
-            text = "H : créer une partie en ligne · J : rejoindre · F2 : deux joueurs sur ce clavier"
         State.HOSTING:
             if _tube.state != TubeClient.State.SESSION_CREATED:
                 text = "Création de la partie..."
             else:
                 var players := _tube.multiplayer_api.get_peers().size() + 1
-                var action := "relancer" if night.role == Night.Role.HOST else "lancer"
-                text = "Code : %s (copié) · %d joueur%s · L : %s la nuit · Échap : quitter" \
-                        % [_tube.session_id, players, "s" if players > 1 else "", action]
+                text = "Hôte (%s) · %d joueur%s" % [_tube.session_id, players, "s" if players > 1 else ""]
         State.TYPING_CODE:
             text = "Tape le code puis Entrée · Échap : annuler"
         State.JOINING:
             text = "Connexion... · Échap : annuler"
         State.JOINED:
-            text = "En ligne · Joueur %d · Échap : quitter" % (_slot() + 1) \
-                    if night.role == Night.Role.CLIENT else "Connecté · en attente de l'hôte · Échap : quitter"
+            text = "En ligne" if night.role == Night.Role.CLIENT else "Connecté · en attente de l'hôte"
     if _error != "":
         text = "Erreur : %s\n%s" % [_error, text]
-    _status.text = text
-
-
-func _slot() -> int:
-    return night.local_slots()[0]
+    _status.text = text.strip_edges()

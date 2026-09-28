@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bolij82abbnan"]
+[gd_scene load_steps=16 format=3 uid="uid://bolij82abbnan"]
 
 [ext_resource type="PackedScene" uid="uid://b2ngr5721d878" path="res://gameplay/anchor.tscn" id="1_80nbo"]
 [ext_resource type="PackedScene" uid="uid://0tj5r2gkkage" path="res://assets/kenney_prototype-kit/Models/GLB format/floor-small-square.glb" id="1_e2o6t"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://gameplay/hud.gd" id="10_hud"]
 [ext_resource type="Script" path="res://gameplay/projectiles_view.gd" id="11_projectiles"]
 [ext_resource type="Script" path="res://gameplay/grid_view.gd" id="12_grid"]
+[ext_resource type="Script" path="res://gameplay/grid_room.gd" id="13_room"]
 [ext_resource type="Script" path="res://gameplay/interactions/interactible.gd" id="4_7jktm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_feb5d"]
@@ -348,8 +349,15 @@ transform = Transform3D(1, 0, 0, 0, 0.9801572, 0.1982219, 0, -0.1982219, 0.98015
 size = Vector3(1.0434093, 1, 0.7739258)
 material = SubResource("StandardMaterial3D_feb5d")
 
-[node name="Night" type="Node" parent="." node_paths=PackedStringArray("anchors_root", "spawns", "players_parent", "queue")]
+[node name="LobbyRoom" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
+script = ExtResource("13_room")
+layout = PackedStringArray("peinture casquette telephone . porte", "@ @ @ @ .", "pret pret pret pret .")
+
+[node name="Night" type="Node" parent="." node_paths=PackedStringArray("anchors_root", "spawns", "players_parent", "queue", "lobby_room", "kitchen_camera")]
 script = ExtResource("6_night")
+lobby_room = NodePath("../LobbyRoom")
+kitchen_camera = NodePath("../DemoLevel/Camera3D")
 anchors_root = NodePath("../DemoLevel/Anchors")
 spawns = [NodePath("../DemoLevel/Anchors/Anchor"), NodePath("../DemoLevel/Anchors/Anchor6"), NodePath("../DemoLevel/Anchors/Anchor8"), NodePath("../DemoLevel/Anchors/Anchor13")]
 players_parent = NodePath("../DemoLevel")

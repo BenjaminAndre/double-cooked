@@ -26,6 +26,7 @@ func _initialize() -> void:
     _game = load("res://game.tscn").instantiate()
     viewport.add_child(_game)
     _night = _game.get_node("Night")
+    _night.play_local(1)
     await process_frame
     await _measure("calm")
     _setup_crowd()

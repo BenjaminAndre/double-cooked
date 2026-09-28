@@ -27,12 +27,34 @@ const FRICADELLE_UNDERCOOKED := &"fricadelle_pas_cuite"
 const FRICADELLE_BURNT := &"fricadelle_brulee"
 const MEATS: Array[StringName] = [CERVELAS, FRICADELLE_RAW]
 
+## The lobby's TÉLÉPHONE: play online or on this keyboard (GDD §4.1).
+const PHONE_HOST := &"creer"
+const PHONE_JOIN := &"rejoindre"
+const PHONE_DUO := &"duo"
+const PHONE_LEAVE := &"quitter"
+const PHONE: Array[StringName] = [PHONE_HOST, PHONE_JOIN, PHONE_DUO, PHONE_LEAVE]
+
 ## The options of each station that opens a menu (GDD §5.4).
 const STATION_OPTIONS := {
     &"sauces": SAUCES,
     &"frigo": DRINKS,
     &"viandes": MEATS,
+    &"peinture": Looks.COLORS,
+    &"casquette": Looks.HATS,
+    &"telephone": PHONE,
 }
+## Menus laid out as a grid, by columns; the others are a single row.
+const GRID_COLUMNS := {&"peinture": 3}
+
+
+## How many options a row of this station's menu holds.
+static func columns(kind: StringName) -> int:
+    return GRID_COLUMNS.get(kind, STATION_OPTIONS[kind].size())
+
+
+## Where the selection starts when the menu opens: the middle of a grid, else the first.
+static func first_choice(kind: StringName) -> int:
+    return STATION_OPTIONS[kind].size() / 2 if GRID_COLUMNS.has(kind) else 0
 
 ## What CUISSON 2 gives back for each thing it accepts, lifted [too early, in time, too late].
 const SECOND_FRY := {

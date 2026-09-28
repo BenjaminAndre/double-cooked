@@ -13,6 +13,9 @@ const WALK_SPEED := 10.0
 ## RELEASE is the interact key going up, for throwing (GDD §8).
 ## EAT eats or drinks what is held, on its own key so it never happens by accident (GDD §5.1).
 enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE, CANCEL, RELEASE, EAT }
+## Commands from LOOK up choose a colour and a hat (see Looks.command), e.g. when a player's
+## saved looks are applied as they enter the lobby.
+const LOOK := 100
 
 const EXTINGUISHER := &"extincteur"
 ## Cans leave a hand at this height and are caught at that one.
@@ -49,6 +52,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
         players[slot].bmi = rules.start_bmi
+        players[slot].color = Looks.default_color(slot)
     for kind in level.station_kinds:
         stations.append(SimStation.new(kind))
         if kind == &"frigo":
@@ -91,11 +95,14 @@ func step(commands: Array) -> void:
     for player in players:
         _check_menu(player)
         _check_aim(player)
-    crowd.advance(tick, players.size(), rng, events)
-    _customers_throw()
+    if not rules.lobby:
+        crowd.advance(tick, players.size(), rng, events)
+        _customers_throw()
     _advance_projectiles()
     tick += 1
     _count(events)
+    if rules.lobby:
+        return
     if players.size() > 1 and players.all(func(p: SimPlayer) -> bool: return p.down):
         _end(&"lost", &"crew_down")
     elif crowd.mood >= rules.riot:
@@ -120,6 +127,9 @@ func state_hash() -> int:
 
 
 func _apply(player: SimPlayer, command: int) -> void:
+    if command >= LOOK:
+        _set_look(player, (command - LOOK) / Looks.HATS.size(), (command - LOOK) % Looks.HATS.size())
+        return
     if player.stun > 0:
         return
     if player.aim >= 0 and _use_aim(player, command):
@@ -145,22 +155,39 @@ func _apply(player: SimPlayer, command: int) -> void:
 
 
 ## While a station menu is open, the arrows move the selection instead of the player,
-## interact takes the selected option and cancel closes the menu (GDD §5.4).
+## interact takes the selected option and cancel closes the menu (GDD §5.4). In a grid menu
+## (Menu.columns) up and down change rows; in a single row they step like left and right.
 ## Returns whether the command was used by the menu.
 func _use_menu(player: SimPlayer, command: int) -> bool:
-    var options: Array = Menu.STATION_OPTIONS[stations[player.menu].kind]
+    var kind := stations[player.menu].kind
+    var options: Array = Menu.STATION_OPTIONS[kind]
+    var columns := Menu.columns(kind)
+    var row := player.menu_choice / columns * columns
     match command:
-        Command.MOVE_UP, Command.MOVE_LEFT:
-            player.menu_choice = posmod(player.menu_choice - 1, options.size())
-        Command.MOVE_DOWN, Command.MOVE_RIGHT:
-            player.menu_choice = posmod(player.menu_choice + 1, options.size())
+        Command.MOVE_LEFT, Command.MOVE_RIGHT:
+            var step := 1 if command == Command.MOVE_RIGHT else -1
+            player.menu_choice = row + posmod(player.menu_choice - row + step, columns)
+        Command.MOVE_UP, Command.MOVE_DOWN:
+            var step := 1 if command == Command.MOVE_DOWN else -1
+            if columns < options.size():
+                step *= columns
+            player.menu_choice = posmod(player.menu_choice + step, options.size())
         Command.INTERACT:
             var station := stations[player.menu]
             var option: StringName = options[player.menu_choice]
+            if kind == &"peinture" and not color_free(player.menu_choice, player):
+                # Taken by a teammate: greyed out, the menu stays open.
+                return true
             player.menu = SimLevel.NONE
             if _menu_action(station, player) == &"":
                 return true
             match station.kind:
+                &"peinture":
+                    _set_look(player, player.menu_choice, player.hat)
+                &"casquette":
+                    _set_look(player, player.color, Looks.HATS.find(option))
+                &"telephone":
+                    events.append({"type": &"phone", "choice": option, "slot": player.slot})
                 &"sauces":
                     player.item.sauce = option
                 &"frigo":
@@ -176,6 +203,26 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
         _:
             return false
     return true
+
+
+## Whether no other player wears this colour.
+func color_free(color: int, player: SimPlayer) -> bool:
+    return players.all(func(p: SimPlayer) -> bool: return p == player or p.color != color)
+
+
+## A new colour (kept if a teammate already wears it) and hat.
+func _set_look(player: SimPlayer, color: int, hat: int) -> void:
+    if color >= 0 and color < Looks.COLORS.size() and color_free(color, player):
+        player.color = color
+    if hat >= 0 and hat < Looks.HATS.size():
+        player.hat = hat
+    events.append({"type": &"look", "slot": player.slot})
+
+
+## Whether every player but this one stands on a PRÊT tile (GDD §4.1).
+func others_ready(player: SimPlayer) -> bool:
+    return players.all(func(p: SimPlayer) -> bool:
+        return p == player or (not p.is_moving() and level.station_kind_at(p.node) == &"pret"))
 
 
 ## A menu closes if its player falls (except at the FRIGO, where a beer gets them back up),
@@ -379,7 +426,8 @@ func _advance(player: SimPlayer) -> void:
         if player.progress < player.edge_ticks:
             return
         player.node = player.path.pop_front()
-        _burn(player)
+        if not rules.lobby:
+            _burn(player)
         player.progress = 0
         player.edge_ticks = 0
     if player.path.is_empty():
@@ -398,9 +446,10 @@ func _advance(player: SimPlayer) -> void:
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
 ## One of: throw, choose (a menu is open), extinguish, fry, lift, take, sauce, fridge, meat,
-## trash, serve, take_extinguisher, return_extinguisher. _interact() only acts when this isn't
-## empty, so the two always agree. A knocked-out player can only use the FRIGO. Eating and
-## drinking have their own key and hint (eat_action).
+## trash, serve, take_extinguisher, return_extinguisher; in the lobby paint, hat, phone,
+## open (the door), and door_wait / door_host, which only explain why the door stays shut.
+## _interact() only acts when this isn't empty, so the two always agree. A knocked-out player
+## can only use the FRIGO. Eating and drinking have their own key and hint (eat_action).
 func action_for(player: SimPlayer) -> StringName:
     if player.aim >= 0:
         return &"throw" if player.aim_ticks >= rules.aim_hold else &""
@@ -438,8 +487,13 @@ func _station_action(player: SimPlayer) -> StringName:
             if not station.basket:
                 return &"fry" if Fryer.can_second_fry(held) else &""
             return &"lift" if not held else &""
-        &"sauces", &"frigo", &"viandes":
+        &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
             return _menu_action(station, player)
+        &"porte":
+            # Only the host (slot 0) opens the door, once everyone else is ready.
+            if player.slot != 0:
+                return &"door_host"
+            return &"open" if others_ready(player) else &"door_wait"
         &"poubelle":
             return &"trash" if held else &""
         &"caisse":
@@ -463,6 +517,12 @@ func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
             return &"fridge" if not held else &""
         &"viandes":
             return &"meat" if not held else &""
+        &"peinture":
+            return &"paint"
+        &"casquette":
+            return &"hat"
+        &"telephone":
+            return &"phone"
     return &""
 
 
@@ -485,9 +545,12 @@ func _interact(player: SimPlayer) -> void:
             Fryer.use_first(station, player)
         &"cuisson_2":
             Fryer.use_second(station, player)
-        &"sauces", &"frigo", &"viandes":
+        &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
             player.menu = index
-            player.menu_choice = 0
+            player.menu_choice = Menu.first_choice(station.kind)
+        &"porte":
+            if action == &"open":
+                events.append({"type": &"start_night", "by": player.slot})
         &"poubelle":
             player.item = null
         &"caisse":

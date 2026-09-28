@@ -8,6 +8,9 @@ const SECOND := Simulation.TICK_RATE
 ## 18:00 to 04:00 in this many ticks (just under 6 minutes). At 04:00 the door closes: no one
 ## comes in any more, and the night ends once the last customer has left (GDD §4).
 var night_ticks := 350 * SECOND
+## The lobby (GDD §4.1): the same rules for walking and station menus, but no customers,
+## no clock, no hunger and no end.
+var lobby := false
 ## The night's intensity, from 0 (calm) to 1 (mad), follows the clock: calm until calm_until
 ## (20:00), then rising steadily to its peak at mad_from (04:00) (GDD §4). Fractions of the night.
 var calm_until := 0.2

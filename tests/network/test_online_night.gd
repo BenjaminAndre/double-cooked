@@ -24,6 +24,8 @@ func before_each() -> void:
     client_api.multiplayer_peer = peers[1]
     host_night = host_root.get_node("Game/Night")
     client_night = client_root.get_node("Game/Night")
+    host_night.looks_path = ""
+    client_night.looks_path = ""
     await wait_until(func() -> bool: return host_api.get_peers().size() == 1, 5.0)
 
 
@@ -113,6 +115,35 @@ func test_a_player_who_leaves_stays_idle_and_is_marked_on_every_peer() -> void:
     await wait_seconds(0.5)
     assert_gt(host_night.simulation.tick, tick)
     assert_eq(host_night.simulation.players[1].node, node)
+
+
+func test_the_lobby_is_shared_and_the_door_takes_everyone_with_their_looks() -> void:
+    const C := Simulation.Command
+    host_night.host_lobby()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    assert_true(client_night.in_lobby)
+    # The guest picks violet and the beer helmet, then stands on the PRÊT tile below them.
+    client_night.submit(0, Looks.command(5, 2))
+    client_night.submit(0, C.MOVE_DOWN)
+    var ready_tile := host_night.simulation.level.find("Cell2_1")
+    await wait_until(func() -> bool: return host_night.simulation.players[1].node == ready_tile, 5.0)
+    # The host walks right along the middle row, then up to the door.
+    for i in 4:
+        host_night.submit(0, C.MOVE_RIGHT)
+    host_night.submit(0, C.MOVE_UP)
+    var door := host_night.simulation.level.find("Cell0_4")
+    await wait_until(func() -> bool:
+            var sim := host_night.simulation
+            return sim.players[0].node == door and not sim.players[0].is_moving() \
+                    and sim.others_ready(sim.players[0]), 5.0)
+    assert_eq(host_night.simulation.action_for(host_night.simulation.players[0]), &"open")
+    host_night.submit(0, C.INTERACT)
+    await wait_until(func() -> bool: return not client_night.in_lobby, 5.0)
+    assert_false(host_night.in_lobby)
+    for night in [host_night, client_night]:
+        assert_eq(night.simulation.players[1].color, 5)
+        assert_eq(Looks.HATS[night.simulation.players[1].hat], Looks.BEER_HELMET)
+        assert_eq(night.simulation.players[0].color, 0)
 
 
 func _peer_root(root_name: String) -> Node:

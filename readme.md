@@ -22,10 +22,10 @@ Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole cr
 ## Controls
 Keys are given by their position on a QWERTY keyboard, so they sit at the same place on AZERTY.
 * Solo: arrows to move, Space to interact, Enter to eat or drink what you hold, Escape to close a station menu, Tab to take damage (debug)
-* F2 toggles two players on one keyboard:
+* The game opens in the lobby: PEINTURE picks your colour, CASQUETTE your hat, and the TÉLÉPHONE switches to two players on one keyboard:
   * P1: WASD, Space, E to eat, Escape
   * P2: arrows, Right Shift, Enter to eat, Backspace
-* Online (one player per machine): H hosts and shows a code to share, J joins with a code, L starts the night (host), Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
+* Online (one player per machine): the TÉLÉPHONE creates a game and shows a code to share, or joins one with a code. Everyone stands on a PRÊT tile, then the host opens the PORTE to start the night. Escape leaves. On the Web build WebRTC is built in; desktop builds need the webrtc-native GDExtension.
 
 ## Tests
 `godot --headless --path . -s addons/gut/gut_cmdln.gd` runs the GUT tests in `tests/`. CI runs them before every build.

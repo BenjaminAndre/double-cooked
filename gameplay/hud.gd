@@ -20,12 +20,16 @@ var _notice_left := 0.0
 ## Centered panel shown once the night is over.
 var _banner: PanelContainer
 var _title: Label
-var _recap: Label
+## Rich text: players show as a block of their colour.
+var _recap: RichTextLabel
+## The clock, dial and warnings: hidden in the lobby.
+var _corner: VBoxContainer
 var _next: Label
 
 
 func _ready() -> void:
     var corner := VBoxContainer.new()
+    _corner = corner
     corner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
     corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
     corner.alignment = BoxContainer.ALIGNMENT_END
@@ -57,7 +61,12 @@ func _ready() -> void:
     column.add_theme_constant_override("separation", 16)
     _banner.add_child(column)
     _title = _label(40, column)
-    _recap = _label(22, column)
+    _recap = RichTextLabel.new()
+    _recap.bbcode_enabled = true
+    _recap.fit_content = true
+    _recap.autowrap_mode = TextServer.AUTOWRAP_OFF
+    _recap.add_theme_font_size_override("normal_font_size", 22)
+    column.add_child(_recap)
     _next = _label(28, column)
 
 
@@ -65,6 +74,7 @@ func _process(delta: float) -> void:
     var sim := night.simulation
     if not sim:
         return
+    _corner.visible = not night.in_lobby
     _set_text(_status, clock(sim.clock_minutes()) \
             + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _gauge.mood = float(sim.crowd.mood) / sim.rules.riot
@@ -77,14 +87,16 @@ func _process(delta: float) -> void:
     _notice.visible = _notice_left > 0.0
     _banner.visible = sim.outcome != &""
     if _banner.visible:
-        var next := "Entrée : nouvelle nuit"
+        var next := "Entrée : retour à la salle"
         if night.role == Night.Role.HOST:
-            next = "Entrée ou L : relancer la nuit"
+            next = "Entrée : tout le monde en salle"
         elif night.role == Night.Role.CLIENT:
             next = "En attente de l'hôte..."
         next += "\nF3 : télécharger le replay"
         _set_text(_title, title(sim))
-        _set_text(_recap, recap(sim))
+        var recap_text := "[center]%s[/center]" % recap(sim)
+        if _recap.text != recap_text:
+            _recap.text = recap_text
         _set_text(_next, next)
         # Recentre once the panel has taken the size of its text.
         _banner.reset_size()
@@ -131,13 +143,18 @@ static func recap(sim: Simulation) -> String:
     if sim.players.size() > 1:
         var players := []
         for slot in sim.players.size():
-            players.append("P%d : %d bousculades, %d K.O., %d relevés" \
-                    % [slot + 1, stats.bumps[slot], stats.knockouts[slot], stats.revives[slot]])
+            players.append("%s  %d bousculades, %d K.O., %d relevés" % [swatch(sim.players[slot].color),
+                    stats.bumps[slot], stats.knockouts[slot], stats.revives[slot]])
         lines.append_array(players)
         var most: int = stats.knockouts.max()
         if most > 0:
-            lines.append("Le plus souvent au tapis : P%d" % (stats.knockouts.find(most) + 1))
+            lines.append("Le plus souvent au tapis : %s" % swatch(sim.players[stats.knockouts.find(most)].color))
     return "\n".join(lines)
+
+
+## A player as a small block of their colour, in BBCode (no glyph needed, see Icons).
+static func swatch(color: int) -> String:
+    return "[bgcolor=#%s]%s[/bgcolor]" % [Looks.tint(color).to_html(false), " ".repeat(4)]
 
 
 ## "HH:MM" for minutes since 18:00.

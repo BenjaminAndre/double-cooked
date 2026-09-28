@@ -24,6 +24,12 @@ const NAMES := {
     Menu.ANDALOUSE: "andalouse",
     Menu.NATURE: "nature",
     Simulation.EXTINGUISHER: "extincteur",
+    Looks.NONE: "rien",
+    Looks.CAP: "casquette",
+    Looks.BEER_HELMET: "casque à bières",
+    Menu.PHONE_HOST: "créer",
+    Menu.PHONE_JOIN: "rejoindre",
+    Menu.PHONE_LEAVE: "quitter",
 }
 
 ## Dishes as customers order them (see Menu.DISHES).
@@ -53,6 +59,12 @@ const ACTIONS := {
     &"serve": "servir",
     &"take_extinguisher": "prendre",
     &"return_extinguisher": "reposer",
+    &"paint": "peindre",
+    &"hat": "chapeau",
+    &"phone": "téléphoner",
+    &"open": "ouvrir",
+    &"door_wait": "les autres sur PRÊT",
+    &"door_host": "l'hôte ouvre",
 }
 
 

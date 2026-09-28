@@ -39,14 +39,17 @@ func test_the_kitchen_is_a_regular_grid() -> void:
             assert_eq(level.neighbour(other, opposite[direction]), node, "and back")
 
 
-func test_the_game_scene_starts_a_night_and_toggles_duo() -> void:
+func test_the_game_scene_opens_in_the_lobby_then_plays_a_night_in_duo() -> void:
     var game: Node = add_child_autofree(GAME_SCENE.instantiate())
     var night: Night = game.get_node("Night")
     await wait_process_frames(2)
+    assert_true(night.in_lobby)
+    assert_true(night.simulation.rules.lobby)
     assert_eq(night.simulation.players.size(), 1)
     assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 1)
     night.play_local(2)
     await wait_process_frames(2)
+    assert_false(night.in_lobby)
     assert_eq(night.simulation.players.size(), 2)
     assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 2)
 
@@ -57,9 +60,10 @@ func test_the_clock_runs_from_18_00_to_04_00() -> void:
     assert_eq(Hud.clock(600), "04:00")
 
 
-func test_enter_starts_a_new_night_once_it_is_over() -> void:
+func test_enter_goes_back_to_the_lobby_once_the_night_is_over() -> void:
     var game: Node = add_child_autofree(GAME_SCENE.instantiate())
     var night: Night = game.get_node("Night")
+    night.play_local(1)
     await wait_process_frames(1)
     var enter := InputEventKey.new()
     enter.physical_keycode = KEY_ENTER
@@ -72,7 +76,7 @@ func test_enter_starts_a_new_night_once_it_is_over() -> void:
     assert_eq(night.simulation.outcome, &"lost")
     night._unhandled_input(enter)
     assert_ne(night.simulation, before)
-    assert_eq(night.simulation.outcome, &"")
+    assert_true(night.in_lobby)
 
 
 ## The whole slice on the real kitchen: fry a batch, finish a portion, sauce, serve the first customer.
@@ -135,6 +139,7 @@ func test_knocked_out_alone_a_player_crawls_to_the_fridge_and_drinks() -> void:
 func test_the_drink_hint_shows_when_knocked_out_with_a_beer() -> void:
     var game: Node = add_child_autofree(GAME_SCENE.instantiate())
     var night: Night = game.get_node("Night")
+    night.play_local(1)
     await wait_process_frames(1)
     var player := night.simulation.players[0]
     player.health = 0

@@ -35,9 +35,10 @@ The last command renders a 1280×720 screenshot to check a layout (setups are li
   - `Night` owns the simulation, turns keys into commands (`LocalInput`) and calls `Player.show_state()`;
   - `LevelReader` turns the `Anchor` graph into a `SimLevel`;
   - stations are `Interactible` nodes identified by `kind`, and their effects live in `Simulation`.
+  - `GridRoom` builds a room (Anchors, stations, floor, camera) in code from a grid layout; the lobby is one. `Night` switches between it and the kitchen (`SimRules.lobby`).
 - `network/` handles online play:
   - `NightLink` holds the RPCs. The host relays each tick's commands to the clients, who re-simulate, plus a fingerprint every second.
-  - `Lobby` is the keyboard-only Tube UI. It creates the `TubeClient` only on demand, because the client takes over the tree's multiplayer API.
+  - `Lobby` drives Tube (WebRTC) from the lobby room's TÉLÉPHONE (`Night.phone_used`). It creates the `TubeClient` only on demand, because the client takes over the tree's multiplayer API.
 - `tests/` contains unit tests and Scenario tests: a level, spawns, a seed and a timeline of `{tick, slot, command}` (`tests/scenario.gd`).
   - A bug found while playing should become a scenario: `Scenario.from_replay()` reads the replays that Night saves in `user://replays`, or that F3 downloads from the web build.
   - Online tests run a host and a client in one process, connected by `LoopbackPeer` (in memory).

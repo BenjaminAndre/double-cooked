@@ -26,7 +26,27 @@ func _initialize() -> void:
     await process_frame
     print("screenshot window at %s, size %s" % [DisplayServer.window_get_position(), DisplayServer.window_get_size()])
     var night: Night = game.get_node("Night")
-    match args[2] if args.size() > 2 else "":
+    var setup: String = args[2] if args.size() > 2 else ""
+    night.looks_path = ""
+    # The game opens in the lobby; the other setups are in the kitchen.
+    if not setup.begins_with("lobby"):
+        night.play_local(1)
+    match setup:
+        "lobby":
+            # Two players: one choosing a colour, the other at the hat stand in a beer helmet.
+            night.play_lobby(2)
+            var sim := night.simulation
+            sim.players[0].node = sim.level.find("Cell0_0")
+            sim.players[1].node = sim.level.find("Cell0_1")
+            sim.players[1].hat = 2
+            sim.players[1].color = 4
+            night.submit(0, Simulation.Command.INTERACT)
+            night.submit(0, Simulation.Command.MOVE_LEFT)
+        "lobby_door":
+            # The host at the door while a teammate isn't ready yet.
+            night.play_lobby(2)
+            var sim := night.simulation
+            sim.players[0].node = sim.level.find("Cell0_4")
         "crowd":
             # A full line and a tense room, customers arriving every half second.
             night.simulation.rules.arrival_min = 15

@@ -36,6 +36,9 @@ var aim := -1
 var aim_ticks := 0
 ## When aiming at a teammate instead of the line: their slot, else -1.
 var aim_player := -1
+## Looks (GDD §5.5): an index in Looks.COLORS, unique within the team, and in Looks.HATS.
+var color := 0
+var hat := Looks.DEFAULT_HAT
 
 
 func _init(p_slot: int, p_node: int) -> void:
@@ -54,4 +57,4 @@ func occupied_node() -> int:
 
 func fingerprint() -> Array:
     return [node, path, progress, edge_ticks, health, item.fingerprint() if item else null, down,
-            stun, exposure, menu, menu_choice, aim, aim_ticks, aim_player, bmi, walked]
+            stun, exposure, menu, menu_choice, aim, aim_ticks, aim_player, bmi, walked, color, hat]

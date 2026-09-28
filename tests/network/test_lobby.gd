@@ -1,5 +1,5 @@
 extends GutTest
-## The lobby's keyboard flow, without reaching the internet.
+## The online flow from the lobby's TÉLÉPHONE, without reaching the internet.
 
 const GAME_SCENE := preload("res://game.tscn")
 
@@ -11,13 +11,22 @@ func before_each() -> void:
     lobby = game.get_node("Lobby")
 
 
-func test_offline_it_shows_the_keys() -> void:
+func test_the_game_opens_in_the_lobby_offline_with_nothing_over_it() -> void:
     assert_eq(lobby.state, Lobby.State.OFFLINE)
-    assert_string_contains(_status(), "H : créer")
+    assert_true(lobby.night.in_lobby)
+    assert_eq(_status(), "")
 
 
-func test_j_opens_the_code_field_and_escape_closes_it() -> void:
-    _press(KEY_J)
+func test_the_phone_puts_two_players_on_this_keyboard_and_back() -> void:
+    lobby._on_phone(Menu.PHONE_DUO)
+    assert_eq(lobby.night.local_slots().size(), 2)
+    assert_true(lobby.night.in_lobby)
+    lobby._on_phone(Menu.PHONE_DUO)
+    assert_eq(lobby.night.local_slots().size(), 1)
+
+
+func test_joining_opens_the_code_field_and_escape_closes_it() -> void:
+    lobby._on_phone(Menu.PHONE_JOIN)
     assert_eq(lobby.state, Lobby.State.TYPING_CODE)
     assert_true(lobby._code_field.visible)
     var escape := InputEventAction.new()
@@ -33,7 +42,7 @@ func test_hosting_without_webrtc_reports_an_error_and_stays_offline() -> void:
     if TubeClient.is_webrtc_available():
         pending("WebRTC is available here")
         return
-    _press(KEY_H)
+    lobby._on_phone(Menu.PHONE_HOST)
     await wait_process_frames(5)
     assert_eq(lobby.state, Lobby.State.OFFLINE)
     assert_string_contains(_status(), "Erreur")
@@ -41,13 +50,6 @@ func test_hosting_without_webrtc_reports_an_error_and_stays_offline() -> void:
     # Godot warns the first time WebRTC availability is checked, in whichever test that is.
     for error in get_errors():
         error.handled = true
-
-
-func _press(keycode: Key) -> void:
-    var key := InputEventKey.new()
-    key.physical_keycode = keycode
-    key.pressed = true
-    lobby._unhandled_input(key)
 
 
 func _status() -> String:

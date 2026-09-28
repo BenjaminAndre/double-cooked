@@ -30,6 +30,12 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **(proposal)** Variety comes from difficulty levels and random events, not from progression between nights.
 - **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37") plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no economy behind it.
 
+### 4.1 The lobby (after the first online playtest)
+- The game opens in a **waiting room that plays like the kitchen**: the same grid, walking and station menus, with no customers, clock or hunger. Online, everyone connected is in it together; a newcomer joins it at once (during a night, they wait for the next lobby).
+- **PEINTURE**: a 3 × 3 grid of colours, opening on the middle one; the arrows move in the grid. Each colour is unique in the team (a teammate's is greyed out). **CASQUETTE**: nothing, a cap, or a beer helmet with straws. Looks are kept between sessions, and carried into the night (§5.5).
+- **TÉLÉPHONE**: create an online game, join one (type the code), two players on this keyboard or back to one, and leave the online game. It replaces the old H / J / F2 keys and the text over the screen.
+- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. After a night, Entrée takes everyone back to the lobby.
+
 ## 5. Players
 
 - **1 to 4 players, in the same kitchen.** Solo is roomy and four players is packed; the layout does not change. The customer rate scales with the player count.
@@ -63,6 +69,10 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
   - Interacting at the CAISSE serves whatever is held to the front customer (§6.2).
   - Fryers keep their own state (§7.1).
 - The station a player stands at is highlighted, with a hint of what their keys do there (`Simulation.action_for`): a key cap and a verb per line, on a dark panel over the player. An open station menu shows each option in its own panel, the selected one in bright yellow, so each option can become an icon later. Text for now; the aim is icons, and as little text as possible overall. The mood dial is labelled "Patience".
+
+### 5.5 Looks
+- Each player has a **colour**, unique in the team, which **stands for them everywhere instead of "P1"**: their body, the recap (a block of colour), messages ("Rouge est parti"). There is no name over their head any more.
+- A **hat**, just for fun: none, a cap (the default) or a beer helmet. Both are chosen in the lobby (§4.1).
 
 ## 6. The room mood (ambiance)
 

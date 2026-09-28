@@ -9,6 +9,8 @@ const FAT_WIDTH := 0.12
 const THIN_WIDTH := 0.07
 ## The menu and hint panel sits on screen above this point, clear of the hand, hearts and name.
 const PANEL_HEIGHT := 1.5
+## Where a hat sits, as the cap does.
+const HEAD_TOP := 0.62
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
@@ -26,6 +28,10 @@ var _hands_label: Label3D
 var _panel: PlayerPanel
 ## Three stars circling the head while stunned.
 var _stars: Node3D
+## What the body and hat last showed (SimPlayer.color, hat), to change them only when needed.
+var _color := -1
+var _hat := -1
+var _helmet: Node3D
 
 
 func _ready() -> void:
@@ -61,9 +67,9 @@ func hint_rows() -> Array:
 
 ## An open station menu: its options side by side, the selected one highlighted.
 ## An empty list hides it.
-func show_menu(options: Array, choice: int) -> void:
+func show_menu(options: Array, choice: int, columns := 0, disabled: Array = []) -> void:
     if _panel:
-        _panel.show_menu(options, choice)
+        _panel.show_menu(options, choice, columns, disabled)
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
@@ -86,6 +92,12 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     var girth := 1.0 + (FAT_WIDTH if over > 0 else THIN_WIDTH) * over
     hungry = state.bmi <= hungry_below
     $PlayerModel.scale = Vector3(girth, 1.0, girth)
+    if state.color != _color:
+        _color = state.color
+        _tint(Looks.tint(_color))
+    if state.hat != _hat:
+        _hat = state.hat
+        _wear(Looks.HATS[_hat])
     # Knocked out: lying on the floor.
     $PlayerModel.rotation.z = PI / 2 if state.down else 0.0
     var camera := get_viewport().get_camera_3d()
@@ -103,6 +115,58 @@ func _label(height: float, size: int) -> Label3D:
     label.outline_size = 8
     add_child(label)
     return label
+
+
+## The player's colour (GDD §5.5) on their body; the hat keeps its own.
+func _tint(color: Color) -> void:
+    var material := StandardMaterial3D.new()
+    material.albedo_color = color
+    for mesh in $PlayerModel/figurine2.find_children("*", "MeshInstance3D", true, false):
+        (mesh as MeshInstance3D).material_override = material
+
+
+func _wear(hat: StringName) -> void:
+    $"PlayerModel/hat-cap2".visible = hat == Looks.CAP
+    if hat == Looks.BEER_HELMET and not _helmet:
+        _helmet = _beer_helmet()
+        $PlayerModel.add_child(_helmet)
+    if _helmet:
+        _helmet.visible = hat == Looks.BEER_HELMET
+
+
+## A helmet with a can on each side and straws down to the mouth, built in code for now.
+func _beer_helmet() -> Node3D:
+    var helmet := Node3D.new()
+    helmet.position.y = HEAD_TOP
+    var dome := MeshInstance3D.new()
+    var sphere := SphereMesh.new()
+    sphere.radius = 0.2
+    sphere.height = 0.2
+    sphere.is_hemisphere = true
+    var shell := StandardMaterial3D.new()
+    shell.albedo_color = Color(0.95, 0.8, 0.15)
+    sphere.material = shell
+    dome.mesh = sphere
+    helmet.add_child(dome)
+    var straw_material := StandardMaterial3D.new()
+    straw_material.albedo_color = Color(0.95, 0.95, 0.95)
+    for side in [-1.0, 1.0]:
+        var can := BeerCan.new()
+        can.scale = Vector3.ONE * 0.55
+        can.position = Vector3(side * 0.24, 0.05, 0)
+        helmet.add_child(can)
+        # From the top of the can, down in front of the face.
+        var straw := MeshInstance3D.new()
+        var tube := CylinderMesh.new()
+        tube.top_radius = 0.012
+        tube.bottom_radius = 0.012
+        tube.height = 0.34
+        tube.material = straw_material
+        straw.mesh = tube
+        straw.position = Vector3(side * 0.13, -0.02, -0.12)
+        straw.rotation = Vector3(-0.5, 0, side * 0.9)
+        helmet.add_child(straw)
+    return helmet
 
 
 ## A small hop when someone runs into this player.

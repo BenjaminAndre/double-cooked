@@ -18,8 +18,6 @@ const STEP_BUDGET_USEC := 8000
 const CLIENT_LAG_TICKS := 3
 ## The host sends a state fingerprint this often, so clients notice a desync.
 const CHECK_EVERY := Simulation.TICK_RATE
-## Restarts an offline night with one or two players on this keyboard.
-const TOGGLE_DUO_KEY := KEY_F2
 ## Saves the night so far as a replay file: downloaded on the web, where user:// is out of reach.
 const REPLAY_KEY := KEY_F3
 const REPLAY_DIR := "user://replays"
@@ -28,6 +26,8 @@ const KEPT_REPLAYS := 20
 signal began
 ## A short message for the HUD, e.g. once a replay is saved.
 signal notice(text: String)
+## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
+signal phone_used(choice: StringName)
 
 ## Parent of the level's Anchor nodes.
 @export var anchors_root: Node3D
@@ -38,6 +38,11 @@ signal notice(text: String)
 @export var night_seed := 0
 ## Where the customers line up; its position and line_step become the simulation's queue.
 @export var queue: CustomersView
+## The waiting room players meet in before a night (GDD §4.1).
+@export var lobby_room: GridRoom
+@export var kitchen_camera: Camera3D
+## Where each player's saved looks are kept, "" not to keep them (tests).
+@export var looks_path := "user://looks.cfg"
 
 var simulation: Simulation
 ## How far we are towards the next tick, for views that draw between ticks.
@@ -47,6 +52,8 @@ var role := Role.OFFLINE
 var desyncs := 0
 ## The ticks of those checks, kept in the replay.
 var desync_ticks := PackedInt32Array()
+## Whether this is the lobby rather than a night in the kitchen.
+var in_lobby := false
 
 @onready var _link: NightLink = $Link
 
@@ -62,6 +69,8 @@ var _pending: Array = []
 var _received := {}
 ## Host: peer id -> slot.
 var _peer_slots := {}
+## Host: the peers in slot order (slot 1 first), kept from one night to the next.
+var _peer_order: Array[int] = []
 var _replay := {}
 ## tick, slot, command, tick, slot, command...
 var _log := PackedInt32Array()
@@ -86,34 +95,83 @@ func _ready() -> void:
     _web_page = WebPage.new()
     _web_page.hidden_beat.connect(_on_hidden_beat)
     add_child(_web_page)
-    play_local(1)
+    play_lobby(1)
 
 
 func _exit_tree() -> void:
     _save_replay()
 
 
+## Offline lobby with one or two players on this keyboard.
+func play_lobby(local_players: int) -> void:
+    _play_offline(local_players, true)
+
+
 ## Offline night with one or two players on this keyboard.
 func play_local(local_players: int) -> void:
+    _play_offline(local_players, false)
+
+
+## Host: everyone connected into the lobby, e.g. when someone joins.
+func host_lobby() -> void:
+    _host_begin(true)
+
+
+## Host: starts an online night with every connected peer.
+func host_online() -> void:
+    _host_begin(false)
+
+
+func _play_offline(local_players: int, lobby: bool) -> void:
     var slots := PackedInt32Array()
     for slot in local_players:
         slots.append(slot)
-    _begin(local_players, slots, _new_seed(), Role.OFFLINE)
+    _begin(local_players, slots, _new_seed(), Role.OFFLINE, lobby, _current_looks())
 
 
-## Host: starts an online night with every connected peer. The host is slot 0, the others
-## follow in peer id order.
-func host_online() -> void:
-    var peers := multiplayer.get_peers()
-    peers.sort()
-    peers.resize(mini(peers.size(), spawns.size() - 1))
-    var seed_value := _new_seed()
+## The host is slot 0. The others keep their slot from one night to the next, and newcomers
+## follow in peer id order; each keeps their looks.
+func _host_begin(lobby: bool) -> void:
+    var by_peer := {1: _look_of(0)}
+    for index in _peer_order.size():
+        by_peer[_peer_order[index]] = _look_of(index + 1)
+    var connected := multiplayer.get_peers()
+    connected.sort()
+    _peer_order = _peer_order.filter(func(peer: int) -> bool: return peer in connected)
+    for peer in connected:
+        if not peer in _peer_order:
+            _peer_order.append(peer)
+    _peer_order.resize(mini(_peer_order.size(), _max_players(lobby) - 1))
     _peer_slots.clear()
-    for index in peers.size():
-        _peer_slots[peers[index]] = index + 1
-    _begin(peers.size() + 1, PackedInt32Array([0]), seed_value, Role.HOST)
-    for peer in peers:
-        _link.begin_night.rpc_id(peer, peers.size() + 1, _peer_slots[peer], seed_value)
+    var looks := PackedInt32Array(by_peer[1])
+    for index in _peer_order.size():
+        _peer_slots[_peer_order[index]] = index + 1
+        looks.append_array(by_peer.get(_peer_order[index], [-1, -1]))
+    var seed_value := _new_seed()
+    var count := _peer_order.size() + 1
+    _begin(count, PackedInt32Array([0]), seed_value, Role.HOST, lobby, looks)
+    for peer in _peer_order:
+        _link.begin_night.rpc_id(peer, count, _peer_slots[peer], seed_value, lobby, looks)
+
+
+## [colour, hat] of this slot in the current simulation, [-1, -1] if there is none.
+func _look_of(slot: int) -> Array:
+    if simulation and slot < simulation.players.size():
+        return [simulation.players[slot].color, simulation.players[slot].hat]
+    return [-1, -1]
+
+
+## Everyone's looks so far, flattened: colour, hat, colour, hat...
+func _current_looks() -> PackedInt32Array:
+    var looks := PackedInt32Array()
+    if simulation:
+        for player in simulation.players:
+            looks.append_array([player.color, player.hat])
+    return looks
+
+
+func _max_players(lobby: bool) -> int:
+    return lobby_room.spawn_names().size() if lobby and lobby_room else spawns.size()
 
 
 ## Queues a command from a player at this keyboard, as if their key was pressed.
@@ -188,16 +246,12 @@ func _unhandled_input(event: InputEvent) -> void:
         notice.emit(export_replay())
         get_viewport().set_input_as_handled()
         return
-    if role == Role.OFFLINE and key and key.pressed and not key.echo:
-        var restart := -1
-        if key.physical_keycode == TOGGLE_DUO_KEY:
-            restart = 2 if _local_slots.size() == 1 else 1
-        elif simulation.outcome != &"" and key.physical_keycode in [KEY_ENTER, KEY_KP_ENTER]:
-            restart = _local_slots.size()
-        if restart != -1:
-            play_local(restart)
-            get_viewport().set_input_as_handled()
-            return
+    # Once a night is over, Enter goes back to the lobby (online, the host's Lobby does it).
+    if role == Role.OFFLINE and key and key.pressed and not key.echo and simulation.outcome != &"" \
+            and key.physical_keycode in [KEY_ENTER, KEY_KP_ENTER]:
+        play_lobby(_local_slots.size())
+        get_viewport().set_input_as_handled()
+        return
     var command := _input.read(event)
     if not command.is_empty():
         submit(command[0], command[1])
@@ -273,28 +327,50 @@ func _step() -> bool:
             _views[event.slot].show_fat_change(false)
         elif event.type == &"boss_arrived":
             notice.emit("Le boss arrive !")
+        elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:
+            _save_looks(simulation.players[event.slot])
+        elif event.type == &"phone" and event.slot in _local_slots:
+            # Deferred: the lobby may start over, which replaces this simulation.
+            phone_used.emit.call_deferred(event.choice)
+        elif event.type == &"start_night" and role != Role.CLIENT:
+            (host_online if role == Role.HOST else play_local.bind(_local_slots.size())).call_deferred()
     return true
 
 
-func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p_role: Role) -> void:
+## looks: colour, hat per slot (-1 keeps the default), carried from the lobby to the night.
+func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p_role: Role,
+        lobby := false, looks := PackedInt32Array()) -> void:
     _save_replay()
     role = p_role
+    in_lobby = lobby and lobby_room != null
     for view in _views:
         view.queue_free()
     _views.clear()
-    var level := LevelReader.read(anchors_root)
-    if queue:
+    var root := lobby_room.anchors_root() if in_lobby else anchors_root
+    var level := LevelReader.read(root)
+    if queue and not in_lobby:
         level.queue_front = queue.global_position
         level.queue_step = queue.line_step
-    _station_views = LevelReader.stations(anchors_root)
-    var spawn_nodes := PackedInt32Array()
+    _station_views = LevelReader.stations(root)
     var spawn_names := []
-    for slot in player_count:
-        spawn_nodes.append(level.find(spawns[slot].name))
-        spawn_names.append(String(spawns[slot].name))
-    simulation = Simulation.new(level, spawn_nodes, seed_value)
+    if in_lobby:
+        spawn_names = lobby_room.spawn_names().slice(0, player_count)
+    else:
+        for slot in player_count:
+            spawn_names.append(String(spawns[slot].name))
+    var spawn_nodes := PackedInt32Array()
+    for spawn_name: String in spawn_names:
+        spawn_nodes.append(level.find(spawn_name))
+    var rules := SimRules.new()
+    rules.lobby = in_lobby
+    simulation = Simulation.new(level, spawn_nodes, seed_value, rules)
+    _apply_looks(looks)
+    if lobby_room:
+        lobby_room.camera.current = in_lobby
+    if kitchen_camera:
+        kitchen_camera.current = not in_lobby
     _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
-            "spawns": spawn_names}
+            "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby}
     _log.clear()
     _local_slots = local_slots
     _input = LocalInput.new(local_slots.size())
@@ -311,11 +387,16 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         view.is_local_player = slot in local_slots
         view.level_start_bmi = simulation.rules.start_bmi
         view.hungry_below = simulation.rules.knockout_bmi + 2
-        view.pseudo = "You" if player_count == 1 else "P%d" % (slot + 1)
+        # The colour stands for the player: no name over their head.
+        view.pseudo = ""
         players_parent.add_child(view)
         _views.append(view)
     _show(0.0)
     began.emit()
+    if in_lobby and _local_slots.size() > 0:
+        var saved := _saved_looks()
+        if not saved.is_empty():
+            submit(0, Looks.command(saved[0], saved[1]))
 
 
 func _on_command_received(peer_id: int, command: int) -> void:
@@ -323,8 +404,9 @@ func _on_command_received(peer_id: int, command: int) -> void:
         _pending[_peer_slots[peer_id]].append(command)
 
 
-func _on_night_began(player_count: int, slot: int, seed_value: int) -> void:
-    _begin(player_count, PackedInt32Array([slot]), seed_value, Role.CLIENT)
+func _on_night_began(player_count: int, slot: int, seed_value: int, lobby: bool,
+        looks: PackedInt32Array) -> void:
+    _begin(player_count, PackedInt32Array([slot]), seed_value, Role.CLIENT, lobby, looks)
 
 
 func _on_tick_received(tick: int, check: int, commands: PackedInt32Array) -> void:
@@ -337,8 +419,8 @@ func _on_player_left(slot: int) -> void:
     if _left.has(slot) or slot >= _views.size():
         return
     _left[slot] = true
-    _views[slot].pseudo += " (parti)"
-    notice.emit("P%d est parti" % (slot + 1))
+    _views[slot].pseudo = (_views[slot].pseudo + " (parti)").strip_edges()
+    notice.emit("%s est parti" % Looks.player_name(simulation.players[slot].color))
 
 
 ## alpha: how far we are towards the next tick, to keep walking smooth between ticks.
@@ -360,7 +442,10 @@ func _show(p_alpha: float) -> void:
             if station != SimLevel.NONE:
                 highlighted[station] = true
             var action := simulation.action_for(player)
-            if action != &"":
+            if action in [&"door_wait", &"door_host"]:
+                # Nothing to press: only why the door stays shut.
+                hints.append(["", ItemNames.action(action)])
+            elif action != &"":
                 hints.append([interact_key, ItemNames.action(action)])
                 if action == &"throw" and simulation.players.size() > 1:
                     hints.append(["Haut", "équipier"])
@@ -372,14 +457,29 @@ func _show(p_alpha: float) -> void:
             hints.append([_input.eat_key_name(local_index), ItemNames.action(eat)])
         _views[slot].show_hint(hints)
         var options: Array = []
+        var disabled: Array = []
+        var columns := 0
         if player.menu != SimLevel.NONE:
             var menu_station := simulation.stations[player.menu]
-            for option: StringName in Menu.STATION_OPTIONS[menu_station.kind]:
+            columns = Menu.columns(menu_station.kind)
+            var menu_options: Array = Menu.STATION_OPTIONS[menu_station.kind]
+            for index in menu_options.size():
+                var option: StringName = menu_options[index]
+                if menu_station.kind == &"peinture":
+                    # Colour swatches; a teammate's colour is greyed out.
+                    options.append(Looks.tint(index))
+                    if not simulation.color_free(index, player):
+                        disabled.append(index)
+                    continue
                 var word := ItemNames.word(option)
                 if option == Menu.BEER:
                     word += " ×%d" % menu_station.beers
+                elif option == Menu.PHONE_DUO:
+                    word = "seul" if _local_slots.size() > 1 else "à deux"
+                elif option == Menu.PHONE_LEAVE and role == Role.OFFLINE:
+                    disabled.append(index)
                 options.append(word)
-        _views[slot].show_menu(options, player.menu_choice)
+        _views[slot].show_menu(options, player.menu_choice, columns, disabled)
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
         _station_views[index].set_highlighted(highlighted.has(index))
@@ -412,7 +512,8 @@ func _new_seed() -> int:
 
 
 func _save_replay() -> void:
-    if _log.is_empty():
+    if _log.is_empty() or _replay.get("lobby", false):
+        _log.clear()
         return
     DirAccess.make_dir_recursive_absolute(REPLAY_DIR)
     var file := FileAccess.open("%s/night-%d.json" % [REPLAY_DIR, Time.get_unix_time_from_system()],
@@ -424,3 +525,42 @@ func _save_replay() -> void:
     for index in names.size() - KEPT_REPLAYS:
         DirAccess.remove_absolute("%s/%s" % [REPLAY_DIR, names[index]])
     _log.clear()
+
+
+## Carries looks into a new simulation. Should two players end up in the same colour (a
+## newcomer's default), the later slot takes the first free one; every peer resolves it the
+## same way.
+func _apply_looks(looks: PackedInt32Array) -> void:
+    for slot in simulation.players.size():
+        var player := simulation.players[slot]
+        if looks.size() >= slot * 2 + 2:
+            if looks[slot * 2] >= 0:
+                player.color = looks[slot * 2]
+            if looks[slot * 2 + 1] >= 0:
+                player.hat = looks[slot * 2 + 1]
+    for slot in simulation.players.size():
+        var player := simulation.players[slot]
+        for earlier in slot:
+            if simulation.players[earlier].color == player.color:
+                for color in Looks.COLORS.size():
+                    if simulation.color_free(color, player):
+                        player.color = color
+                        break
+                break
+
+
+func _save_looks(player: SimPlayer) -> void:
+    if looks_path == "":
+        return
+    var config := ConfigFile.new()
+    config.set_value("looks", "color", player.color)
+    config.set_value("looks", "hat", player.hat)
+    config.save(looks_path)
+
+
+## [colour, hat] saved by this player last time, [] if none.
+func _saved_looks() -> Array:
+    var config := ConfigFile.new()
+    if looks_path == "" or config.load(looks_path) != OK:
+        return []
+    return [int(config.get_value("looks", "color", 0)), int(config.get_value("looks", "hat", Looks.DEFAULT_HAT))]

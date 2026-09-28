@@ -4,7 +4,7 @@ extends Node
 ## every peer, so these RPCs reach the matching Night. Peer 1 is the host.
 
 signal command_received(peer_id: int, command: int)
-signal night_began(player_count: int, slot: int, seed_value: int)
+signal night_began(player_count: int, slot: int, seed_value: int, lobby: bool, looks: PackedInt32Array)
 signal tick_received(tick: int, check: int, commands: PackedInt32Array)
 signal player_left(slot: int)
 
@@ -15,10 +15,11 @@ func send_command(command: int) -> void:
     command_received.emit(multiplayer.get_remote_sender_id(), command)
 
 
-## Host to one client: a night starts, and this is the client's slot.
+## Host to one client: a night (or the lobby) starts, and this is the client's slot. looks:
+## colour, hat per slot.
 @rpc("authority", "call_remote", "reliable")
-func begin_night(player_count: int, slot: int, seed_value: int) -> void:
-    night_began.emit(player_count, slot, seed_value)
+func begin_night(player_count: int, slot: int, seed_value: int, lobby: bool, looks: PackedInt32Array) -> void:
+    night_began.emit(player_count, slot, seed_value, lobby, looks)
 
 
 ## Host to clients: the commands applied on a tick, flattened as slot, command, slot, command...
