@@ -1,28 +1,49 @@
 class_name SimCrowd
 extends RefCounted
 ## The line of customers and the room mood (GDD §6). Each customer orders a single line
-## (see Menu.order_key); the first SimRules.visible_orders show it.
+## (see Menu.order_key); the first SimRules.visible_orders show it. Once a night the boss comes
+## (GDD §6.3): several orders in a row, a drink on the side, and cans while he waits.
 
 enum Level { CALME, TENDU, CHAUD, EMEUTE }
+## What became of each of the boss's orders.
+enum Result { WAITING, SERVED, MISSED }
 
 
 class Customer:
     ## Unique within a night, so the display can follow each customer.
     var id: int
-    ## What they want, see Menu.order_key.
+    ## What they want, see Menu.order_key. For the boss, his current order.
     var order: StringName
     var patience: int
     ## Already given an unordered beer: another one sends them off angry.
     var gifted := false
+    var boss := false
+    ## The boss's orders, and what became of each (Result).
+    var orders: Array[StringName] = []
+    var results := PackedInt32Array()
+    ## The boss's drink order, &"" between two; drink_patience while he waits for one,
+    ## drink_again until the next.
+    var drink := &""
+    var drink_patience := 0
+    var drink_again := 0
+    ## Ticks until the boss throws his next can for no reason.
+    var next_can := 0
+
+    ## The index of the boss's current order, -1 once they are all done.
+    func current() -> int:
+        return Array(results).find(Result.WAITING)
 
     func fingerprint() -> Array:
-        return [id, order, patience, gifted]
+        return [id, order, patience, gifted, boss, orders, results, drink, drink_patience,
+                drink_again, next_can]
 
 var rules: SimRules
 ## Front of the line first.
 var line: Array[Customer] = []
 var mood := 0
 var next_arrival: int
+## Whether tonight's boss has walked in.
+var boss_came := false
 var _next_id := 0
 
 
@@ -43,6 +64,8 @@ func front() -> Customer:
 ## events receives {"type": &"arrival"} and {"type": &"walk_out", "index": place in line}.
 func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
     # The door closes at 04:00.
+    if not boss_came and rules.boss_orders > 0 and tick >= rules.boss_tick() and tick < rules.night_ticks:
+        _boss_arrives(rng, events)
     if tick >= next_arrival and tick < rules.night_ticks:
         if line.size() < rules.max_line:
             line.append(_new_customer(rng))
@@ -50,6 +73,9 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         next_arrival = tick + _arrival_delay(tick, player_count, rng)
     for index in range(line.size() - 1, -1, -1):
         var customer := line[index]
+        if customer.boss:
+            _advance_boss(customer, rng, events)
+            continue
         customer.patience -= rules.front_drain if index == 0 else rules.back_drain
         if customer.patience <= 0:
             line.remove_at(index)
@@ -66,6 +92,9 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     var customer := front()
     if not customer or not item:
         return false
+    if customer.boss:
+        _serve_boss(customer, item, by, events)
+        return true
     if item.kind == Menu.BEER:
         give_beer(0, by, events)
         return true
@@ -80,10 +109,12 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
 
 ## A beer for the customer at index, handed over or caught. If they ordered one, they're
 ## served. The first unordered beer buys back some patience; a second one is too much and
-## they leave angry, at whoever gave it.
+## they leave angry, at whoever gave it. The boss only takes it as his drink.
 func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     var customer := line[index]
-    if customer.order == Menu.BEER:
+    if customer.boss:
+        _boss_drink(customer, Menu.BEER, events)
+    elif customer.order == Menu.BEER:
         line.remove_at(index)
         change_mood(rules.mood_served)
         events.append({"type": &"served"})
@@ -109,7 +140,105 @@ func fingerprint() -> Array:
     var customers := []
     for customer in line:
         customers.append(customer.fingerprint())
-    return [customers, mood, next_arrival, _next_id]
+    return [customers, mood, next_arrival, boss_came, _next_id]
+
+
+## The patience each of the boss's orders starts with.
+func boss_patience() -> int:
+    return rules.patience * rules.boss_patience_factor
+
+
+## He cuts in at the counter: everyone goes back one place, even a customer being served.
+func _boss_arrives(rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
+    boss_came = true
+    var boss := Customer.new()
+    boss.id = _next_id
+    _next_id += 1
+    boss.boss = true
+    for index in rules.boss_orders:
+        boss.orders.append(Menu.random_order(rng, rules.order_categories, true))
+        boss.results.append(Result.WAITING)
+    boss.order = boss.orders[0]
+    boss.patience = boss_patience()
+    boss.drink_again = rules.boss_drink_again
+    boss.next_can = rules.boss_can_every
+    line.insert(0, boss)
+    events.append({"type": &"boss_arrived"})
+
+
+func _advance_boss(boss: Customer, rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
+    boss.patience -= rules.front_drain
+    if boss.patience <= 0:
+        _boss_miss(boss, -1, events)
+        if boss.current() < 0:
+            return
+    if boss.drink != &"":
+        boss.drink_patience -= 1
+        if boss.drink_patience <= 0:
+            _boss_thirsty(boss, events)
+    else:
+        boss.drink_again -= 1
+        if boss.drink_again <= 0:
+            boss.drink = Menu.DRINKS[rng.randi_range(0, Menu.DRINKS.size() - 1)]
+            boss.drink_patience = rules.boss_drink_patience
+    boss.next_can -= 1
+    if boss.next_can <= 0:
+        boss.next_can = rules.boss_can_every
+        events.append({"type": &"boss_throws"})
+
+
+## A drink goes on his drink ticket; food is his current order.
+func _serve_boss(boss: Customer, item: SimItem, by: int, events: Array[Dictionary]) -> void:
+    if item.kind in Menu.DRINKS:
+        _boss_drink(boss, item.kind, events)
+        return
+    if Menu.order_key(item) == boss.order and Menu.done_right(item):
+        boss.results[boss.current()] = Result.SERVED
+        change_mood(rules.mood_served)
+        events.append({"type": &"boss_served", "by": by})
+        _boss_next(boss, events)
+    else:
+        _boss_miss(boss, by, events)
+
+
+## The right drink clears his drink ticket; any other counts as none.
+func _boss_drink(boss: Customer, drink: StringName, events: Array[Dictionary]) -> void:
+    if boss.drink != &"" and drink == boss.drink:
+        boss.drink = &""
+        boss.drink_again = rules.boss_drink_again
+        events.append({"type": &"boss_drank"})
+    else:
+        _boss_thirsty(boss, events)
+
+
+## No drink (or the wrong one): his current order loses patience, and he orders another later.
+func _boss_thirsty(boss: Customer, events: Array[Dictionary]) -> void:
+    boss.drink = &""
+    boss.drink_again = rules.boss_drink_again
+    boss.patience = maxi(boss.patience - rules.boss_drink_penalty, 1)
+    events.append({"type": &"boss_thirsty"})
+
+
+## A missed order: worse mood and a salvo of cans (thrown by Simulation), then the next one.
+func _boss_miss(boss: Customer, by: int, events: Array[Dictionary]) -> void:
+    boss.results[boss.current()] = Result.MISSED
+    change_mood(rules.mood_boss_miss)
+    events.append({"type": &"boss_missed", "by": by})
+    _boss_next(boss, events)
+
+
+## On to his next order, or he leaves once they are all done.
+func _boss_next(boss: Customer, events: Array[Dictionary]) -> void:
+    var index := boss.current()
+    if index >= 0:
+        boss.order = boss.orders[index]
+        boss.patience = boss_patience()
+        return
+    line.erase(boss)
+    var served := Array(boss.results).count(Result.SERVED)
+    if served == boss.results.size():
+        change_mood(rules.mood_boss_served)
+    events.append({"type": &"boss_left", "served": served})
 
 
 func _new_customer(rng: RandomNumberGenerator) -> Customer:
@@ -127,5 +256,3 @@ func _arrival_delay(tick: int, player_count: int, rng: RandomNumberGenerator) ->
     delay *= 2.0 / (player_count + 1)
     delay *= lerpf(rules.calm_arrival_factor, rules.mad_arrival_factor, rules.intensity(tick))
     return maxi(1, roundi(delay))
-
-

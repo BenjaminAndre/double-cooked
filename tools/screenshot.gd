@@ -37,6 +37,7 @@ func _initialize() -> void:
             night.play_local(2)
         "won":
             night.simulation.rules.night_ticks = 20
+            night.simulation.rules.boss_orders = 0
         "lost":
             night.simulation.crowd.mood = night.simulation.rules.riot
         "danger":

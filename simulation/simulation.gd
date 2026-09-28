@@ -57,6 +57,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     per_player.resize(players.size())
     per_player.fill(0)
     stats = {"served": 0, "angry": 0, "walk_outs": 0, "beers": 0, "fires": 0, "cans_hit": 0,
+            "boss_came": false, "boss_served": 0,
             "bumps": per_player.duplicate(), "knockouts": per_player.duplicate(),
             "revives": per_player.duplicate()}
 
@@ -280,9 +281,23 @@ func _customers_throw() -> void:
     for event in events.duplicate():
         if event.type in [&"angry", &"walk_out"]:
             _throw_can(event.index, event.by)
+        elif event.type == &"boss_missed":
+            # The boss is always at the counter: a salvo at the crew.
+            for can in rules.boss_cans:
+                _throw_can(0, _random_standing())
+        elif event.type == &"boss_throws":
+            _throw_can(0, _random_standing())
     var anger := (float(crowd.mood) / rules.riot - rules.can_mood) / (1.0 - rules.can_mood)
     if anger > 0.0 and not crowd.line.is_empty() and rng.randf() < anger / rules.can_every:
         _throw_can(rng.randi_range(0, crowd.line.size() - 1), -1)
+
+
+## A standing player's slot picked at random, -1 if the whole crew is down.
+func _random_standing() -> int:
+    var standing := players.filter(func(p: SimPlayer) -> bool: return not p.down)
+    if standing.is_empty():
+        return -1
+    return standing[rng.randi_range(0, standing.size() - 1)].slot
 
 
 ## A can from the customer at index, aimed where the target stands now. target is a slot,
@@ -607,6 +622,10 @@ func _count(step_events: Array[Dictionary]) -> void:
                 stats.knockouts[event.slot] += 1
             &"revived":
                 stats.revives[event.by] += 1
+            &"boss_arrived":
+                stats.boss_came = true
+            &"boss_served":
+                stats.boss_served += 1
 
 
 func _end(result: StringName, reason: StringName) -> void:

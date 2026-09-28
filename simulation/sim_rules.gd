@@ -81,6 +81,31 @@ var can_mood := 0.5
 var can_every := 8 * SECOND
 
 
+## The boss (GDD §6.3): one per night, at boss_at through the night (02:00). He cuts to the
+## front of the line and orders boss_orders dishes one after the other, each with
+## boss_patience_factor times the usual patience. 0 orders: no boss.
+var boss_at := 0.8
+var boss_orders := 3
+var boss_patience_factor := 2
+## Each missed order: this much worse mood, and a salvo of boss_cans cans at the crew.
+var mood_boss_miss := 200
+var boss_cans := 3
+## All his orders served right: the room cheers up this much.
+var mood_boss_served := -300
+## While waiting he throws a can at a random player every boss_can_every ticks.
+var boss_can_every := 6 * SECOND
+## His drink ticket: ordered boss_drink_again ticks after the last one; it waits
+## boss_drink_patience ticks, then the current order loses boss_drink_penalty patience.
+var boss_drink_again := 8 * SECOND
+var boss_drink_patience := 20 * SECOND
+var boss_drink_penalty := 4 * 15 * SECOND
+
+
+## The tick the boss walks in.
+func boss_tick() -> int:
+    return int(night_ticks * boss_at)
+
+
 ## 0 while calm, 1 once mad, for a tick of the night.
 func intensity(tick: int) -> float:
     var progress := float(tick) / night_ticks

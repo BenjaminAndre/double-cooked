@@ -87,6 +87,17 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **Interacting at the CAISSE is serving:** the held item always goes to the front customer. The right order (dish **and** sauce), done right, sends them off happy and calms the room. The wrong order, or anything badly done (burnt, soggy, undercooked, lukewarm), sends them off **angry**, which raises the mood.
 - **A beer always pleases** (the one exception): if it wasn't their order, it buys back some patience and they keep waiting.
 
+### 6.3 The boss (after the first online playtest)
+A Dark Souls style boss customer: bigger, in red instead of blue, with his own rules. Tunables are the `boss_*` values in `SimRules`.
+- **Once a night, at 02:00**, just as the night turns tense. He cuts in at the counter and sends everyone back one place, **even the customer whose order the players were preparing**. The line waits behind him until he leaves.
+- **Three orders, one after the other** (food only), each with twice the usual patience. His ticket shows three dots:
+  - black for an order still to come, ringed in white for the current one;
+  - green once served right, red once missed.
+- **A missed order** (wrong, badly done, or out of patience) sours the mood a lot, and he throws a **salvo of cans** at the crew. Then he moves on to his next order.
+- **A drink on the side:** a second ticket, cola or beer, with its own short patience. It is served at the CAISSE or by a thrown beer. Left waiting, or given the wrong drink, it costs his current order some patience. He orders another a little later.
+- **While he waits** he throws a can at a random player every few seconds, for no reason.
+- **He leaves after his third order.** All three served right cheers the room up a lot. The recap shows how many of his orders were served.
+
 ## 7. Cooking
 
 ### 7.1 Double cuisson (signature mechanic)

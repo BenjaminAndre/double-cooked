@@ -20,6 +20,7 @@ func before_each() -> void:
     rules.arrival_max = NEVER
     rules.line_pressure_every = NEVER
     rules.night_ticks = NEVER
+    rules.boss_orders = 0
 
 
 func test_a_customer_arrives_with_one_order() -> void:

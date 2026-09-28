@@ -83,8 +83,14 @@ static func done_right(item: SimItem) -> bool:
 
 ## One order line: fries, a meat or a drink, picked by category_weights, then a dish and a
 ## sauce at random.
-static func random_order(rng: RandomNumberGenerator, category_weights: PackedFloat32Array) -> StringName:
-    match rng.rand_weighted(category_weights):
+## food_only: no drinks (the boss takes his on the side).
+static func random_order(rng: RandomNumberGenerator, category_weights: PackedFloat32Array,
+        food_only := false) -> StringName:
+    var weights := category_weights
+    if food_only:
+        weights = category_weights.duplicate()
+        weights[2] = 0.0
+    match rng.rand_weighted(weights):
         0:
             return _with_sauce(FRIES_DISHES[0], rng)
         1:
