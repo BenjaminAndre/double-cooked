@@ -107,7 +107,7 @@ func _show_tickets(crowd: SimCrowd) -> void:
 
 
 func _new_ticket() -> PanelContainer:
-    var ticket := _panel(Color(0, 0, 0, 0.7), 6)
+    var ticket := UiPanel.make(UiPanel.DARK, 6)
     var column := VBoxContainer.new()
     ticket.add_child(column)
     var label := Label.new()
@@ -116,16 +116,6 @@ func _new_ticket() -> PanelContainer:
     column.add_child(DrainingBar.new(0, 8))
     _layer.add_child(ticket)
     return ticket
-
-
-func _panel(color: Color, margin: float) -> PanelContainer:
-    var panel := PanelContainer.new()
-    var style := StyleBoxFlat.new()
-    style.bg_color = color
-    style.set_content_margin_all(margin)
-    style.set_corner_radius_all(4)
-    panel.add_theme_stylebox_override("panel", style)
-    return panel
 
 
 func _new_figure() -> Node3D:

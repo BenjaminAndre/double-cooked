@@ -142,7 +142,7 @@ func test_the_drink_hint_shows_when_knocked_out_with_a_beer() -> void:
     player.item = SimItem.new(Menu.BEER)
     await wait_process_frames(2)
     var view: Player = night._views[0]
-    assert_eq(view._hint_label.text, "Entrée : boire")
+    assert_eq(view.hint_rows(), [["Entrée", "boire"]])
     night.submit(0, Simulation.Command.EAT)
     await wait_seconds(0.2)
     assert_false(player.down)

@@ -350,25 +350,25 @@ func _show(p_alpha: float) -> void:
     for local_index in _local_slots.size():
         var slot := _local_slots[local_index]
         var player := simulation.players[slot]
-        var hint := ""
+        # [key, verb] rows.
+        var hints: Array = []
+        var interact_key := _input.interact_key_name(local_index)
         if not player.is_moving() and simulation.outcome == &"":
             var station := simulation.level.node_stations[player.node]
             if station != SimLevel.NONE:
                 highlighted[station] = true
             var action := simulation.action_for(player)
             if action != &"":
-                hint = "%s : %s" % [_input.interact_key_name(local_index), ItemNames.action(action)]
+                hints.append([interact_key, ItemNames.action(action)])
                 if action == &"throw" and simulation.players.size() > 1:
-                    hint += "  ·  haut : équipier"
+                    hints.append(["Haut", "équipier"])
             if player.item and player.item.kind == Menu.BEER and player.aim < 0 and not player.down:
                 # A beer can always be thrown: hold the key to aim at the line.
-                var throw := "%s maintenu : lancer" % _input.interact_key_name(local_index)
-                hint = throw if hint == "" else "%s\n%s" % [hint, throw]
+                hints.append([interact_key, "maintenir : lancer"])
         var eat := simulation.eat_action(player) if simulation.outcome == &"" else &""
         if eat != &"":
-            var line := "%s : %s" % [_input.eat_key_name(local_index), ItemNames.action(eat)]
-            hint = line if hint == "" else "%s\n%s" % [hint, line]
-        _views[slot].show_hint(hint)
+            hints.append([_input.eat_key_name(local_index), ItemNames.action(eat)])
+        _views[slot].show_hint(hints)
         var options: Array = []
         if player.menu != SimLevel.NONE:
             var menu_station := simulation.stations[player.menu]

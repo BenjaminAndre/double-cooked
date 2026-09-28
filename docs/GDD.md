@@ -62,7 +62,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
   - Interacting at the POUBELLE empties the hand.
   - Interacting at the CAISSE serves whatever is held to the front customer (§6.2).
   - Fryers keep their own state (§7.1).
-- The station a player stands at is highlighted, with a hint of what their interact key does there (`Simulation.action_for`). Text for now; the aim is icons, and as little text as possible overall.
+- The station a player stands at is highlighted, with a hint of what their keys do there (`Simulation.action_for`): a key cap and a verb per line, on a dark panel over the player. An open station menu shows each option in its own panel, the selected one in bright yellow, so each option can become an icon later. Text for now; the aim is icons, and as little text as possible overall. The mood dial is labelled "Patience".
 
 ## 6. The room mood (ambiance)
 

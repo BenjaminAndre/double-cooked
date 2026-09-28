@@ -32,9 +32,14 @@ func _ready() -> void:
     add_child(corner)
     _status = _label(24, corner)
     _status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    # The dial and its name, so it reads without explanation.
+    var dial := VBoxContainer.new()
+    dial.size_flags_horizontal = Control.SIZE_SHRINK_END
+    dial.add_theme_constant_override("separation", 0)
+    corner.add_child(dial)
     _gauge = MoodGauge.new()
-    _gauge.size_flags_horizontal = Control.SIZE_SHRINK_END
-    corner.add_child(_gauge)
+    dial.add_child(_gauge)
+    _label(18, dial).text = "Patience"
     _desync = _label(24, corner)
     _desync.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     _desync.add_theme_color_override("font_color", Color(1, 0.3, 0.25))

@@ -7,6 +7,8 @@ const BUMP_HOP := 0.15
 ## How much wider a player gets per BMI point over a healthy start, and thinner per point under.
 const FAT_WIDTH := 0.12
 const THIN_WIDTH := 0.07
+## The menu and hint panel sits on screen above this point, clear of the hand, hearts and name.
+const PANEL_HEIGHT := 1.5
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
@@ -20,18 +22,19 @@ var hungry_below := 18
 
 var _bump_tween: Tween
 var _hands_label: Label3D
-var _hint_label: Label3D
-var _menu_label: Label3D
+## Menu and key hints on screen, for local players only.
+var _panel: PlayerPanel
 ## Three stars circling the head while stunned.
 var _stars: Node3D
 
 
 func _ready() -> void:
     _hands_label = _label(1.3, 28)
-    _hint_label = _label(1.55, 26)
-    _hint_label.modulate = Color(1.0, 0.9, 0.3)
-    _menu_label = _label(1.8, 30)
-    _menu_label.modulate = Color(0.6, 0.9, 1.0)
+    if is_local_player:
+        var layer := CanvasLayer.new()
+        add_child(layer)
+        _panel = PlayerPanel.new()
+        layer.add_child(_panel)
     _stars = Node3D.new()
     _stars.position.y = 1.0
     add_child(_stars)
@@ -46,21 +49,21 @@ func _ready() -> void:
     _stars.visible = false
 
 
-## What this player's interact key would do here, "" for nothing (only for local players).
-func show_hint(text: String) -> void:
-    if _hint_label.text != text:
-        _hint_label.text = text
+## What this player's keys would do here, as [key name, verb] rows (only for local players).
+func show_hint(rows: Array) -> void:
+    if _panel:
+        _panel.show_hints(rows)
 
 
-## An open station menu: its options side by side, the selected one in brackets.
+func hint_rows() -> Array:
+    return _panel.hint_rows() if _panel else []
+
+
+## An open station menu: its options side by side, the selected one highlighted.
 ## An empty list hides it.
 func show_menu(options: Array, choice: int) -> void:
-    var shown := []
-    for index in options.size():
-        shown.append("[%s]" % options[index] if index == choice else options[index])
-    var text := "  ".join(shown)
-    if _menu_label.text != text:
-        _menu_label.text = text
+    if _panel:
+        _panel.show_menu(options, choice)
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
@@ -85,6 +88,9 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     $PlayerModel.scale = Vector3(girth, 1.0, girth)
     # Knocked out: lying on the floor.
     $PlayerModel.rotation.z = PI / 2 if state.down else 0.0
+    var camera := get_viewport().get_camera_3d()
+    if _panel and camera:
+        _panel.place(camera.unproject_position(global_position + Vector3.UP * PANEL_HEIGHT))
     for node in state.path:
         DebugDraw3D.draw_sphere(level.positions[node], 0.12, Color.GREEN)
 
