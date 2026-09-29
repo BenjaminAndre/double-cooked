@@ -44,7 +44,7 @@ The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PL
   - `Lobby` drives Tube (WebRTC) from the lobby room's TÉLÉPHONE (`Night.phone_used`). It creates the `TubeClient` only on demand, because the client takes over the tree's multiplayer API.
 - `tests/` contains unit tests and Scenario tests: a level, spawns, a seed and a timeline of `{tick, slot, command}` (`tests/scenario.gd`).
   - A bug found while playing should become a scenario: `Scenario.from_replay()` reads the replays that Night saves in `user://replays`, or that F3 downloads from the web build.
-  - Online tests run a host and a client in one process, connected by `LoopbackPeer` (in memory).
+  - Online tests run a host and its clients in one process, connected by `LoopbackPeer` (in memory, a star like WebRTC's server mode; peers can leave, rejoin, and a client can become the host).
   - **Tests must never open sockets or ports.** This machine has no firewall rights, and CI doesn't need network access either.
 
 ## Conventions

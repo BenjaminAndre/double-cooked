@@ -11,6 +11,8 @@ var events: Array[Dictionary] = []
 
 ## tick -> Array of [slot, command], in the order they were added.
 var _timeline := {}
+## tick -> Array of [node, colour, hat]: players joining before that tick.
+var _joins := {}
 
 
 func _init(level: SimLevel, spawns: PackedInt32Array, seed_value := 0, rules: SimRules = null) -> void:
@@ -24,6 +26,9 @@ static func from_replay(level: SimLevel, replay: Dictionary) -> Scenario:
     for spawn_name: String in replay.spawns:
         spawns.append(level.find(spawn_name))
     var scenario := Scenario.new(level, spawns, int(replay.seed))
+    scenario.simulation.apply_looks(PackedInt32Array(replay.get("looks", [])))
+    for join: Array in replay.get("joins", []):
+        scenario.join_at(int(join[0]), int(join[1]), int(join[2]), int(join[3]))
     var commands: Array = replay.commands
     for index in range(0, commands.size(), 3):
         scenario.at(int(commands[index]), int(commands[index + 1]), int(commands[index + 2]))
@@ -38,9 +43,19 @@ func at(tick: int, slot: int, command: int) -> Scenario:
     return self
 
 
+## A player joining before a tick, as Night adds them (Simulation.add_player). Chainable.
+func join_at(tick: int, node: int, color := -1, hat := -1) -> Scenario:
+    if not _joins.has(tick):
+        _joins[tick] = []
+    _joins[tick].append([node, color, hat])
+    return self
+
+
 ## Steps the simulation until its tick counter reaches tick.
 func run_until(tick: int) -> Simulation:
     while simulation.tick < tick:
+        for join: Array in _joins.get(simulation.tick, []):
+            simulation.add_player(join[0], join[1], join[2])
         var commands := []
         for slot in simulation.players.size():
             commands.append([])

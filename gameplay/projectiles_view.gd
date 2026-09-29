@@ -43,6 +43,8 @@ func _process(_delta: float) -> void:
 func _show_cursors(sim: Simulation) -> void:
     var aims: Array[Vector3] = []
     for slot in night.local_slots():
+        if slot >= sim.players.size():
+            continue
         var player := sim.players[slot]
         if player.aim >= 0 and player.aim_ticks >= sim.rules.aim_hold:
             if player.aim_player >= 0:

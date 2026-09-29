@@ -113,7 +113,9 @@ func _process(delta: float) -> void:
             + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _mood.mood = float(sim.crowd.mood) / sim.rules.riot
     var warnings := PackedStringArray()
-    if sim.outcome == &"":
+    if night.reconnecting:
+        warnings.append("Reconnexion...")
+    elif sim.outcome == &"":
         warnings.append(silence_text(night.host_silence()))
     warnings.append(desync_text(night.desyncs))
     _set_text(_desync, "\n".join(warnings).strip_edges())
@@ -169,7 +171,7 @@ func _on_began() -> void:
 
 func _anyone_moving() -> bool:
     for slot in night.local_slots():
-        if night.simulation.players[slot].is_moving():
+        if slot < night.simulation.players.size() and night.simulation.players[slot].is_moving():
             return true
     return false
 

@@ -66,6 +66,43 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
             "revives": per_player.duplicate()}
 
 
+## A player joining the night under way (GDD §9.1), standing at node, in this colour (taken
+## as close as possible if a teammate wears it) and hat. Returns their slot. Every peer adds
+## them before the same tick, so the nights stay the same.
+func add_player(node: int, color: int, hat: int) -> int:
+    var player := SimPlayer.new(players.size(), node)
+    player.bmi = rules.start_bmi
+    player.color = Looks.default_color(player.slot)
+    players.append(player)
+    apply_looks(PackedInt32Array([color, hat]), player.slot)
+    for key in [&"bumps", &"knockouts", &"revives"]:
+        stats[key].append(0)
+    return player.slot
+
+
+## Colour and hat per player from first (looks holds colour, hat, colour, hat...; -1 keeps
+## the default). Should two players end up in the same colour, the later one takes the first
+## free one, the same on every peer.
+func apply_looks(looks: PackedInt32Array, first := 0) -> void:
+    for index in range(0, looks.size() - 1, 2):
+        var slot := first + index / 2
+        if slot >= players.size():
+            break
+        if looks[index] >= 0:
+            players[slot].color = looks[index]
+        if looks[index + 1] >= 0:
+            players[slot].hat = looks[index + 1]
+    for slot in range(first, players.size()):
+        var player := players[slot]
+        for earlier in slot:
+            if players[earlier].color == player.color:
+                for color in Looks.COLORS.size():
+                    if color_free(color, player):
+                        player.color = color
+                        break
+                break
+
+
 ## Minutes since 18:00 on the night's clock.
 func clock_minutes() -> int:
     return mini(tick, rules.night_ticks) * 600 / rules.night_ticks
