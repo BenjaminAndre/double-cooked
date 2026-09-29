@@ -39,7 +39,7 @@ func _initialize() -> void:
             sim.players[0].node = sim.level.find("Cell0_0")
             sim.players[1].node = sim.level.find("Cell0_1")
             sim.players[1].hat = 2
-            sim.players[1].color = 4
+            sim.players[1].color = 3
             night.submit(0, Simulation.Command.INTERACT)
             night.submit(0, Simulation.Command.MOVE_LEFT)
         "lobby_door":

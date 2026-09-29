@@ -454,8 +454,8 @@ func _show(p_alpha: float) -> void:
             for index in menu_options.size():
                 var option: StringName = menu_options[index]
                 if menu_station.kind == &"peinture":
-                    # Colour swatches; a teammate's colour is greyed out.
-                    options.append(Looks.tint(index))
+                    # The characters' faces; a teammate's is greyed out.
+                    options.append(PaperFigure.portrait(Looks.character(index)))
                     if not simulation.color_free(index, player):
                         disabled.append(index)
                     continue

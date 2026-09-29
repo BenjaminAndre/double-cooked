@@ -4,21 +4,22 @@ extends Node3D
 ## the line; the rest queue up along line_step. The first SimRules.visible_orders customers
 ## show a ticket with their order and patience (GDD §6.2).
 
-const MODEL := preload("res://assets/kenney_prototype-kit/Models/GLB format/figurine-cube.glb")
+## The customers, as paper cut-outs; which one comes follows the customer id, so every peer
+## sees the same.
+const CUSTOMERS := "res://art/textures/Character%02d.png"
+const CUSTOMER_KINDS := 5
+const BOSS_PICTURE := preload("res://art/textures/DrunkCharacter01.png")
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
-## The camera is close to the line, so customers are drawn smaller than the players.
-const FIGURE_SCALE := 0.6
 ## Tickets are drawn on screen under their customer (clear of the counter), and pushed apart so
 ## they never overlap.
 const TICKET_GAP_BELOW := 6.0
 const TICKET_GAP := 8.0
 const FRONT_FONT_SIZE := 20
 const BACK_FONT_SIZE := 16
-## The boss: bigger, red, on a red ticket with a dot per order (SimCrowd.Result: to come,
+## The boss: the drunk baraki, bigger, on a red ticket with a dot per order (SimCrowd.Result: to come,
 ## served, missed).
 const BOSS_SCALE := 1.6
-const BOSS_COLOR := Color(0.85, 0.12, 0.1)
 const BOSS_TICKET := Color(0.45, 0.02, 0.02, 0.85)
 const DOT_SIZE := 14
 const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)]
@@ -53,7 +54,7 @@ func _process(delta: float) -> void:
         var customer := crowd.line[index]
         present[customer.id] = true
         if not _figures.has(customer.id):
-            _figures[customer.id] = _new_figure(customer.boss)
+            _figures[customer.id] = _new_figure(customer)
         var figure: Node3D = _figures[customer.id]
         figure.position = figure.position.lerp(line_step * index, minf(1.0, SHUFFLE_SPEED * delta))
     for id in _figures.keys():
@@ -182,16 +183,10 @@ func _new_ticket() -> PanelContainer:
     return ticket
 
 
-func _new_figure(boss: bool) -> Node3D:
-    var figure: Node3D = MODEL.instantiate()
+func _new_figure(customer: SimCrowd.Customer) -> Node3D:
+    var picture: Texture2D = BOSS_PICTURE if customer.boss \
+            else load(CUSTOMERS % (customer.id % CUSTOMER_KINDS + 1))
+    var figure := PaperFigure.new(picture, PaperFigure.HEIGHT * (BOSS_SCALE if customer.boss else 1.0))
     figure.position = entrance
-    # Customers face the counter.
-    figure.rotation.y = PI
-    figure.scale = Vector3.ONE * FIGURE_SCALE * (BOSS_SCALE if boss else 1.0)
-    if boss:
-        var red := StandardMaterial3D.new()
-        red.albedo_color = BOSS_COLOR
-        for mesh in figure.find_children("*", "MeshInstance3D", true, false):
-            (mesh as MeshInstance3D).material_override = red
     add_child(figure)
     return figure

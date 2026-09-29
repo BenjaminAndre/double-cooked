@@ -27,16 +27,26 @@ func test_players_start_with_distinct_colours_and_a_cap() -> void:
     assert_eq(Looks.HATS[sim.players[0].hat], Looks.CAP)
 
 
-func test_a_nine_option_menu_is_a_full_grid_around_the_first_option() -> void:
+func test_the_four_characters_sit_around_the_first_one() -> void:
     var scenario := _scenario([0])
     var sim := scenario.at(0, 0, C.INTERACT).run_until(1)
     assert_eq(sim.players[0].menu_choice, 0, "opens in the centre")
-    # Up, then left: the top-left cell, the ninth option.
-    scenario.at(1, 0, C.MOVE_UP).at(1, 0, C.MOVE_LEFT).at(1, 0, C.INTERACT).run_until(2)
-    assert_eq(sim.players[0].color, 8)
-    scenario.at(2, 0, C.INTERACT).at(2, 0, C.MOVE_DOWN).at(2, 0, C.MOVE_RIGHT).at(2, 0, C.INTERACT)
+    # The fourth option sits below the first.
+    scenario.at(1, 0, C.MOVE_DOWN).at(1, 0, C.INTERACT).run_until(2)
+    assert_eq(sim.players[0].color, 3)
+    # Nothing above: up stays put; the third is on the left.
+    scenario.at(2, 0, C.INTERACT).at(2, 0, C.MOVE_UP).at(2, 0, C.MOVE_LEFT).at(2, 0, C.INTERACT)
     scenario.run_until(3)
-    assert_eq(sim.players[0].color, 4, "down, right: bottom right, the fifth")
+    assert_eq(sim.players[0].color, 2)
+
+
+func test_menus_grow_around_their_first_option_without_moving_it() -> void:
+    # Right, left, below, bottom right, bottom left, above, top right, top left.
+    var cells := [Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 1), Vector2i(1, 2), Vector2i(2, 2),
+            Vector2i(0, 2), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 0)]
+    for index in cells.size():
+        assert_eq(Menu.option_at(cells[index], 9), index)
+        assert_eq(Menu.option_at(cells[index], index), -1, "empty until the menu has that many")
 
 
 func test_a_colour_worn_by_a_teammate_cant_be_taken() -> void:
@@ -60,8 +70,8 @@ func test_saved_looks_come_as_a_command() -> void:
     scenario.at(0, 0, Looks.command(1, 0)).run_until(1)
     assert_eq(scenario.simulation.players[0].color, 0, "rouge is worn by the second player")
     assert_eq(scenario.simulation.players[0].hat, 0)
-    scenario.at(1, 0, Looks.command(6, 2)).run_until(2)
-    assert_eq(scenario.simulation.players[0].color, 6)
+    scenario.at(1, 0, Looks.command(3, 2)).run_until(2)
+    assert_eq(scenario.simulation.players[0].color, 3)
 
 
 func test_the_phone_reports_the_choice() -> void:

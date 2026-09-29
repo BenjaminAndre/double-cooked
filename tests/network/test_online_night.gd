@@ -122,8 +122,8 @@ func test_the_lobby_is_shared_and_the_door_takes_everyone_with_their_looks() -> 
     host_night.host_lobby()
     await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
     assert_true(client_night.in_lobby)
-    # The guest picks violet and the beer helmet, then stands on the PRÊT tile below them.
-    client_night.submit(0, Looks.command(5, 2))
+    # The guest picks the yellow character and the beer helmet, then stands on the PRÊT tile below them.
+    client_night.submit(0, Looks.command(3, 2))
     client_night.submit(0, C.MOVE_DOWN)
     var ready_tile := host_night.simulation.level.find("Cell2_1")
     await wait_until(func() -> bool: return host_night.simulation.players[1].node == ready_tile, 5.0)
@@ -141,7 +141,7 @@ func test_the_lobby_is_shared_and_the_door_takes_everyone_with_their_looks() -> 
     await wait_until(func() -> bool: return not client_night.in_lobby, 5.0)
     assert_false(host_night.in_lobby)
     for night in [host_night, client_night]:
-        assert_eq(night.simulation.players[1].color, 5)
+        assert_eq(night.simulation.players[1].color, 3)
         assert_eq(Looks.HATS[night.simulation.players[1].hat], Looks.BEER_HELMET)
         assert_eq(night.simulation.players[0].color, 0)
 

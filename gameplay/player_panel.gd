@@ -12,6 +12,8 @@ const KEY_FONT := 18
 const MARGIN := 8.0
 ## A colour swatch in a menu, and how faded a greyed-out option is.
 const SWATCH := 36
+## A picture option, e.g. a character's face.
+const PICTURE := 64
 const DISABLED_ALPHA := 0.25
 
 var _menu_row: GridContainer
@@ -57,6 +59,13 @@ func show_menu(options: Array, choice: int, disabled: Array = []) -> void:
             var panel := UiPanel.make(UiPanel.DARK, 8)
             if option is Color:
                 panel.custom_minimum_size = Vector2.ONE * SWATCH
+            elif option is Texture2D:
+                var picture := TextureRect.new()
+                picture.texture = option
+                picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+                picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+                picture.custom_minimum_size = Vector2.ONE * PICTURE
+                panel.add_child(picture)
             else:
                 panel.add_child(UiPanel.label(option, OPTION_FONT))
             if index in disabled:
@@ -83,14 +92,15 @@ func show_menu(options: Array, choice: int, disabled: Array = []) -> void:
         reset_size()
 
 
-## Words go black on bright yellow when selected; swatches keep their colour and get a
-## thick white border.
+## Words go black on bright yellow when selected; swatches keep their colour and pictures
+## their own, and both get a thick white border.
 func _style_option(index: int, selected: bool) -> void:
     var panel: PanelContainer = _option_panels[index]
     var option: Variant = _options[index]
-    if option is Color:
+    if option is Color or option is Texture2D:
         var style := StyleBoxFlat.new()
-        style.bg_color = option
+        style.bg_color = option if option is Color else (UiPanel.SELECTED if selected else UiPanel.DARK)
+        style.set_content_margin_all(0 if option is Color else 4)
         style.set_corner_radius_all(4)
         style.set_border_width_all(4 if selected else 1)
         style.border_color = Color.WHITE if selected else Color(0, 0, 0, 0.6)

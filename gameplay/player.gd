@@ -8,9 +8,9 @@ const BUMP_HOP := 0.15
 const FAT_WIDTH := 0.12
 const THIN_WIDTH := 0.07
 ## The menu and hint panel sits on screen above this point, clear of the hand, hearts and name.
-const PANEL_HEIGHT := 1.5
-## Where a hat sits, as the cap does.
-const HEAD_TOP := 0.62
+const PANEL_HEIGHT := 2.15
+## Where a hat sits: the top of the drawn head.
+const HEAD_TOP := PaperFigure.HEIGHT - 0.12
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
@@ -32,17 +32,21 @@ var _stars: Node3D
 var _color := -1
 var _hat := -1
 var _helmet: Node3D
+## The paper cut-out (docs/ART_PLAN.md).
+var _figure: PaperFigure
 
 
 func _ready() -> void:
-    _hands_label = _label(1.3, 28)
+    _figure = PaperFigure.new()
+    $PlayerModel.add_child(_figure)
+    _hands_label = _label(1.98, 28)
     if is_local_player:
         var layer := CanvasLayer.new()
         add_child(layer)
         _panel = PlayerPanel.new()
         layer.add_child(_panel)
     _stars = Node3D.new()
-    _stars.position.y = 1.0
+    _stars.position.y = PaperFigure.HEIGHT - 0.1
     add_child(_stars)
     for index in 3:
         var star := Sprite3D.new()
@@ -81,7 +85,8 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     # Stunned after a bump: stars and a shake, for as long as it lasts.
     _stars.visible = state.stun > 0
     _stars.rotation.y = Time.get_ticks_msec() * 0.008
-    $PlayerModel.rotation.y = sin(Time.get_ticks_msec() * 0.06) * 0.5 if state.stun > 0 else 0.0
+    # A paper figure can't turn: it shakes sideways instead.
+    $PlayerModel.position.x = sin(Time.get_ticks_msec() * 0.06) * 0.06 if state.stun > 0 else 0.0
     var shown := level.positions[state.node]
     if state.is_moving():
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)
@@ -91,15 +96,17 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     var over := state.bmi - level_start_bmi
     var girth := 1.0 + (FAT_WIDTH if over > 0 else THIN_WIDTH) * over
     hungry = state.bmi <= hungry_below
-    $PlayerModel.scale = Vector3(girth, 1.0, girth)
+    _figure.set_girth(girth)
     if state.color != _color:
         _color = state.color
-        _tint(Looks.tint(_color))
+        _figure.set_picture(Looks.character(_color))
     if state.hat != _hat:
         _hat = state.hat
         _wear(Looks.HATS[_hat])
     # Knocked out: lying on the floor.
-    $PlayerModel.rotation.z = PI / 2 if state.down else 0.0
+    _figure.set_lying(state.down)
+    if _helmet:
+        _helmet.visible = _hat == Looks.HATS.find(Looks.BEER_HELMET) and not state.down
     var camera := get_viewport().get_camera_3d()
     if _panel and camera:
         _panel.place(camera.unproject_position(global_position + Vector3.UP * PANEL_HEIGHT))
@@ -117,16 +124,9 @@ func _label(height: float, size: int) -> Label3D:
     return label
 
 
-## The player's colour (GDD §5.5) on their body; the hat keeps its own.
-func _tint(color: Color) -> void:
-    var material := StandardMaterial3D.new()
-    material.albedo_color = color
-    for mesh in $PlayerModel/figurine2.find_children("*", "MeshInstance3D", true, false):
-        (mesh as MeshInstance3D).material_override = material
-
-
+## The cap is drawn on the characters, so "rien" still shows it until the artist draws them
+## without (docs/ART_PLAN.md); the beer helmet goes on top.
 func _wear(hat: StringName) -> void:
-    $"PlayerModel/hat-cap2".visible = hat == Looks.CAP
     if hat == Looks.BEER_HELMET and not _helmet:
         _helmet = _beer_helmet()
         $PlayerModel.add_child(_helmet)
@@ -182,7 +182,7 @@ func show_bump() -> void:
 
 ## A discreet "+Gras" (or "-Gras" as walking burns it off) rising and fading by the head.
 func show_fat_change(gained: bool) -> void:
-    var label := _label(1.1, 30)
+    var label := _label(1.3, 30)
     # To the side, clear of the hint and hand above the head.
     label.position.x = 0.45
     label.text = "+Gras" if gained else "-Gras"
