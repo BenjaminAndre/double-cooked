@@ -14,6 +14,19 @@ const UNDERCOOKED := Color(1.0, 0.85, 0.2)
 const READY := Color(0.25, 0.55, 1.0)
 const TOO_LATE := Color(1.0, 0.25, 0.2)
 
+## The artist's animated sheets.
+const OIL := {"texture": "res://art/textures/FryingOilSheet.png", "columns": 5, "rows": 5}
+const FIRE := {"texture": "res://art/textures/FireSheet.png", "columns": 5, "rows": 3}
+const FLIPBOOK_FPS := 20.0
+const OIL_HEIGHT := 1.05
+const OIL_SIZE := 0.45
+const FIRE_HEIGHT := 1.0
+const FIRE_SIZE := 1.4
+
+## The artist's models on this station (StationModels), if any: the FRIGO's door, the bin's lid
+## and the fryer's baskets are animated. A CUISSON 2 at the fryer's end shares the CUISSON 1's.
+var models: Node3D
+
 ## Station kind: cuisson_1, cuisson_2, sauces, poubelle, soins, caisse, extincteur, boissons,
 ## pain, viandes. Empty means the station does nothing yet.
 @export var kind : StringName = &""
@@ -26,6 +39,10 @@ var _gauge_parts: Array[MeshInstance3D] = []
 ## What the label and the gauge last showed, so they are only rebuilt when it changes.
 var _label_fire := false
 var _gauge_zones := Vector3i.ZERO
+var _was_frying := false
+var _menu_open := false
+## Sheet texture path -> its sprite.
+var _flipbooks := {}
 
 
 ## A pale shell around the station, while a player at this keyboard stands at it.
@@ -62,6 +79,55 @@ func show_station(station: SimStation, rules: SimRules) -> void:
         _show_gauge(window, window.y + rules.fire_margin, station.cook)
     elif _gauge:
         _gauge.visible = false
+    # The basket comes up when the fries (or meat) are lifted out in time.
+    if _was_frying and not frying and not station.burning and models:
+        StationModels.play(models, StationModels.BASKET_EJECT)
+    _was_frying = frying
+    _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
+    _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
+
+
+## The FRIGO's door stays open while a player has its menu open.
+func set_menu_open(open: bool) -> void:
+    if open == _menu_open or not models:
+        return
+    _menu_open = open
+    StationModels.play(models, StationModels.DOOR_OPEN if open else StationModels.DOOR_CLOSE)
+
+
+## Something thrown in the POUBELLE: its lid opens and closes.
+func pulse() -> void:
+    if models:
+        StationModels.play(models, Vector2(StationModels.DOOR_OPEN.x, StationModels.DOOR_CLOSE.y))
+
+
+## An animated sheet over the station (docs/art/Readme_Settings.txt): the oil bubbling while
+## something fries, the fire. Built on first use.
+func _show_flipbook(sheet: Dictionary, on: bool, height: float, size: float) -> void:
+    var sprite: Sprite3D = _flipbooks.get(sheet.texture)
+    if not on:
+        if sprite:
+            sprite.visible = false
+        return
+    if not sprite:
+        sprite = Sprite3D.new()
+        sprite.texture = load(sheet.texture)
+        sprite.hframes = sheet.columns
+        sprite.vframes = sheet.rows
+        sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+        sprite.pixel_size = size / (sprite.texture.get_width() / sheet.columns)
+        sprite.position = Vector3(_flipbook_x(), height, 0)
+        add_child(sprite)
+        _flipbooks[sheet.texture] = sprite
+    sprite.visible = true
+    sprite.frame = int(Time.get_ticks_msec() / 1000.0 * FLIPBOOK_FPS) % (sheet.columns * sheet.rows)
+
+
+## Over the middle of the station's cells, as its box is.
+func _flipbook_x() -> float:
+    var box := get_node_or_null("CSGBox3D") as CSGBox3D
+    return box.position.x if box else 0.0
 
 
 ## Only what changed is written: rebuilding a Label3D or a mesh every frame is what made fires

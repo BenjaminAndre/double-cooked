@@ -548,6 +548,7 @@ func _interact(player: SimPlayer) -> void:
                 events.append({"type": &"start_night", "by": player.slot})
         &"poubelle":
             player.item = null
+            events.append({"type": &"trashed", "station": index})
         &"caisse":
             if crowd.serve(held, player.slot, events):
                 player.item = null

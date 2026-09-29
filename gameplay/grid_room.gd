@@ -58,6 +58,8 @@ const CAMERA_FOV := 35.0
 @export var names := PackedStringArray()
 ## Kenney floor tiles under each cell (the kitchen has the artist's floor instead).
 @export var floor_tiles := true
+## The artist's models on the stations that have one (StationModels), instead of plain boxes.
+@export var dressed := false
 ## How far station boxes stand from their cell, behind the top row and in front of the bottom one.
 @export var back_offset := 0.8
 @export var front_offset := 0.8
@@ -65,6 +67,9 @@ const CAMERA_FOV := 35.0
 @export var camera_distance := 10.0
 ## -1 or 1: which front corner the camera looks from.
 @export var camera_side := 1.0
+## How far the camera turns from straight in front of the grid, in degrees (45: both axes
+## symmetric).
+@export var camera_yaw := 45.0
 ## Where the camera looks, from the grid's centre (in the room's own axes), e.g. to take in
 ## the line of customers outside.
 @export var camera_target := Vector3.ZERO
@@ -72,6 +77,8 @@ const CAMERA_FOV := 35.0
 var camera: Camera3D
 var _anchors: Node3D
 var _spawns: Array[String] = []
+## Columns and rows of the grid.
+var _size := Vector2i.ONE
 
 
 ## The parent of the room's Anchors, built on first use (Night reads it in its own _ready).
@@ -100,6 +107,8 @@ func _build() -> void:
         var cell_names := names[row].split(" ", false) if row < names.size() else PackedStringArray()
         var line := []
         var previous: Interactible = null
+        # [station, cells it covers, kind of the station on its left], in reading order.
+        var row_stations := []
         for column in cells.size():
             var cell := cells[column]
             var anchor: Anchor = ANCHOR_SCENE.instantiate()
@@ -117,18 +126,25 @@ func _build() -> void:
             if cell == "+" and previous:
                 _widen(previous)
                 anchor.interactible = previous
+                row_stations[-1][1] += 1
             elif cell != "." and cell != "":
                 var side := 0.0
                 if row == 0:
                     side = back_offset
                 elif row == layout.size() - 1:
                     side = -front_offset
+                var left_kind: StringName = previous.kind if previous else &""
                 previous = _station(stations, StringName(cell), anchor.position, side)
                 anchor.interactible = previous
+                row_stations.append([previous, 1, left_kind, row])
             else:
                 previous = null
             line.append(anchor)
         grid.append(line)
+        if dressed:
+            for index in row_stations.size():
+                var next_kind: StringName = row_stations[index + 1][0].kind if index + 1 < row_stations.size() else &""
+                _dress(row_stations[index], next_kind, row_stations[index - 1][0] if index > 0 else null)
     for row in grid.size():
         for column in grid[row].size():
             var anchor: Anchor = grid[row][column]
@@ -140,16 +156,21 @@ func _build() -> void:
                 anchor.left = grid[row][column - 1]
             if column + 1 < grid[row].size():
                 anchor.right = grid[row][column + 1]
+    _size = Vector2i(grid[0].size() if not grid.is_empty() else 1, grid.size())
     camera = Camera3D.new()
     camera.fov = CAMERA_FOV
-    var width: int = grid[0].size() if not grid.is_empty() else 1
-    var centre := Vector3(-(width - 1) / 2.0, 0, -(grid.size() - 1) / 2.0) * SPACING + camera_target
-    # From the front (-z), on one side, turned 45°.
+    add_child(camera)
+    place_camera()
+
+
+## Puts the camera where the camera_* settings say, e.g. again after changing them.
+func place_camera() -> void:
+    var centre := Vector3(-(_size.x - 1) / 2.0, 0, -(_size.y - 1) / 2.0) * SPACING + camera_target
+    # From the front (-z), turned camera_yaw towards camera_side, looking down camera_pitch.
     var pitch := deg_to_rad(camera_pitch)
-    var flat := Vector3(camera_side, 0, -1).normalized() * cos(pitch)
+    var flat := Vector3(0, 0, -1).rotated(Vector3.UP, -camera_side * deg_to_rad(camera_yaw)) * cos(pitch)
     var eye := centre + (flat + Vector3.UP * sin(pitch)) * camera_distance
     camera.transform = Transform3D.IDENTITY.looking_at(centre - eye, Vector3.UP).translated(eye)
-    add_child(camera)
 
 
 ## offset: how far the box stands from its cell, + behind (top row), - in front (bottom row),
@@ -193,3 +214,26 @@ func _widen(station: Interactible) -> void:
     box.position.x -= SPACING / 2
     var label: Label3D = station.get_node("Label")
     label.position.x -= SPACING / 2
+
+
+## Swaps a station's box for the artist's models, facing its cells. info: [station, cells,
+## kind on its left, row]. The fryer drawn for CUISSON 1 also covers the CUISSON 2 after it.
+func _dress(info: Array, next_kind: StringName, left: Interactible) -> void:
+    var station: Interactible = info[0]
+    var cells: int = info[1]
+    var fryer_end: bool = station.kind == &"cuisson_2" and info[2] == &"cuisson_1"
+    var span := cells + (1 if station.kind == &"cuisson_1" and next_kind == &"cuisson_2" else 0)
+    var models := StationModels.build(station.kind, span, fryer_end)
+    if not models and not fryer_end:
+        return
+    var box: CSGBox3D = station.get_node("CSGBox3D")
+    box.visible = false
+    if not models:
+        # The fryer end: its baskets are the CUISSON 1's.
+        station.models = left.models if left else null
+        return
+    # Models face +x: towards -z (the cells) behind the top row, +z in front of the bottom one.
+    models.rotation.y = PI / 2 if info[3] == 0 else -PI / 2
+    models.position.x = -(span - 1) / 2.0 * SPACING
+    station.add_child(models)
+    station.models = models

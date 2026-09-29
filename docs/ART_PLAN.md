@@ -5,7 +5,7 @@ The artist's first delivery (models, textures, UI, logo, font, concept boards) r
 ## Decisions
 
 - **Hosting.** The assets are committed under `art/` (reference pictures in `docs/art/`, which Godot ignores) with a `CREDITS.md` (author, licence, mention of AI use). The artist agreed on 2026-09-29. The repo is private, so **real brands are accepted** (Coca-Cola, Jupiler, AC/DC). Caveat: a GitHub Pages site stays public, so the web build shows them to anyone with the link, and Pages from a private repo needs a paid GitHub plan.
-- **Camera.** The artist's 3/4 isometric view. The arrows stay aligned with the grid: "up" goes towards the back, on a diagonal on screen. The camera turns 45° so that both grid axes are symmetric diagonals.
+- **Camera.** A 3/4 view like the artist's: 40° down, turned 59°. The arrows stay aligned with the grid: "up" goes towards the back, on a diagonal on screen. Characters face the camera square on (full billboards), and the room is drawn behind everything (`Backdrop`) so they never clip into it.
 - **Characters are paper cut-outs**: Sprite3D billboards that turn around the vertical axis only, so they stay upright. The 3D figurines were placeholders.
   - `MainCharacter01`–`04` are the players. **PEINTURE chooses one of the four characters** (blue, red, green or yellow T-shirt), unique in the team. `Looks.COLORS` shrinks to these four, and the colour still stands for the player everywhere.
   - `Character01`–`05` are the customers, picked from the customer id so every peer sees the same one.

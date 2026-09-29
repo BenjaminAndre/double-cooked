@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bolij82abbnan"]
+[gd_scene load_steps=13 format=3 uid="uid://bolij82abbnan"]
 
 [ext_resource type="Script" path="res://gameplay/night.gd" id="6_night"]
 [ext_resource type="Script" path="res://network/night_link.gd" id="7_link"]
@@ -9,10 +9,11 @@
 [ext_resource type="Script" path="res://gameplay/grid_room.gd" id="13_room"]
 [ext_resource type="Script" path="res://gameplay/unlit_art.gd" id="14_unlit"]
 [ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Room01.fbx" id="15_room01"]
+[ext_resource type="Script" path="res://gameplay/backdrop.gd" id="16_backdrop"]
 
 [sub_resource type="Environment" id="Environment_sky"]
-background_mode = 1
-background_color = Color(0.8627451, 0.9647059, 1, 1)
+background_mode = 3
+background_canvas_max_layer = -1
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.6
@@ -31,15 +32,23 @@ script = ExtResource("14_unlit")
 [node name="Room01" parent="Restaurant" instance=ExtResource("15_room01")]
 
 [node name="Kitchen" type="Node3D" parent="Restaurant"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2, 0, 1.1)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.5, 0, 1.1)
 script = ExtResource("13_room")
 layout = PackedStringArray("frigo@ cuisson_1 + cuisson_2 cuisson_2 pain@", "extincteur@ sauces caisse viandes + poubelle@")
 names = PackedStringArray("Anchor Anchor2 Anchor3 Anchor4 Anchor5 Anchor6", "Anchor8 Anchor9 Anchor10 Anchor11 Anchor12 Anchor13")
 floor_tiles = false
-back_offset = 1.4
-front_offset = 1.5
+dressed = true
+back_offset = 0.9
+front_offset = 0.9
+camera_pitch = 40.0
 camera_distance = 11.5
+camera_yaw = 59.0
 camera_target = Vector3(-0.3, 0, -1)
+
+[node name="Backdrop" type="Node" parent="." node_paths=PackedStringArray("room")]
+process_priority = 10
+script = ExtResource("16_backdrop")
+room = NodePath("../Restaurant/Room01")
 
 [node name="Players" type="Node3D" parent="."]
 
@@ -47,7 +56,9 @@ camera_target = Vector3(-0.3, 0, -1)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
 script = ExtResource("13_room")
 layout = PackedStringArray("peinture casquette telephone . porte", "@ @ @ @ .", "pret pret pret pret .")
+camera_pitch = 40.0
 camera_distance = 11.0
+camera_yaw = 59.0
 camera_target = Vector3(-0.2, 0.4, 0.3)
 
 [node name="Night" type="Node" parent="." node_paths=PackedStringArray("kitchen_room", "players_parent", "queue", "lobby_room")]
@@ -65,12 +76,12 @@ script = ExtResource("8_lobby")
 night = NodePath("../Night")
 
 [node name="Customers" type="Node3D" parent="." node_paths=PackedStringArray("night")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, -0.9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, -0.9)
 script = ExtResource("9_customers")
 night = NodePath("../Night")
-line_step = Vector3(0, 0, 0.55)
-entrance = Vector3(0, 0, 6)
-exit = Vector3(0, 0, -4)
+line_step = Vector3(0, 0, 0.45)
+entrance = Vector3(1.5, 0, 0.1)
+exit = Vector3(1.6, 0, 0.2)
 
 [node name="Hud" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
 script = ExtResource("10_hud")

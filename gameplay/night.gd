@@ -322,6 +322,8 @@ func _step() -> bool:
             _views[event.slot].show_fat_change(true)
         elif event.type == &"thinner":
             _views[event.slot].show_fat_change(false)
+        elif event.type == &"trashed":
+            _station_views[event.station].pulse()
         elif event.type == &"boss_arrived":
             notice.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:
@@ -468,9 +470,13 @@ func _show(p_alpha: float) -> void:
                     disabled.append(index)
                 options.append(word)
         _views[slot].show_menu(options, player.menu_choice, disabled)
+    var open_menus := {}
+    for player in simulation.players:
+        open_menus[player.menu] = true
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
         _station_views[index].set_highlighted(highlighted.has(index))
+        _station_views[index].set_menu_open(open_menus.has(index))
 
 
 func _no_commands() -> Array:

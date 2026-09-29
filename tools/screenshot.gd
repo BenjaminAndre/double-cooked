@@ -31,6 +31,19 @@ func _initialize() -> void:
     # The game opens in the lobby; the other setups are in the kitchen.
     if not setup.begins_with("lobby"):
         night.play_local(1)
+    if setup.begins_with("view_"):
+        # view_<pitch>_<yaw>[_<distance>]: tries another camera on the kitchen, e.g. view_40_31.
+        var parts := setup.split("_")
+        var room: GridRoom = game.get_node("Restaurant/Kitchen")
+        room.camera_pitch = float(parts[1])
+        room.camera_yaw = float(parts[2])
+        if parts.size() > 3:
+            room.camera_distance = float(parts[3])
+        room.place_camera()
+        night.play_local(2)
+        night.simulation.rules.arrival_min = 15
+        night.simulation.rules.arrival_max = 15
+        night.simulation.crowd.next_arrival = 1
     match setup:
         "lobby":
             # Two players: one choosing a colour, the other at the hat stand in a beer helmet.
