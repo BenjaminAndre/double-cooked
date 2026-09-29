@@ -6,7 +6,7 @@ const GAME_SCENE := preload("res://game.tscn")
 
 func test_reads_every_anchor_with_its_links_and_stations() -> void:
     var game := GAME_SCENE.instantiate()
-    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    var level := LevelReader.read(game.get_node("Restaurant/Kitchen").anchors_root())
     assert_eq(level.positions.size(), 12)
     var spawn := level.find("Anchor")
     assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Anchor2"))
@@ -23,7 +23,9 @@ func test_reads_every_anchor_with_its_links_and_stations() -> void:
 ## the arrow keys always mean the same direction.
 func test_the_kitchen_is_a_regular_grid() -> void:
     var game := GAME_SCENE.instantiate()
-    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    var kitchen: GridRoom = game.get_node("Restaurant/Kitchen")
+    var level := LevelReader.read(kitchen.anchors_root())
+    var turn := kitchen.transform.basis
     game.free()
     var opposite := {SimLevel.Direction.UP: SimLevel.Direction.DOWN, SimLevel.Direction.DOWN: SimLevel.Direction.UP,
             SimLevel.Direction.LEFT: SimLevel.Direction.RIGHT, SimLevel.Direction.RIGHT: SimLevel.Direction.LEFT}
@@ -34,7 +36,7 @@ func test_the_kitchen_is_a_regular_grid() -> void:
             var other := level.neighbour(node, direction)
             if other == SimLevel.NONE:
                 continue
-            assert_eq(level.positions[other] - level.positions[node], step[direction],
+            assert_almost_eq(level.positions[other] - level.positions[node], turn * step[direction], Vector3.ONE * 0.001,
                     "%s -> %s" % [level.names[node], level.names[other]])
             assert_eq(level.neighbour(other, opposite[direction]), node, "and back")
 
@@ -46,12 +48,12 @@ func test_the_game_scene_opens_in_the_lobby_then_plays_a_night_in_duo() -> void:
     assert_true(night.in_lobby)
     assert_true(night.simulation.rules.lobby)
     assert_eq(night.simulation.players.size(), 1)
-    assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 1)
+    assert_eq(game.get_node("Players").get_children().filter(func(n): return n is Player).size(), 1)
     night.play_local(2)
     await wait_process_frames(2)
     assert_false(night.in_lobby)
     assert_eq(night.simulation.players.size(), 2)
-    assert_eq(game.get_node("DemoLevel").get_children().filter(func(n): return n is Player).size(), 2)
+    assert_eq(game.get_node("Players").get_children().filter(func(n): return n is Player).size(), 2)
 
 
 func test_the_clock_runs_from_18_00_to_04_00() -> void:
@@ -82,7 +84,7 @@ func test_enter_goes_back_to_the_lobby_once_the_night_is_over() -> void:
 ## The whole slice on the real kitchen: fry a batch, finish a portion, sauce, serve the first customer.
 func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
     var game := GAME_SCENE.instantiate()
-    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    var level := LevelReader.read(game.get_node("Restaurant/Kitchen").anchors_root())
     game.free()
     const C := Simulation.Command
     var lift := 10 + Fryer.FIRST_FRY_MIN
@@ -115,7 +117,7 @@ func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
 ## Knocked out alone, a player crawls to the FRIGO, takes a beer and drinks it to get up.
 func test_knocked_out_alone_a_player_crawls_to_the_fridge_and_drinks() -> void:
     var game := GAME_SCENE.instantiate()
-    var level := LevelReader.read(game.get_node("DemoLevel/Anchors"))
+    var level := LevelReader.read(game.get_node("Restaurant/Kitchen").anchors_root())
     game.free()
     const C := Simulation.Command
     var scenario := Scenario.new(level, [level.find("Anchor2")], 1)

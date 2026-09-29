@@ -7,9 +7,6 @@ extends Node3D
 const MODEL := preload("res://assets/kenney_prototype-kit/Models/GLB format/figurine-cube.glb")
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
-## Where customers come from and go to, relative to the front of the line.
-const ENTRANCE := Vector3(-6, 0, 0)
-const EXIT := Vector3(2.5, 0, -1)
 ## The camera is close to the line, so customers are drawn smaller than the players.
 const FIGURE_SCALE := 0.6
 ## Tickets are drawn on screen under their customer (clear of the counter), and pushed apart so
@@ -28,6 +25,9 @@ const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)
 
 @export var night: Night
 @export var line_step := Vector3(-0.45, 0, 0)
+## Where customers come from and go to, relative to the front of the line.
+@export var entrance := Vector3(-6, 0, 0)
+@export var exit := Vector3(2.5, 0, -1)
 
 ## Customer id -> its figure.
 var _figures := {}
@@ -61,8 +61,8 @@ func _process(delta: float) -> void:
             _leaving.append(_figures[id])
             _figures.erase(id)
     for figure in _leaving.duplicate():
-        figure.position = figure.position.move_toward(EXIT, 3.0 * delta)
-        if figure.position.is_equal_approx(EXIT):
+        figure.position = figure.position.move_toward(exit, 3.0 * delta)
+        if figure.position.is_equal_approx(exit):
             _leaving.erase(figure)
             figure.queue_free()
     _show_tickets(crowd)
@@ -184,7 +184,7 @@ func _new_ticket() -> PanelContainer:
 
 func _new_figure(boss: bool) -> Node3D:
     var figure: Node3D = MODEL.instantiate()
-    figure.position = ENTRANCE
+    figure.position = entrance
     # Customers face the counter.
     figure.rotation.y = PI
     figure.scale = Vector3.ONE * FIGURE_SCALE * (BOSS_SCALE if boss else 1.0)

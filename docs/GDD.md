@@ -51,7 +51,8 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ### 5.2 Movement
 - Players move from node to node with the arrow keys, and moves can be queued (already implemented: `Anchor` graph, `future_path`).
 - A node holds one player at a time.
-- The kitchen is a **regular square grid** (6 × 2 in the demo): every node is one unit from its neighbours, the arrows always mean the same direction, and a pale tile marks each walkable square (fifth playtest: the irregular nodes around the CAISSE were confusing). The CAISSE sits in the bottom row like the other counters.
+- The kitchen is a **regular square grid** (6 × 2 in the demo): every node is one metre from its neighbours and the arrows always mean the same direction (fifth playtest: the irregular nodes around the CAISSE were confusing). The CAISSE sits in the bottom row like the other counters. It is built from a layout (`GridRoom`) inside the artist's room: the checkered floor shows the grid (2 × 2 tiles per node), the back row against the back wall, the CAISSE row on the street side, the customers queueing outside on the pavement.
+- **The camera is the artist's 3/4 view**, turned 45° so both grid axes are symmetric diagonals on screen. The arrows keep following the grid: "up" goes towards the back of the kitchen, on a diagonal.
 
 ### 5.3 Collisions (knocking)
 - Knocking happens **through collisions only**, with no dedicated key.

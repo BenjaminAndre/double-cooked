@@ -29,10 +29,8 @@ signal notice(text: String)
 ## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
 signal phone_used(choice: StringName)
 
-## Parent of the level's Anchor nodes.
-@export var anchors_root: Node3D
-## Where each player slot starts; also the maximum player count.
-@export var spawns: Array[Anchor] = []
+## The kitchen the nights are played in; its spawns are also the maximum player count.
+@export var kitchen_room: GridRoom
 @export var players_parent: Node3D
 ## 0 picks a new random seed for each night.
 @export var night_seed := 0
@@ -40,7 +38,6 @@ signal phone_used(choice: StringName)
 @export var queue: CustomersView
 ## The waiting room players meet in before a night (GDD §4.1).
 @export var lobby_room: GridRoom
-@export var kitchen_camera: Camera3D
 ## Where each player's saved looks are kept, "" not to keep them (tests).
 @export var looks_path := "user://looks.cfg"
 
@@ -171,7 +168,7 @@ func _current_looks() -> PackedInt32Array:
 
 
 func _max_players(lobby: bool) -> int:
-    return lobby_room.spawn_names().size() if lobby and lobby_room else spawns.size()
+    return lobby_room.spawn_names().size() if lobby and lobby_room else kitchen_room.spawn_names().size()
 
 
 ## Queues a command from a player at this keyboard, as if their key was pressed.
@@ -346,18 +343,14 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     for view in _views:
         view.queue_free()
     _views.clear()
-    var root := lobby_room.anchors_root() if in_lobby else anchors_root
+    var room := lobby_room if in_lobby else kitchen_room
+    var root := room.anchors_root()
     var level := LevelReader.read(root)
     if queue and not in_lobby:
         level.queue_front = queue.global_position
         level.queue_step = queue.line_step
     _station_views = LevelReader.stations(root)
-    var spawn_names := []
-    if in_lobby:
-        spawn_names = lobby_room.spawn_names().slice(0, player_count)
-    else:
-        for slot in player_count:
-            spawn_names.append(String(spawns[slot].name))
+    var spawn_names := room.spawn_names().slice(0, player_count)
     var spawn_nodes := PackedInt32Array()
     for spawn_name: String in spawn_names:
         spawn_nodes.append(level.find(spawn_name))
@@ -365,10 +358,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     rules.lobby = in_lobby
     simulation = Simulation.new(level, spawn_nodes, seed_value, rules)
     _apply_looks(looks)
-    if lobby_room:
-        lobby_room.camera.current = in_lobby
-    if kitchen_camera:
-        kitchen_camera.current = not in_lobby
+    room.camera.current = true
     _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
             "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby}
     _log.clear()
