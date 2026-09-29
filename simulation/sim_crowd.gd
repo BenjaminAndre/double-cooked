@@ -101,7 +101,7 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     line.pop_front()
     if Menu.order_key(item) == customer.order and Menu.done_right(item):
         change_mood(rules.mood_served)
-        events.append({"type": &"served"})
+        events.append({"type": &"served", "by": by})
     else:
         _leave_angry(0, by, events)
     return true
@@ -117,14 +117,14 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     elif customer.order == Menu.BEER:
         line.remove_at(index)
         change_mood(rules.mood_served)
-        events.append({"type": &"served"})
+        events.append({"type": &"served", "by": by})
     elif customer.gifted:
         line.remove_at(index)
         _leave_angry(index, by, events)
     else:
         customer.gifted = true
         customer.patience = mini(customer.patience + rules.beer_patience, rules.patience)
-        events.append({"type": &"beer_gift", "index": index})
+        events.append({"type": &"beer_gift", "index": index, "by": by})
 
 
 func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:
@@ -156,7 +156,7 @@ func _boss_arrives(rng: RandomNumberGenerator, events: Array[Dictionary]) -> voi
     _next_id += 1
     boss.boss = true
     for index in rules.boss_orders:
-        boss.orders.append(Menu.random_order(rng, rules.order_categories, true))
+        boss.orders.append(Menu.random_order(rng, rules.order_categories, rules.menu, true))
         boss.results.append(Result.WAITING)
     boss.order = boss.orders[0]
     boss.patience = boss_patience()
@@ -178,8 +178,10 @@ func _advance_boss(boss: Customer, rng: RandomNumberGenerator, events: Array[Dic
             _boss_thirsty(boss, events)
     else:
         boss.drink_again -= 1
-        if boss.drink_again <= 0:
-            boss.drink = Menu.DRINKS[rng.randi_range(0, Menu.DRINKS.size() - 1)]
+        var drinks := Menu.options(&"frigo", rules.menu)
+        # No drink on the menu yet: no drink ticket.
+        if boss.drink_again <= 0 and not drinks.is_empty():
+            boss.drink = drinks[rng.randi_range(0, drinks.size() - 1)]
             boss.drink_patience = rules.boss_drink_patience
     boss.next_can -= 1
     if boss.next_can <= 0:
@@ -246,7 +248,7 @@ func _new_customer(rng: RandomNumberGenerator) -> Customer:
     customer.id = _next_id
     _next_id += 1
     customer.patience = rules.patience
-    customer.order = Menu.random_order(rng, rules.order_categories)
+    customer.order = Menu.random_order(rng, rules.order_categories, rules.menu)
     return customer
 
 
@@ -255,4 +257,6 @@ func _arrival_delay(tick: int, player_count: int, rng: RandomNumberGenerator) ->
     # One player: as is. Each extra player shortens the wait (2 players: x2/3, 4: x2/5).
     delay *= 2.0 / (player_count + 1)
     delay *= lerpf(rules.calm_arrival_factor, rules.mad_arrival_factor, rules.intensity(tick))
+    # Each night of a campaign is a little busier than the last.
+    delay /= 1.0 + rules.busier_per_night * maxi(rules.night_number - 1, 0)
     return maxi(1, roundi(delay))

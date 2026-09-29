@@ -197,7 +197,8 @@ func _apply(player: SimPlayer, command: int) -> void:
 ## Returns whether the command was used by the menu.
 func _use_menu(player: SimPlayer, command: int) -> bool:
     var kind := stations[player.menu].kind
-    var options: Array = Menu.STATION_OPTIONS[kind]
+    # Only what tonight's menu needs (Menu.options).
+    var options: Array = Menu.options(kind, rules.menu)
     match command:
         Command.MOVE_UP, Command.MOVE_DOWN, Command.MOVE_LEFT, Command.MOVE_RIGHT:
             var step: Vector2i = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT][command]
@@ -220,6 +221,9 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
                     _set_look(player, player.color, Looks.HATS.find(option))
                 &"telephone":
                     events.append({"type": &"phone", "choice": option, "slot": player.slot})
+                &"porte":
+                    events.append({"type": &"start_night", "by": player.slot,
+                            "campaign": option == Menu.DOOR_CAMPAIGN})
                 &"sauces":
                     player.item.sauce = option
                 &"frigo":
@@ -555,6 +559,8 @@ func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
             return &"hat"
         &"telephone":
             return &"phone"
+        &"porte":
+            return &"open" if player.slot == 0 and others_ready(player) else &""
     return &""
 
 
@@ -581,8 +587,10 @@ func _interact(player: SimPlayer) -> void:
             player.menu = index
             player.menu_choice = 0
         &"porte":
+            # A campaign or a single night: its menu decides.
             if action == &"open":
-                events.append({"type": &"start_night", "by": player.slot})
+                player.menu = index
+                player.menu_choice = 0
         &"poubelle":
             player.item = null
             events.append({"type": &"trashed", "station": index})

@@ -11,6 +11,12 @@ var night_ticks := 350 * SECOND
 ## The lobby (GDD §4.1): the same rules for walking and station menus, but no customers,
 ## no clock, no hunger and no end.
 var lobby := false
+## Which night of a campaign this is (GDD §4.2), 0 for a single night. Each night after the
+## first brings customers busier_per_night faster.
+var night_number := 0
+var busier_per_night := 0.05
+## What customers can order tonight (Menu.FULL_MENU for a single night): dishes, sauces, drinks.
+var menu: Array[StringName] = Menu.FULL_MENU.duplicate()
 ## The night's intensity, from 0 (calm) to 1 (mad), follows the clock: calm until calm_until
 ## (20:00), then rising steadily to its peak at mad_from (04:00) (GDD §4). Fractions of the night.
 var calm_until := 0.2
