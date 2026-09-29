@@ -74,9 +74,10 @@ func _ready() -> void:
     _announce_text.add_theme_color_override("font_color", ArtUi.INK)
     _announce_text.remove_theme_constant_override("outline_size")
     _logo = ArtUi.picture(load("res://art/logo/Logo.png"), 0)
-    _logo.custom_minimum_size = Vector2(420, 260)
-    _logo.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 8)
-    _logo.grow_horizontal = Control.GROW_DIRECTION_BOTH
+    # In the corner, clear of the stations.
+    _logo.custom_minimum_size = Vector2(300, 186)
+    _logo.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
+    _logo.grow_horizontal = Control.GROW_DIRECTION_BEGIN
     _logo.visible = false
     add_child(_logo)
     _banner = ArtUi.panel(ArtUi.notebook())

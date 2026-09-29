@@ -142,9 +142,7 @@ func _build() -> void:
             line.append(anchor)
         grid.append(line)
         if dressed:
-            for index in row_stations.size():
-                var next_kind: StringName = row_stations[index + 1][0].kind if index + 1 < row_stations.size() else &""
-                _dress(row_stations[index], next_kind, row_stations[index - 1][0] if index > 0 else null)
+            _dress_row(row_stations, row)
     for row in grid.size():
         for column in grid[row].size():
             var anchor: Anchor = grid[row][column]
@@ -216,24 +214,56 @@ func _widen(station: Interactible) -> void:
     label.position.x -= SPACING / 2
 
 
-## Swaps a station's box for the artist's models, facing its cells. info: [station, cells,
-## kind on its left, row]. The fryer drawn for CUISSON 1 also covers the CUISSON 2 after it.
-func _dress(info: Array, next_kind: StringName, left: Interactible) -> void:
-    var station: Interactible = info[0]
-    var cells: int = info[1]
-    var fryer_end: bool = station.kind == &"cuisson_2" and info[2] == &"cuisson_1"
-    var span := cells + (1 if station.kind == &"cuisson_1" and next_kind == &"cuisson_2" else 0)
-    var models := StationModels.build(station.kind, span, fryer_end)
-    if not models and not fryer_end:
-        return
+## Swaps the stations' boxes in a row for the artist's models, facing their cells. infos:
+## [station, cells, kind on its left, row] in reading order. A CUISSON 1's fryer also covers
+## the CUISSON 2 right after it, one basket each.
+func _dress_row(infos: Array, row: int) -> void:
+    var index := 0
+    while index < infos.size():
+        var station: Interactible = infos[index][0]
+        var cells: int = infos[index][1]
+        var covered: Array[Interactible] = []
+        if station.kind == &"cuisson_1":
+            var next := index + 1
+            while next < infos.size() and infos[next][0].kind == &"cuisson_2" and infos[next][1] == 1:
+                covered.append(infos[next][0])
+                next += 1
+        index += 1 + covered.size()
+        var span := cells + covered.size()
+        # The model's length runs along the station's x, one way behind the top row and the
+        # other in front of the bottom one.
+        var side := 1.0 if row == 0 else -1.0
+        var cell_z: Array[float] = []
+        for cell in span:
+            cell_z.append(side * ((span - 1) / 2.0 - cell) * SPACING)
+        var models := StationModels.build(station.kind, cells, cell_z)
+        if not models:
+            continue
+        # Models face +x: towards -z (the cells) behind the top row, +z in front of the bottom one.
+        models.rotation.y = PI / 2 if row == 0 else -PI / 2
+        models.position.x = -(span - 1) / 2.0 * SPACING
+        station.add_child(models)
+        station.models = models
+        var baskets: Array = models.get_meta(StationModels.BASKETS, [])
+        if station.kind == &"cuisson_2" and not baskets.is_empty():
+            station.basket_model = baskets[0]
+        station.cooked_models = models.get_meta(StationModels.COOKED, [])
+        _fit_box(station)
+        for covered_index in covered.size():
+            var end := covered[covered_index]
+            end.models = models
+            end.basket_model = baskets[covered_index] if covered_index < baskets.size() else null
+            _fit_box(end)
+
+
+## The station's hidden box takes its model's height and depth, so the highlight and the labels
+## fit it. Only the fryers keep their name: CUISSON 1 and 2 look alike.
+func _fit_box(station: Interactible) -> void:
     var box: CSGBox3D = station.get_node("CSGBox3D")
     box.visible = false
-    if not models:
-        # The fryer end: its baskets are the CUISSON 1's.
-        station.models = left.models if left else null
-        return
-    # Models face +x: towards -z (the cells) behind the top row, +z in front of the bottom one.
-    models.rotation.y = PI / 2 if info[3] == 0 else -PI / 2
-    models.position.x = -(span - 1) / 2.0 * SPACING
-    station.add_child(models)
-    station.models = models
+    var height := StationModels.height(station.kind)
+    box.size = Vector3(box.size.x, height, StationModels.DEPTH)
+    box.position.y = height / 2
+    var label: Label3D = station.get_node("Label")
+    label.visible = station.kind in [&"cuisson_1", &"cuisson_2"]
+    label.position.y = height + 0.3

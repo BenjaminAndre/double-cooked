@@ -1,21 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://dabulh3sf8ldc"]
+[gd_scene load_steps=2 format=3 uid="uid://dabulh3sf8ldc"]
 
 [ext_resource type="Script" uid="uid://1ohc6nui7y0i" path="res://gameplay/player.gd" id="1_ysoui"]
-[ext_resource type="Script" uid="uid://bd2g8fgw1310o" path="res://gameplay/player_ui.gd" id="4_wfdkp"]
 
 [node name="Player" type="Node3D"]
 script = ExtResource("1_ysoui")
 
 [node name="PlayerModel" type="Node3D" parent="."]
-
-[node name="PlayerUI" type="Node3D" parent="." node_paths=PackedStringArray("player")]
-script = ExtResource("4_wfdkp")
-player = NodePath("..")
-
-[node name="Hearts" type="Node3D" parent="PlayerUI"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.78, 0)
-
-[node name="Pseudo" type="Label3D" parent="PlayerUI"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
-billboard = 1
-text = "DEMOTEXT"

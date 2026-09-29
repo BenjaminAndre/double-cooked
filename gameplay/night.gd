@@ -480,7 +480,7 @@ func _show(p_alpha: float) -> void:
                 elif option == Menu.PHONE_LEAVE and role == Role.OFFLINE:
                     disabled.append(index)
                 options.append(word)
-        var menu_at: Vector3 = _station_views[player.menu].global_position if player.menu != SimLevel.NONE else Vector3.ZERO
+        var menu_at: Vector3 = _station_views[player.menu].centre() if player.menu != SimLevel.NONE else Vector3.ZERO
         _views[slot].show_menu(options, player.menu_choice, disabled, menu_at, interact_key)
     var open_menus := {}
     for player in simulation.players:

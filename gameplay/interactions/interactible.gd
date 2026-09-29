@@ -23,10 +23,15 @@ const OIL_SIZE := 0.45
 const FIRE_HEIGHT := 1.0
 const FIRE_SIZE := 1.4
 const ALERT_HEIGHT := 1.65
+## How high a basket rises when lifted.
+const BASKET_LIFT := 0.3
 
 ## The artist's models on this station (StationModels), if any: the FRIGO's door, the bin's lid
 ## and the fryer's baskets are animated. A CUISSON 2 at the fryer's end shares the CUISSON 1's.
 var models: Node3D
+## Its own basket on the fryer (CUISSON 2), and the cooked fries on the fryer (CUISSON 1).
+var basket_model: Node3D
+var cooked_models: Array = []
 
 ## Station kind: cuisson_1, cuisson_2, sauces, poubelle, soins, caisse, extincteur, boissons,
 ## pain, viandes. Empty means the station does nothing yet.
@@ -81,10 +86,14 @@ func show_station(station: SimStation, rules: SimRules) -> void:
         _show_gauge(window, window.y + rules.fire_margin, station.cook)
     elif _gauge:
         _gauge.visible = false
-    # The basket comes up when the fries (or meat) are lifted out in time.
-    if _was_frying and not frying and not station.burning and models:
-        StationModels.play(models, StationModels.BASKET_EJECT)
+    # This station's basket comes up when what fries in it is lifted out.
+    if _was_frying and not frying and not station.burning and basket_model:
+        _lift_basket()
     _was_frying = frying
+    # CUISSON 1: the cooked fries show while a batch waits to be taken.
+    var batch_waiting := station.basket != null and not station.frying and not station.burning
+    for fries: Node3D in cooked_models:
+        fries.visible = batch_waiting
     _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
     # The siren: about to catch fire, past the ready zone.
@@ -159,6 +168,10 @@ func _show_label(text: String, fire: bool) -> void:
         # Just above the station's box, however tall it is.
         var box := get_node_or_null("CSGBox3D") as CSGBox3D
         var top := box.position.y + box.size.y / 2 + 0.3 if box else LABEL_HEIGHT
+        # Above the station's name, when it shows one.
+        var name_label := get_node_or_null("Label") as Label3D
+        if name_label and name_label.visible:
+            top = name_label.position.y + 0.35
         _state_label.position = Vector3(0, maxf(top, LABEL_HEIGHT), 0)
         _state_label.outline_size = 10
         _state_label.font_size = 40
@@ -225,3 +238,19 @@ func _flat_material(color: Color) -> StandardMaterial3D:
         material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
     material.albedo_color = color
     return material
+
+
+## The basket rises out of the oil and drops back.
+func _lift_basket() -> void:
+    var rest: float = basket_model.get_meta(&"rest_y", basket_model.position.y)
+    basket_model.set_meta(&"rest_y", rest)
+    var tween := basket_model.create_tween()
+    tween.tween_property(basket_model, "position:y", rest + BASKET_LIFT, 0.15)
+    tween.tween_interval(0.25)
+    tween.tween_property(basket_model, "position:y", rest, 0.2)
+
+
+## The middle of the station, where a menu bubble goes over it.
+func centre() -> Vector3:
+    var box := get_node_or_null("CSGBox3D") as CSGBox3D
+    return global_transform * (box.position if box else Vector3.ZERO)

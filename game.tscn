@@ -41,9 +41,9 @@ dressed = true
 back_offset = 0.9
 front_offset = 0.9
 camera_pitch = 40.0
-camera_distance = 11.5
-camera_yaw = 59.0
-camera_target = Vector3(-0.3, 0, -1)
+camera_distance = 10.2
+camera_yaw = 31.0
+camera_target = Vector3(-0.4, 0, -1.1)
 
 [node name="Backdrop" type="Node" parent="." node_paths=PackedStringArray("room")]
 process_priority = 10
@@ -57,9 +57,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
 script = ExtResource("13_room")
 layout = PackedStringArray("peinture casquette telephone . porte", "@ @ @ @ .", "pret pret pret pret .")
 camera_pitch = 40.0
-camera_distance = 11.0
-camera_yaw = 59.0
-camera_target = Vector3(-0.2, 0.4, 0.3)
+camera_distance = 8.6
+camera_yaw = 31.0
+camera_target = Vector3(0, 0.75, 0.3)
 
 [node name="Night" type="Node" parent="." node_paths=PackedStringArray("kitchen_room", "players_parent", "queue", "lobby_room")]
 script = ExtResource("6_night")
@@ -76,12 +76,12 @@ script = ExtResource("8_lobby")
 night = NodePath("../Night")
 
 [node name="Customers" type="Node3D" parent="." node_paths=PackedStringArray("night")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, -0.9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 0, -0.9)
 script = ExtResource("9_customers")
 night = NodePath("../Night")
-line_step = Vector3(0, 0, 0.45)
-entrance = Vector3(1.5, 0, 0.1)
-exit = Vector3(1.6, 0, 0.2)
+line_step = Vector3(0, 0, -0.55)
+entrance = Vector3(0.1, 0, -5)
+exit = Vector3(0.2, 0, 4)
 
 [node name="Hud" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
 script = ExtResource("10_hud")

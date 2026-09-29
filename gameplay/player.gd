@@ -7,13 +7,10 @@ const BUMP_HOP := 0.15
 ## How much wider a player gets per BMI point over a healthy start, and thinner per point under.
 const FAT_WIDTH := 0.12
 const THIN_WIDTH := 0.07
-## The menu and hint panel sits on screen above this point, clear of the hand, hearts and name.
-const PANEL_HEIGHT := 2.15
 ## Where a hat sits: the top of the drawn head.
 const HEAD_TOP := PaperFigure.HEIGHT - 0.12
-## The held item, over the head.
-const HELD_HEIGHT := 2.05
-const HELD_SIZE := 0.38
+## Where the hearts and the held item go over a knocked-out player, flat on the floor.
+const LYING_TOP := 0.45
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
@@ -26,11 +23,8 @@ var level_start_bmi := 21
 var hungry_below := 18
 
 var _bump_tween: Tween
-## What the hand holds: the artist's picture, its sauce beside it, portions in the label.
-var _held: Sprite3D
-var _held_sauce: Sprite3D
-var _held_shown := []
-var _hands_label: Label3D
+## Hearts, state and what the hand holds, on screen over the head (every player).
+var _overhead: Overhead
 ## Menu and key hints on screen, for local players only.
 var _panel: PlayerPanel
 ## The open station menu, over the station (local players only).
@@ -49,15 +43,11 @@ var _figure: PaperFigure
 func _ready() -> void:
     _figure = PaperFigure.new()
     $PlayerModel.add_child(_figure)
-    _hands_label = _label(HELD_HEIGHT - 0.25, 26)
-    _hands_label.position.x = 0.3
-    _held = _icon(HELD_SIZE)
-    _held.position.y = HELD_HEIGHT
-    _held_sauce = _icon(HELD_SIZE * 0.6)
-    _held_sauce.position = Vector3(0.22, HELD_HEIGHT - 0.1, 0)
+    var layer := CanvasLayer.new()
+    add_child(layer)
+    _overhead = Overhead.new()
+    layer.add_child(_overhead)
     if is_local_player:
-        var layer := CanvasLayer.new()
-        add_child(layer)
         _panel = PlayerPanel.new()
         layer.add_child(_panel)
         _menu_bubble = MenuBubble.new()
@@ -70,6 +60,7 @@ func _ready() -> void:
         star.texture = preload("res://art/textures/UX_Star.png")
         star.pixel_size = 0.0012
         star.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        star.no_depth_test = true
         star.position = Vector3.RIGHT.rotated(Vector3.UP, index * TAU / 3) * 0.25
         _stars.add_child(star)
     _stars.visible = false
@@ -92,12 +83,13 @@ func show_menu(options: Array, choice: int, disabled: Array = [], at := Vector3.
     if _menu_bubble:
         _menu_bubble.show_menu(options, choice, disabled, key)
         _menu_at = at
+        # The bubble says what the key does: no hints over the head meanwhile.
+        _panel.visible = options.is_empty()
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
 func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     health = state.health
-    _show_held(state.item)
     # Stunned after a bump: stars and a shake, for as long as it lasts.
     _stars.visible = state.stun > 0
     _stars.rotation.y = Time.get_ticks_msec() * 0.008
@@ -124,9 +116,22 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     if _helmet:
         _helmet.visible = _hat == Looks.HATS.find(Looks.BEER_HELMET) and not state.down
     var camera := get_viewport().get_camera_3d()
-    if _panel and camera:
-        _panel.place(camera.unproject_position(global_position + Vector3.UP * PANEL_HEIGHT))
-        _menu_bubble.place_over(_menu_at, camera)
+    var status := pseudo
+    if state.down:
+        status = (status + " (K.O.)").strip_edges()
+    elif hungry:
+        status = (status + " (affamé)").strip_edges()
+    _overhead.show_player(state.item, state.health, status, Color(1.0, 0.6, 0.2) if hungry else Color.WHITE)
+    if camera:
+        _follow_card(camera)
+        # Over the top of the drawing, where it is on screen.
+        # Lying down, the drawing is flat on the floor: just over it.
+        var top := LYING_TOP if state.down else PaperFigure.HEIGHT
+        var head := camera.unproject_position($PlayerModel.global_position + camera.global_basis.y * top)
+        _overhead.place(head)
+        if _panel:
+            _panel.place(Vector2(head.x, _overhead.top() - 4))
+            _menu_bubble.place_over(_menu_at, camera)
     for node in state.path:
         DebugDraw3D.draw_sphere(level.positions[node], 0.12, Color.GREEN)
 
@@ -137,6 +142,7 @@ func _label(height: float, size: int) -> Label3D:
     label.position = Vector3(0, height, 0)
     label.font_size = size
     label.outline_size = 8
+    label.no_depth_test = true
     add_child(label)
     return label
 
@@ -154,7 +160,6 @@ func _wear(hat: StringName) -> void:
 ## A helmet with a can on each side and straws down to the mouth, built in code for now.
 func _beer_helmet() -> Node3D:
     var helmet := Node3D.new()
-    helmet.position.y = HEAD_TOP
     var dome := MeshInstance3D.new()
     var sphere := SphereMesh.new()
     sphere.radius = 0.2
@@ -210,40 +215,21 @@ func show_fat_change(gained: bool) -> void:
     tween.chain().tween_callback(label.queue_free)
 
 
-## The held item as pictures, changed only when it changes. Items the artist hasn't drawn
-## show their name instead.
-func _show_held(item: SimItem) -> void:
-    var shown := [item.kind, item.sauce, item.portions] if item else []
-    if shown == _held_shown:
-        return
-    _held_shown = shown
-    var picture := ItemIcons.picture(item.kind) if item else null
-    _held.visible = picture != null
-    _set_icon(_held, picture, ItemIcons.tint(item.kind) if item else Color.WHITE, HELD_SIZE)
-    var sauce := ItemIcons.picture(item.sauce) if item and item.sauce != &"" else null
-    _held_sauce.visible = sauce != null
-    _set_icon(_held_sauce, sauce, Color.WHITE, HELD_SIZE * 0.6)
-    var text := ""
-    if item and not picture:
-        text = ItemNames.of(item)
-    elif item and item.portions > 1:
-        text = "×%d" % item.portions
-    _hands_label.text = text
+## Where the shader draws a point of the drawing at this height: on the card facing the camera,
+## at the depth of an upright card (paper_figure.gdshader).
+func _card_point(camera: Camera3D, height: float) -> Vector3:
+    var feet: Vector3 = $PlayerModel.global_position
+    var eye := camera.global_position
+    var forward := -camera.global_basis.z
+    var card := feet + camera.global_basis.y * height
+    var upright := feet + Vector3.UP * height
+    return eye + (card - eye) * ((upright - eye).dot(forward) / (card - eye).dot(forward))
 
 
-func _icon(size: float) -> Sprite3D:
-    var sprite := Sprite3D.new()
-    sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-    sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
-    sprite.visible = false
-    sprite.set_meta(&"size", size)
-    add_child(sprite)
-    return sprite
-
-
-## size: the picture's larger side, in metres.
-func _set_icon(sprite: Sprite3D, picture: Texture2D, tint: Color, size: float) -> void:
-    sprite.texture = picture
-    sprite.modulate = tint
-    if picture:
-        sprite.pixel_size = size / maxf(picture.get_width(), picture.get_height())
+## The helmet and the stars stay on the drawing's head, just in front of it.
+func _follow_card(camera: Camera3D) -> void:
+    var toward_camera := camera.global_basis.z * 0.05
+    if _helmet and _helmet.visible:
+        _helmet.global_position = _card_point(camera, HEAD_TOP) + toward_camera
+    if _stars.visible:
+        _stars.global_position = _card_point(camera, PaperFigure.HEIGHT - 0.1) + toward_camera

@@ -33,6 +33,27 @@ static func order_bubble() -> StyleBoxTexture:
     return style
 
 
+## A speech bubble with its tail down, e.g. over a player: the order bubble upside down.
+static func bubble_down() -> StyleBoxTexture:
+    if not _styles.has(&"bubble_down"):
+        var image := (load(PATH % "FrameOrder02") as Texture2D).get_image()
+        image.flip_y()
+        var style := StyleBoxTexture.new()
+        style.texture = ImageTexture.create_from_image(image)
+        style.texture_margin_left = 16
+        style.texture_margin_top = 14
+        style.texture_margin_right = 30
+        style.texture_margin_bottom = 22
+        style.set_content_margin_all(6)
+        style.content_margin_bottom = 16
+        _styles[&"bubble_down"] = style
+    return _styles[&"bubble_down"]
+
+
+## Where the tail's tip sits, from the bubble's right edge (the picture is 173 px wide).
+const BUBBLE_TAIL_FROM_RIGHT := 28.0
+
+
 ## A menu option, and the selected one.
 static func option() -> StyleBoxTexture:
     return frame("FrameItem01", Vector4(16, 16, 16, 16), 6)
