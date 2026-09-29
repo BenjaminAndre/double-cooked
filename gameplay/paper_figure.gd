@@ -39,23 +39,28 @@ func set_girth(girth: float) -> void:
     _sprite.scale.x = girth
 
 
-## Knocked out: flat on the floor, head away from the camera, still facing it from above.
+## Knocked out: flat on the floor on its side, head to the left of the screen, facing up (lying
+## head away from the camera would only look like a shorter standing figure).
 func set_lying(lying: bool) -> void:
     if lying == _lying:
         return
-    _lying = lying
     var camera := get_viewport().get_camera_3d() if is_inside_tree() else null
-    if not lying or not camera:
+    if not lying:
+        _lying = false
         _sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
         _sprite.basis = Basis.IDENTITY
         return
+    if not camera:
+        # Tried again next frame, once there is a camera to lie facing.
+        return
+    _lying = true
     _sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
     var forward := -camera.global_basis.z
     forward.y = 0
     forward = forward.normalized()
     var right := forward.cross(Vector3.UP).normalized()
     var girth := _sprite.scale.x
-    _sprite.global_basis = Basis(right, forward, Vector3.UP)
+    _sprite.global_basis = Basis(forward, -right, Vector3.UP)
     _sprite.scale.x = girth
 
 

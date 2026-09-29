@@ -5,13 +5,13 @@ extends Node3D
 
 const FRYERS: Array[StringName] = [&"cuisson_1", &"cuisson_2"]
 const LABEL_HEIGHT := 1.3
-## The fryer gauge: a horizontal bar facing the camera, yellow while undercooked, blue when
+## The fryer gauge: a horizontal bar facing the camera, yellow while undercooked, green when
 ## ready, red from too late up to the fire at its end; a white line shows the progress.
 const GAUGE_HEIGHT := 1.1
 const GAUGE_SIZE := Vector2(1.0, 0.12)
 const GAUGE_ALPHA := 0.75
 const UNDERCOOKED := Color(1.0, 0.85, 0.2)
-const READY := Color(0.25, 0.55, 1.0)
+const READY := Color(0.35, 0.72, 0.25)
 const TOO_LATE := Color(1.0, 0.25, 0.2)
 
 ## The artist's animated sheets.
@@ -22,6 +22,7 @@ const OIL_HEIGHT := 1.05
 const OIL_SIZE := 0.45
 const FIRE_HEIGHT := 1.0
 const FIRE_SIZE := 1.4
+const ALERT_HEIGHT := 1.65
 
 ## The artist's models on this station (StationModels), if any: the FRIGO's door, the bin's lid
 ## and the fryer's baskets are animated. A CUISSON 2 at the fryer's end shares the CUISSON 1's.
@@ -40,6 +41,7 @@ var _gauge_parts: Array[MeshInstance3D] = []
 var _label_fire := false
 var _gauge_zones := Vector3i.ZERO
 var _was_frying := false
+var _alert: Sprite3D
 var _menu_open := false
 ## Sheet texture path -> its sprite.
 var _flipbooks := {}
@@ -85,6 +87,22 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     _was_frying = frying
     _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
+    # The siren: about to catch fire, past the ready zone.
+    _show_alert(frying and station.cook > Fryer.window(station).y)
+
+
+func _show_alert(on: bool) -> void:
+    if on and not _alert:
+        _alert = Sprite3D.new()
+        _alert.texture = preload("res://art/textures/UX_Alert.png")
+        _alert.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        _alert.pixel_size = 0.004
+        _alert.no_depth_test = true
+        _alert.position = Vector3(_flipbook_x(), ALERT_HEIGHT, 0)
+        add_child(_alert)
+    if _alert:
+        _alert.visible = on
+        _alert.scale = Vector3.ONE * (1.0 + 0.1 * sin(Time.get_ticks_msec() * 0.015))
 
 
 ## The FRIGO's door stays open while a player has its menu open.

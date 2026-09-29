@@ -15,12 +15,15 @@ const SHUFFLE_SPEED := 8.0
 ## they never overlap.
 const TICKET_GAP_BELOW := 6.0
 const TICKET_GAP := 8.0
-const FRONT_FONT_SIZE := 20
-const BACK_FONT_SIZE := 16
+## Order pictures, in pixels: bigger for the customer at the counter; a sauce is smaller.
+const FRONT_ICON := 44
+const BACK_ICON := 34
+const SAUCE_SCALE := 0.75
+const BAR_SIZE := Vector2(80, 14)
 ## The boss: the drunk baraki, bigger, on a red ticket with a dot per order (SimCrowd.Result: to come,
 ## served, missed).
 const BOSS_SCALE := 1.6
-const BOSS_TICKET := Color(0.45, 0.02, 0.02, 0.85)
+const BOSS_TICKET := Color(1.0, 0.55, 0.5)
 const DOT_SIZE := 14
 const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)]
 
@@ -101,10 +104,10 @@ func _show_tickets(crowd: SimCrowd) -> void:
             continue
         var customer := crowd.line[index]
         var figure: Node3D = _figures[customer.id]
-        var font_size := FRONT_FONT_SIZE if index == 0 else BACK_FONT_SIZE
+        var icon_size := FRONT_ICON if index == 0 else BACK_ICON
         var full := crowd.boss_patience() if customer.boss else crowd.rules.patience
-        _fill(ticket, "\n".join(ItemNames.order_line(customer.order)).strip_edges(), font_size,
-                float(customer.patience) / full, customer.boss)
+        _fill(ticket, ItemIcons.order(customer.order), icon_size, float(customer.patience) / full,
+                customer.boss)
         _show_dots(ticket, customer)
         var anchor := camera.unproject_position(figure.global_position)
         var left := maxf(maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP), TICKET_GAP)
@@ -114,7 +117,7 @@ func _show_tickets(crowd: SimCrowd) -> void:
         placed.append(ticket)
         if customer.boss and customer.drink != &"":
             _drink_ticket.visible = true
-            _fill(_drink_ticket, ItemNames.order_line(customer.drink)[0], font_size,
+            _fill(_drink_ticket, ItemIcons.order(customer.drink), icon_size,
                     float(customer.drink_patience) / crowd.rules.boss_drink_patience, true)
             _drink_ticket.position = Vector2(previous_right + TICKET_GAP, ticket.position.y)
             previous_right += TICKET_GAP + _drink_ticket.size.x
@@ -124,22 +127,29 @@ func _show_tickets(crowd: SimCrowd) -> void:
         ticket.position -= overflow
 
 
-## Text, size and colour only when they change: each change relayouts the ticket.
-func _fill(ticket: PanelContainer, text: String, font_size: int, patience: float, boss: bool) -> void:
+## The order as the artist's pictures (dish, then sauce), rebuilt only when it changes: each
+## change relayouts the ticket. The boss's tickets are tinted red.
+func _fill(ticket: PanelContainer, kinds: Array[StringName], icon_size: int, patience: float,
+        boss: bool) -> void:
     var column := ticket.get_child(0)
-    var label: Label = column.get_child(0)
-    if label.text != text or label.get_theme_font_size("font_size") != font_size:
-        label.text = text
-        label.add_theme_font_size_override("font_size", font_size)
+    var icons: HBoxContainer = column.get_child(0)
+    var shown := [kinds, icon_size]
+    if ticket.get_meta(&"order", []) != shown:
+        ticket.set_meta(&"order", shown)
+        for child in icons.get_children():
+            child.free()
+        for kind in kinds:
+            var side: float = icon_size if kind == kinds[0] else icon_size * SAUCE_SCALE
+            icons.add_child(ArtUi.picture(ItemIcons.picture(kind), side, ItemIcons.tint(kind)))
         ticket.reset_size()
     if ticket.get_meta(&"boss", false) != boss:
         ticket.set_meta(&"boss", boss)
-        UiPanel.set_color(ticket, BOSS_TICKET if boss else UiPanel.DARK, 6)
-    var bar: DrainingBar = column.get_child(2)
+        ticket.self_modulate = BOSS_TICKET if boss else Color.WHITE
+    var bar: ArtBar = column.get_child(2)
     bar.show_fraction(patience)
 
 
-## The boss's orders as dots: black to come, ringed in white for the current one, green once
+## The boss's orders as dots: black to come, ringed for the current one, green once
 ## served, red once missed.
 func _show_dots(ticket: PanelContainer, customer: SimCrowd.Customer) -> void:
     var dots: HBoxContainer = ticket.get_child(0).get_child(1)
@@ -161,24 +171,24 @@ func _show_dots(ticket: PanelContainer, customer: SimCrowd.Customer) -> void:
         style.bg_color = DOT_COLORS[customer.results[index]]
         if index == customer.current():
             style.set_border_width_all(2)
-            style.border_color = Color.WHITE
+            style.border_color = ArtUi.INK
         dot.add_theme_stylebox_override("panel", style)
         dots.add_child(dot)
     ticket.reset_size()
 
 
 func _new_ticket() -> PanelContainer:
-    var ticket := UiPanel.make(UiPanel.DARK, 6)
+    var ticket := ArtUi.panel(ArtUi.order_bubble())
     var column := VBoxContainer.new()
     ticket.add_child(column)
-    var label := Label.new()
-    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    column.add_child(label)
+    var icons := HBoxContainer.new()
+    icons.alignment = BoxContainer.ALIGNMENT_CENTER
+    column.add_child(icons)
     var dots := HBoxContainer.new()
     dots.alignment = BoxContainer.ALIGNMENT_CENTER
     dots.visible = false
     column.add_child(dots)
-    column.add_child(DrainingBar.new(0, 8))
+    column.add_child(ArtBar.new(BAR_SIZE.x, BAR_SIZE.y))
     _layer.add_child(ticket)
     return ticket
 

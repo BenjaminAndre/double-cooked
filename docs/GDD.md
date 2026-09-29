@@ -28,7 +28,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - One game is one night, 18:00 to 04:00 in just under 6 minutes of real time. **At 04:00 the door closes**: nobody comes in any more, and the night only ends once every customer still inside has been dealt with.
 - The pace follows the clock (revised after the fourth playtest): calm until 20:00, then a steady build-up of customers until the peak at closing time. Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors.
 - **(proposal)** Variety comes from difficulty levels and random events, not from progression between nights.
-- **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37") plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no economy behind it.
+- **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37"), **up to three stars** on the artist's notebook (one for holding until closing, one for a room still in the green, under half the riot, one for serving every order of the boss; a lost night has none), plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no points or economy behind it.
 
 ### 4.1 The lobby (after the first online playtest)
 - The game opens in a **waiting room that plays like the kitchen**: the same grid, walking and station menus, with no customers, clock or hunger. Online, everyone connected is in it together; a newcomer joins it at once (during a night, they wait for the next lobby).
@@ -41,7 +41,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **1 to 4 players, in the same kitchen.** Solo is roomy and four players is packed; the layout does not change. The customer rate scales with the player count.
 
 ### 5.1 Health, eating and knock-out
-- Each player has 3 hearts, shown as ♥ over their head.
+- Each player has 3 hearts over their head (the artist's, lost ones shown empty).
 - **There is no healing station** (SOINS was removed after the third playtest). A player heals by **eating or drinking what they hold**, anywhere, with **its own key** (Entrée; E for P1 and Entrée for P2 in duo), 1 heart at a time. It first shared the interact key, which made for too many accidental meals (fifth playtest). Any food works, however badly done, and so do drinks. Eating the burnt fries instead of walking to the bin is a real choice.
 - **Body mass index** (after the fourth playtest): everyone starts at a healthy **21**. Every bite or drink adds **+1** (even at full health; a discreet "+Gras" pops up), and every **25 nodes walked** burn **−1**. Above 21 the player is wider and **12% slower per point**; below 21 they are visibly thinner but not faster. At **16** they collapse, undernourished, and need a beer like any knocked-out player (their name says "affamé" from 18). Running the fritkot either drains you or fattens you.
 - At 0 hearts a player is **knocked out**: they lie on their node and **block it**, crawl slowly (about 2 s per node, one node at a time), and can only eat or drink what they hold, or use the FRIGO.
@@ -69,7 +69,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
   - Interacting at the POUBELLE empties the hand.
   - Interacting at the CAISSE serves whatever is held to the front customer (§6.2).
   - Fryers keep their own state (§7.1).
-- The station a player stands at is highlighted, with a hint of what their keys do there (`Simulation.action_for`): a key cap and a verb per line, on a dark panel over the player. An open station menu shows each option in its own panel, the selected one in bright yellow, so each option can become an icon later. Text for now; the aim is icons, and as little text as possible overall. The mood dial is labelled "Patience".
+- The station a player stands at is highlighted, with a hint of what their keys do there (`Simulation.action_for`): the artist's key cap and a verb, over the player. An open station menu is a **cream bubble over the station**, as on the concept: its options as the artist's pictures (sauces, drinks, meats, faces), words where there is none yet, the selected one in the yellow selection frame, and the key that chooses. The held item shows as its picture over the head, customers' orders as pictures in speech bubbles, and the room mood as the artist's bar with an angry and a happy face (bottom right).
 
 ### 5.5 Looks
 - Players are **paper cut-outs** (the artist's drawings, always facing the camera): four characters, told apart by their T-shirt colour (blue, red, green, yellow), unique in the team. The colour **stands for them everywhere instead of "P1"**: the recap (a block of colour), messages ("Rouge est parti"). There is no name over their head. Fat widens the cut-out, a knock-out lays it flat on the floor, a bump shakes it. Customers are cut-outs too, and the boss is the drunk baraki, bigger.

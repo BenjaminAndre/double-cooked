@@ -82,7 +82,7 @@ Rendering follows the artist's readme: unlit materials, everything in the textur
 
 ## Steps (one version each)
 
-The art comes before the rest of the roadmap. Steps 1–4 are 0.1.32–0.1.35; step 5 completes the art and is **0.2.0**. The later roadmap (reconnect, campaign, mitraillette, debug tools) follows as 0.2.1–0.2.4.
+The art comes before the rest of the roadmap. Steps 1–4 are 0.1.32–0.1.35; step 5 completes the art and is **0.2.0**. Steps 1–5 were done on 2026-09-29. The later roadmap (reconnect, campaign, mitraillette, debug tools) follows as 0.2.1–0.2.4.
 
 1. **Intake** (0.1.32).
    - Copy the assets, write `CREDITS.md`, add the unlit import script and the Bebas Kai theme.

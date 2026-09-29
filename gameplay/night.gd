@@ -26,6 +26,8 @@ const KEPT_REPLAYS := 20
 signal began
 ## A short message for the HUD, e.g. once a replay is saved.
 signal notice(text: String)
+## A big announcement, e.g. the boss walking in.
+signal announced(text: String)
 ## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
 signal phone_used(choice: StringName)
 
@@ -325,7 +327,7 @@ func _step() -> bool:
         elif event.type == &"trashed":
             _station_views[event.station].pulse()
         elif event.type == &"boss_arrived":
-            notice.emit("Le boss arrive !")
+            announced.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:
             _save_looks(simulation.players[event.slot])
         elif event.type == &"phone" and event.slot in _local_slots:
@@ -437,6 +439,8 @@ func _show(p_alpha: float) -> void:
             if action in [&"door_wait", &"door_host"]:
                 # Nothing to press: only why the door stays shut.
                 hints.append(["", ItemNames.action(action)])
+            elif action == &"choose":
+                pass  # In the menu's bubble.
             elif action != &"":
                 hints.append([interact_key, ItemNames.action(action)])
                 if action == &"throw" and simulation.players.size() > 1:
@@ -461,15 +465,23 @@ func _show(p_alpha: float) -> void:
                     if not simulation.color_free(index, player):
                         disabled.append(index)
                     continue
-                var word := ItemNames.word(option)
+                var picture := ItemIcons.picture(option)
                 if option == Menu.BEER:
-                    word += " ×%d" % menu_station.beers
-                elif option == Menu.PHONE_DUO:
+                    options.append([picture, "×%d" % menu_station.beers])
+                    if menu_station.beers == 0:
+                        disabled.append(index)
+                    continue
+                if picture:
+                    options.append(picture)
+                    continue
+                var word := ItemNames.word(option)
+                if option == Menu.PHONE_DUO:
                     word = "seul" if _local_slots.size() > 1 else "à deux"
                 elif option == Menu.PHONE_LEAVE and role == Role.OFFLINE:
                     disabled.append(index)
                 options.append(word)
-        _views[slot].show_menu(options, player.menu_choice, disabled)
+        var menu_at: Vector3 = _station_views[player.menu].global_position if player.menu != SimLevel.NONE else Vector3.ZERO
+        _views[slot].show_menu(options, player.menu_choice, disabled, menu_at, interact_key)
     var open_menus := {}
     for player in simulation.players:
         open_menus[player.menu] = true

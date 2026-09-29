@@ -11,6 +11,9 @@ const THIN_WIDTH := 0.07
 const PANEL_HEIGHT := 2.15
 ## Where a hat sits: the top of the drawn head.
 const HEAD_TOP := PaperFigure.HEIGHT - 0.12
+## The held item, over the head.
+const HELD_HEIGHT := 2.05
+const HELD_SIZE := 0.38
 
 # Identification (may be outside of player scope later)
 var health : int = SimPlayer.MAX_HEALTH
@@ -23,9 +26,16 @@ var level_start_bmi := 21
 var hungry_below := 18
 
 var _bump_tween: Tween
+## What the hand holds: the artist's picture, its sauce beside it, portions in the label.
+var _held: Sprite3D
+var _held_sauce: Sprite3D
+var _held_shown := []
 var _hands_label: Label3D
 ## Menu and key hints on screen, for local players only.
 var _panel: PlayerPanel
+## The open station menu, over the station (local players only).
+var _menu_bubble: MenuBubble
+var _menu_at := Vector3.ZERO
 ## Three stars circling the head while stunned.
 var _stars: Node3D
 ## What the body and hat last showed (SimPlayer.color, hat), to change them only when needed.
@@ -39,20 +49,26 @@ var _figure: PaperFigure
 func _ready() -> void:
     _figure = PaperFigure.new()
     $PlayerModel.add_child(_figure)
-    _hands_label = _label(1.98, 28)
+    _hands_label = _label(HELD_HEIGHT - 0.25, 26)
+    _hands_label.position.x = 0.3
+    _held = _icon(HELD_SIZE)
+    _held.position.y = HELD_HEIGHT
+    _held_sauce = _icon(HELD_SIZE * 0.6)
+    _held_sauce.position = Vector3(0.22, HELD_HEIGHT - 0.1, 0)
     if is_local_player:
         var layer := CanvasLayer.new()
         add_child(layer)
         _panel = PlayerPanel.new()
         layer.add_child(_panel)
+        _menu_bubble = MenuBubble.new()
+        layer.add_child(_menu_bubble)
     _stars = Node3D.new()
     _stars.position.y = PaperFigure.HEIGHT - 0.1
     add_child(_stars)
     for index in 3:
         var star := Sprite3D.new()
-        star.texture = Icons.star()
-        star.modulate = Color(1.0, 0.85, 0.2)
-        star.pixel_size = 0.0025
+        star.texture = preload("res://art/textures/UX_Star.png")
+        star.pixel_size = 0.0012
         star.billboard = BaseMaterial3D.BILLBOARD_ENABLED
         star.position = Vector3.RIGHT.rotated(Vector3.UP, index * TAU / 3) * 0.25
         _stars.add_child(star)
@@ -69,19 +85,19 @@ func hint_rows() -> Array:
     return _panel.hint_rows() if _panel else []
 
 
-## An open station menu: its options side by side, the selected one highlighted.
-## An empty list hides it.
-func show_menu(options: Array, choice: int, disabled: Array = []) -> void:
-    if _panel:
-        _panel.show_menu(options, choice, disabled)
+## An open station menu, in a bubble over the station at: see PlayerPanel.show_menu. key:
+## the key that chooses. An empty list closes it.
+func show_menu(options: Array, choice: int, disabled: Array = [], at := Vector3.ZERO,
+        key := "") -> void:
+    if _menu_bubble:
+        _menu_bubble.show_menu(options, choice, disabled, key)
+        _menu_at = at
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.
 func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     health = state.health
-    var held := ItemNames.of(state.item) if state.item else ""
-    if _hands_label.text != held:
-        _hands_label.text = held
+    _show_held(state.item)
     # Stunned after a bump: stars and a shake, for as long as it lasts.
     _stars.visible = state.stun > 0
     _stars.rotation.y = Time.get_ticks_msec() * 0.008
@@ -110,6 +126,7 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     var camera := get_viewport().get_camera_3d()
     if _panel and camera:
         _panel.place(camera.unproject_position(global_position + Vector3.UP * PANEL_HEIGHT))
+        _menu_bubble.place_over(_menu_at, camera)
     for node in state.path:
         DebugDraw3D.draw_sphere(level.positions[node], 0.12, Color.GREEN)
 
@@ -191,3 +208,42 @@ func show_fat_change(gained: bool) -> void:
     tween.tween_property(label, "position:y", 2.0, 1.2)
     tween.tween_property(label, "modulate:a", 0.0, 1.2)
     tween.chain().tween_callback(label.queue_free)
+
+
+## The held item as pictures, changed only when it changes. Items the artist hasn't drawn
+## show their name instead.
+func _show_held(item: SimItem) -> void:
+    var shown := [item.kind, item.sauce, item.portions] if item else []
+    if shown == _held_shown:
+        return
+    _held_shown = shown
+    var picture := ItemIcons.picture(item.kind) if item else null
+    _held.visible = picture != null
+    _set_icon(_held, picture, ItemIcons.tint(item.kind) if item else Color.WHITE, HELD_SIZE)
+    var sauce := ItemIcons.picture(item.sauce) if item and item.sauce != &"" else null
+    _held_sauce.visible = sauce != null
+    _set_icon(_held_sauce, sauce, Color.WHITE, HELD_SIZE * 0.6)
+    var text := ""
+    if item and not picture:
+        text = ItemNames.of(item)
+    elif item and item.portions > 1:
+        text = "×%d" % item.portions
+    _hands_label.text = text
+
+
+func _icon(size: float) -> Sprite3D:
+    var sprite := Sprite3D.new()
+    sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
+    sprite.visible = false
+    sprite.set_meta(&"size", size)
+    add_child(sprite)
+    return sprite
+
+
+## size: the picture's larger side, in metres.
+func _set_icon(sprite: Sprite3D, picture: Texture2D, tint: Color, size: float) -> void:
+    sprite.texture = picture
+    sprite.modulate = tint
+    if picture:
+        sprite.pixel_size = size / maxf(picture.get_width(), picture.get_height())

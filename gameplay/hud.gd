@@ -7,22 +7,32 @@ extends CanvasLayer
 const NOTICE_TIME := 4.0
 ## Seconds without a tick from the host before a client says so.
 const SILENCE_WARNING := 2.0
+## How long an announcement stays, in seconds, and the size of a star on the banner.
+const ANNOUNCE_TIME := 3.5
+const STAR_SIZE := 64
 
 @export var night: Night
 
 var _status: Label
-## The room mood, as a dial.
-var _gauge: MoodGauge
+## The room mood, as the artist's bar (bottom right).
+var _mood: MoodBar
 ## Red warning once this client has drifted from the host.
 var _desync: Label
 var _notice: Label
 var _notice_left := 0.0
-## Centered panel shown once the night is over.
+## A big announcement in the dialogue frame, e.g. the boss walking in.
+var _announce: PanelContainer
+var _announce_text: Label
+var _announce_left := 0.0
+## The logo over the lobby, until someone takes a step.
+var _logo: TextureRect
+## Centered notebook shown once the night is over.
 var _banner: PanelContainer
 var _title: Label
+var _stars: HBoxContainer
 ## Rich text: players show as a block of their colour.
 var _recap: RichTextLabel
-## The clock, dial and warnings: hidden in the lobby.
+## The clock and warnings: hidden in the lobby.
 var _corner: VBoxContainer
 var _next: Label
 
@@ -34,40 +44,60 @@ func _ready() -> void:
     corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
     corner.alignment = BoxContainer.ALIGNMENT_END
     add_child(corner)
-    _status = _label(24, corner)
-    _status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    # The dial and its name, so it reads without explanation.
-    var dial := VBoxContainer.new()
-    dial.size_flags_horizontal = Control.SIZE_SHRINK_END
-    dial.add_theme_constant_override("separation", 0)
-    corner.add_child(dial)
-    _gauge = MoodGauge.new()
-    dial.add_child(_gauge)
-    _label(18, dial).text = "Patience"
+    # The clock on the artist's frame: its face on the left, the time on the dark part.
+    var clock_frame := ArtUi.panel(ArtUi.frame("Time", Vector4(80, 20, 20, 20), 10))
+    clock_frame.get_theme_stylebox("panel").content_margin_left = 84
+    clock_frame.size_flags_horizontal = Control.SIZE_SHRINK_END
+    corner.add_child(clock_frame)
+    _status = _label(30, clock_frame)
     _desync = _label(24, corner)
     _desync.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     _desync.add_theme_color_override("font_color", Color(1, 0.3, 0.25))
     _notice = _label(20, corner)
     _notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    _mood = MoodBar.new()
+    _mood.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
+    _mood.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+    _mood.grow_vertical = Control.GROW_DIRECTION_BEGIN
+    add_child(_mood)
     night.notice.connect(_show_notice)
-    _banner = PanelContainer.new()
-    var style := StyleBoxFlat.new()
-    style.bg_color = Color(0, 0, 0, 0.75)
-    style.set_content_margin_all(24)
-    style.set_corner_radius_all(8)
-    _banner.add_theme_stylebox_override("panel", style)
+    night.announced.connect(_show_announcement)
+    night.began.connect(_on_began)
+    _announce = ArtUi.panel(ArtUi.frame("FrameTextInfo", Vector4(100, 20, 20, 20), 16))
+    _announce.get_theme_stylebox("panel").content_margin_left = 110
+    _announce.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 24)
+    _announce.grow_horizontal = Control.GROW_DIRECTION_BOTH
+    _announce.custom_minimum_size = Vector2(360, 120)
+    _announce.visible = false
+    add_child(_announce)
+    _announce_text = _label(34, _announce)
+    _announce_text.add_theme_color_override("font_color", ArtUi.INK)
+    _announce_text.remove_theme_constant_override("outline_size")
+    _logo = ArtUi.picture(load("res://art/logo/Logo.png"), 0)
+    _logo.custom_minimum_size = Vector2(420, 260)
+    _logo.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 8)
+    _logo.grow_horizontal = Control.GROW_DIRECTION_BOTH
+    _logo.visible = false
+    add_child(_logo)
+    _banner = ArtUi.panel(ArtUi.notebook())
     add_child(_banner)
     var column := VBoxContainer.new()
-    column.add_theme_constant_override("separation", 16)
+    column.add_theme_constant_override("separation", 12)
     _banner.add_child(column)
-    _title = _label(40, column)
+    _title = _ink_label(40, column)
+    _stars = HBoxContainer.new()
+    _stars.alignment = BoxContainer.ALIGNMENT_CENTER
+    column.add_child(_stars)
+    for index in 3:
+        _stars.add_child(ArtUi.picture(ArtUi.texture("StarEmpty"), STAR_SIZE))
     _recap = RichTextLabel.new()
     _recap.bbcode_enabled = true
     _recap.fit_content = true
     _recap.autowrap_mode = TextServer.AUTOWRAP_OFF
     _recap.add_theme_font_size_override("normal_font_size", 22)
+    _recap.add_theme_color_override("default_color", ArtUi.INK)
     column.add_child(_recap)
-    _next = _label(28, column)
+    _next = _ink_label(28, column)
 
 
 func _process(delta: float) -> void:
@@ -75,9 +105,12 @@ func _process(delta: float) -> void:
     if not sim:
         return
     _corner.visible = not night.in_lobby
+    _mood.visible = not night.in_lobby
+    if _logo.visible and _anyone_moving():
+        _logo.visible = false
     _set_text(_status, clock(sim.clock_minutes()) \
             + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
-    _gauge.mood = float(sim.crowd.mood) / sim.rules.riot
+    _mood.mood = float(sim.crowd.mood) / sim.rules.riot
     var warnings := PackedStringArray()
     if sim.outcome == &"":
         warnings.append(silence_text(night.host_silence()))
@@ -85,6 +118,8 @@ func _process(delta: float) -> void:
     _set_text(_desync, "\n".join(warnings).strip_edges())
     _notice_left = maxf(_notice_left - delta, 0.0)
     _notice.visible = _notice_left > 0.0
+    _announce_left = maxf(_announce_left - delta, 0.0)
+    _announce.visible = _announce_left > 0.0
     _banner.visible = sim.outcome != &""
     if _banner.visible:
         var next := "Entrée : retour à la salle"
@@ -94,6 +129,7 @@ func _process(delta: float) -> void:
             next = "En attente de l'hôte..."
         next += "\nF3 : télécharger le replay"
         _set_text(_title, title(sim))
+        _show_stars(stars(sim))
         var recap_text := "[center]%s[/center]" % recap(sim)
         if _recap.text != recap_text:
             _recap.text = recap_text
@@ -101,6 +137,47 @@ func _process(delta: float) -> void:
         # Recentre once the panel has taken the size of its text.
         _banner.reset_size()
         _banner.position = (_banner.get_viewport_rect().size - _banner.size) / 2
+
+
+## The end-of-night stars (docs/ART_PLAN.md): held until closing; the room still in the green
+## (under half the riot); every order of the boss served. A lost night has none.
+static func stars(sim: Simulation) -> Array[bool]:
+    if sim.outcome != &"won":
+        return [false, false, false]
+    var boss_orders := sim.rules.boss_orders
+    return [true, sim.crowd.mood * 2 < sim.rules.riot,
+            boss_orders > 0 and sim.stats.boss_came and sim.stats.boss_served == boss_orders]
+
+
+func _show_stars(earned: Array[bool]) -> void:
+    for index in earned.size():
+        var star: TextureRect = _stars.get_child(index)
+        var picture := ArtUi.texture("Star" if earned[index] else "StarEmpty")
+        if star.texture != picture:
+            star.texture = picture
+
+
+func _show_announcement(text: String) -> void:
+    _announce_text.text = text
+    _announce_left = ANNOUNCE_TIME
+
+
+func _on_began() -> void:
+    _logo.visible = night.in_lobby
+
+
+func _anyone_moving() -> bool:
+    for slot in night.local_slots():
+        if night.simulation.players[slot].is_moving():
+            return true
+    return false
+
+
+func _ink_label(size: int, parent: Node) -> Label:
+    var label := _label(size, parent)
+    label.add_theme_color_override("font_color", ArtUi.INK)
+    label.remove_theme_constant_override("outline_size")
+    return label
 
 
 ## Empty while in sync. Points at F3, so the tester can send the night that went wrong.

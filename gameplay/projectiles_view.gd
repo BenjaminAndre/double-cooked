@@ -6,11 +6,10 @@ extends Node3D
 
 const ARC_DOTS := 14
 const DANGER := Color(1.0, 0.25, 0.2)
-const CURSOR := Color(1.0, 0.85, 0.2)
-## Just above a customer's head (they are drawn at 60% of a player's size).
-const CURSOR_HEIGHT := 0.6
+## Just above a customer's head (paper figures are PaperFigure.HEIGHT tall).
+const CURSOR_HEIGHT := PaperFigure.HEIGHT + 0.3
 ## Above a teammate's hearts and hand.
-const MATE_CURSOR_HEIGHT := 1.75
+const MATE_CURSOR_HEIGHT := 2.4
 
 @export var night: Night
 
@@ -52,9 +51,10 @@ func _show_cursors(sim: Simulation) -> void:
                 aims.append(sim.level.queue_position(player.aim) + Vector3.UP * CURSOR_HEIGHT)
     while _cursors.size() < aims.size():
         var cursor := Sprite3D.new()
-        cursor.texture = Icons.arrow_down()
-        cursor.pixel_size = 0.004
-        cursor.modulate = CURSOR
+        # The artist's arrow points up: turned to point down at the target.
+        cursor.texture = preload("res://art/textures/UX_Arrow.png")
+        cursor.flip_v = true
+        cursor.pixel_size = 0.0025
         cursor.billboard = BaseMaterial3D.BILLBOARD_ENABLED
         cursor.no_depth_test = true
         add_child(cursor)
