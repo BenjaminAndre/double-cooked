@@ -20,6 +20,8 @@ var _hint_rows: VBoxContainer
 var _options: Array = []
 var _choice := -1
 var _disabled: Array = []
+## One per option, in option order (the grid holds them by cell).
+var _option_panels: Array[PanelContainer] = []
 var _rows: Array = []
 
 
@@ -41,15 +43,15 @@ func _init() -> void:
 
 
 ## The options of an open menu, [] when none is open: words, or colours shown as swatches.
-## columns: options per row (0 for a single row); disabled: indices greyed out.
-func show_menu(options: Array, choice: int, columns := 0, disabled: Array = []) -> void:
+## Each option sits at its Menu.CELLS cell, around the first one; disabled: indices greyed out.
+func show_menu(options: Array, choice: int, disabled: Array = []) -> void:
     if options != _options or disabled != _disabled:
         _options = options.duplicate()
         _disabled = disabled.duplicate()
         _choice = -1
         for child in _menu_row.get_children():
             child.free()
-        _menu_row.columns = columns if columns > 0 else maxi(options.size(), 1)
+        _option_panels.clear()
         for index in options.size():
             var option: Variant = options[index]
             var panel := UiPanel.make(UiPanel.DARK, 8)
@@ -59,12 +61,24 @@ func show_menu(options: Array, choice: int, columns := 0, disabled: Array = []) 
                 panel.add_child(UiPanel.label(option, OPTION_FONT))
             if index in disabled:
                 panel.modulate.a = DISABLED_ALPHA
-            _menu_row.add_child(panel)
+            _option_panels.append(panel)
+        # Only the rows and columns in use; empty cells keep the others in place.
+        var used := Menu.CELLS.slice(0, options.size())
+        var low := Vector2i(3, 3)
+        var high := Vector2i(-1, -1)
+        for cell: Vector2i in used:
+            low = low.min(cell)
+            high = high.max(cell)
+        _menu_row.columns = maxi(high.x - low.x + 1, 1)
+        for row in range(low.y, high.y + 1):
+            for column in range(low.x, high.x + 1):
+                var index := Menu.option_at(Vector2i(column, row), options.size())
+                _menu_row.add_child(_option_panels[index] if index >= 0 else Control.new())
         _menu_row.visible = not options.is_empty()
         reset_size()
     if choice != _choice:
         _choice = choice
-        for index in _menu_row.get_child_count():
+        for index in _option_panels.size():
             _style_option(index, index == choice)
         reset_size()
 
@@ -72,7 +86,7 @@ func show_menu(options: Array, choice: int, columns := 0, disabled: Array = []) 
 ## Words go black on bright yellow when selected; swatches keep their colour and get a
 ## thick white border.
 func _style_option(index: int, selected: bool) -> void:
-    var panel: PanelContainer = _menu_row.get_child(index)
+    var panel: PanelContainer = _option_panels[index]
     var option: Variant = _options[index]
     if option is Color:
         var style := StyleBoxFlat.new()

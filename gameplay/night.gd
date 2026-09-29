@@ -458,10 +458,8 @@ func _show(p_alpha: float) -> void:
         _views[slot].show_hint(hints)
         var options: Array = []
         var disabled: Array = []
-        var columns := 0
         if player.menu != SimLevel.NONE:
             var menu_station := simulation.stations[player.menu]
-            columns = Menu.columns(menu_station.kind)
             var menu_options: Array = Menu.STATION_OPTIONS[menu_station.kind]
             for index in menu_options.size():
                 var option: StringName = menu_options[index]
@@ -479,7 +477,7 @@ func _show(p_alpha: float) -> void:
                 elif option == Menu.PHONE_LEAVE and role == Role.OFFLINE:
                     disabled.append(index)
                 options.append(word)
-        _views[slot].show_menu(options, player.menu_choice, columns, disabled)
+        _views[slot].show_menu(options, player.menu_choice, disabled)
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
         _station_views[index].set_highlighted(highlighted.has(index))

@@ -155,23 +155,18 @@ func _apply(player: SimPlayer, command: int) -> void:
 
 
 ## While a station menu is open, the arrows move the selection instead of the player,
-## interact takes the selected option and cancel closes the menu (GDD §5.4). In a grid menu
-## (Menu.columns) up and down change rows; in a single row they step like left and right.
+## interact takes the selected option and cancel closes the menu (GDD §5.4). The options sit on
+## a grid (Menu.CELLS): an arrow moves to the neighbouring option, if there is one that way.
 ## Returns whether the command was used by the menu.
 func _use_menu(player: SimPlayer, command: int) -> bool:
     var kind := stations[player.menu].kind
     var options: Array = Menu.STATION_OPTIONS[kind]
-    var columns := Menu.columns(kind)
-    var row := player.menu_choice / columns * columns
     match command:
-        Command.MOVE_LEFT, Command.MOVE_RIGHT:
-            var step := 1 if command == Command.MOVE_RIGHT else -1
-            player.menu_choice = row + posmod(player.menu_choice - row + step, columns)
-        Command.MOVE_UP, Command.MOVE_DOWN:
-            var step := 1 if command == Command.MOVE_DOWN else -1
-            if columns < options.size():
-                step *= columns
-            player.menu_choice = posmod(player.menu_choice + step, options.size())
+        Command.MOVE_UP, Command.MOVE_DOWN, Command.MOVE_LEFT, Command.MOVE_RIGHT:
+            var step: Vector2i = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT][command]
+            var next := Menu.option_at(Menu.CELLS[player.menu_choice] + step, options.size())
+            if next >= 0:
+                player.menu_choice = next
         Command.INTERACT:
             var station := stations[player.menu]
             var option: StringName = options[player.menu_choice]
@@ -547,7 +542,7 @@ func _interact(player: SimPlayer) -> void:
             Fryer.use_second(station, player)
         &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
             player.menu = index
-            player.menu_choice = Menu.first_choice(station.kind)
+            player.menu_choice = 0
         &"porte":
             if action == &"open":
                 events.append({"type": &"start_night", "by": player.slot})

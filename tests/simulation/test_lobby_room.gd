@@ -27,30 +27,31 @@ func test_players_start_with_distinct_colours_and_a_cap() -> void:
     assert_eq(Looks.HATS[sim.players[0].hat], Looks.CAP)
 
 
-func test_the_paint_menu_is_a_grid_that_opens_in_the_middle() -> void:
+func test_a_nine_option_menu_is_a_full_grid_around_the_first_option() -> void:
     var scenario := _scenario([0])
     var sim := scenario.at(0, 0, C.INTERACT).run_until(1)
-    assert_eq(sim.players[0].menu_choice, 4)
-    # Up a row, then left: the top-left colour.
+    assert_eq(sim.players[0].menu_choice, 0, "opens in the centre")
+    # Up, then left: the top-left cell, the ninth option.
     scenario.at(1, 0, C.MOVE_UP).at(1, 0, C.MOVE_LEFT).at(1, 0, C.INTERACT).run_until(2)
-    assert_eq(sim.players[0].color, 0)
+    assert_eq(sim.players[0].color, 8)
     scenario.at(2, 0, C.INTERACT).at(2, 0, C.MOVE_DOWN).at(2, 0, C.MOVE_RIGHT).at(2, 0, C.INTERACT)
     scenario.run_until(3)
-    assert_eq(sim.players[0].color, 8, "down a row, right: bottom right")
+    assert_eq(sim.players[0].color, 4, "down, right: bottom right, the fifth")
 
 
 func test_a_colour_worn_by_a_teammate_cant_be_taken() -> void:
     var scenario := _scenario([0, 4])
     var sim := scenario.simulation
-    sim.players[1].color = 4
+    sim.players[0].color = 2
+    sim.players[1].color = 0
     scenario.at(0, 0, C.INTERACT).at(0, 0, C.INTERACT).run_until(1)
-    assert_eq(sim.players[0].color, 0, "the middle one is taken")
+    assert_eq(sim.players[0].color, 2, "the middle one is taken")
     assert_ne(sim.players[0].menu, SimLevel.NONE, "the menu stays open")
 
 
 func test_the_hat_stand_offers_three_hats() -> void:
     var scenario := _scenario([1])
-    var sim := scenario.at(0, 0, C.INTERACT).at(0, 0, C.MOVE_RIGHT).at(0, 0, C.MOVE_RIGHT).at(0, 0, C.INTERACT).run_until(1)
+    var sim := scenario.at(0, 0, C.INTERACT).at(0, 0, C.MOVE_LEFT).at(0, 0, C.INTERACT).run_until(1)
     assert_eq(Looks.HATS[sim.players[0].hat], Looks.BEER_HELMET)
 
 

@@ -67,9 +67,9 @@ func hint_rows() -> Array:
 
 ## An open station menu: its options side by side, the selected one highlighted.
 ## An empty list hides it.
-func show_menu(options: Array, choice: int, columns := 0, disabled: Array = []) -> void:
+func show_menu(options: Array, choice: int, disabled: Array = []) -> void:
     if _panel:
-        _panel.show_menu(options, choice, columns, disabled)
+        _panel.show_menu(options, choice, disabled)
 
 
 ## alpha: how far we are towards the next tick, so walking stays smooth between ticks.

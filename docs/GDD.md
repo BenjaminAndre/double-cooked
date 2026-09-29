@@ -62,7 +62,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ### 5.4 Hand and interaction
 - Each player has **one hand** (changed after the second playtest: two hands were too hard at first).
 - **Space interacts** with the station at the player's node, and the station **transforms or fills the hand directly**. Items are never put down on the counter first; there are no intermediate steps.
-- **Station menus:** SAUCES, FRIGO and VIANDES offer a choice. The first press opens a menu. While it is open, the arrows move the selection instead of the player, a second press takes the selected option, and Échap closes the menu without taking anything (Backspace for P2 in duo).
+- **Station menus:** SAUCES, FRIGO and VIANDES offer a choice. The first press opens a menu. While it is open, the arrows move the selection instead of the player, a second press takes the selected option, and Échap closes the menu without taking anything (Backspace for P2 in duo). The options sit on a 3 × 3 grid around the first one, which is where the menu opens: the next ones go right, left, below, bottom right, bottom left, above, top right and top left (`Menu.CELLS`), so a menu grows without moving what is already there, and the first option should be the most common choice.
 - Station rules:
   - With an empty hand, interacting at a supply station (FRIGO, VIANDES, EXTINCTEUR…) takes an item.
   - Interacting at the POUBELLE empties the hand.

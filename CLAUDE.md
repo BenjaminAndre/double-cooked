@@ -5,7 +5,7 @@ A keyboard-only multiplayer game about surviving the night in a Belgian fritkot,
 ## Workflow
 
 - Work directly on `main`. Commit each change set, but ask before pushing.
-- **Bump `config/version` in `project.godot` in every commit**, as semantic versioning. Only the patch number goes up (0.1.x) until the user announces v0.2.
+- **Bump `config/version` in `project.godot` in every commit**, as semantic versioning. Only the patch number goes up: 0.1.x until the art (docs/ART_PLAN.md) is in place, which is 0.2.0, then 0.2.x.
 - Each push builds, tests and deploys the Web export (`.github/workflows/build.yml`), to https://benjaminandre.github.io/double-cooked/.
 
 ## Commands
@@ -20,6 +20,8 @@ godot --path . --resolution 64x64 -s res://tools/screenshot.gd -- out.png 3 crow
 ```
 
 The last command renders a 1280×720 screenshot to check a layout (setups are listed in the script). **Never pop a window on the user's monitor.** The script shrinks its window, moves it off-screen at runtime and renders into a SubViewport. Headless can't render, a minimized window renders blank, and `--position` at startup gets pulled back on screen.
+
+The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PLAN.md`); reference pictures are in `docs/art/`, which has a `.gdignore`.
 
 `bash tools/fetch_deps.sh` downloads the git-ignored `assets/` and `addons/` folders at pinned versions. On this machine, set `CURL_EXTRA=--ssl-revoke-best-effort`. The "invalid UID" warnings for Kenney models are expected: those UIDs are generated per machine.
 

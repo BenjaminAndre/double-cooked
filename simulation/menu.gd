@@ -43,18 +43,18 @@ const STATION_OPTIONS := {
     &"casquette": Looks.HATS,
     &"telephone": PHONE,
 }
-## Menus laid out as a grid, by columns; the others are a single row.
-const GRID_COLUMNS := {&"peinture": 3}
+## Where each option sits in a menu (GDD §5.4), as (column, row) on a 3 × 3 grid. A menu opens
+## on its first option, in the centre, and grows by steps without moving the options already
+## there: right, left, then below, bottom right, bottom left, then above, top right, top left.
+## So the first option should be the most common choice.
+const CELLS: Array[Vector2i] = [Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 1), Vector2i(1, 2),
+        Vector2i(2, 2), Vector2i(0, 2), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 0)]
 
 
-## How many options a row of this station's menu holds.
-static func columns(kind: StringName) -> int:
-    return GRID_COLUMNS.get(kind, STATION_OPTIONS[kind].size())
-
-
-## Where the selection starts when the menu opens: the middle of a grid, else the first.
-static func first_choice(kind: StringName) -> int:
-    return STATION_OPTIONS[kind].size() / 2 if GRID_COLUMNS.has(kind) else 0
+## The option at this cell of a menu of this many options, -1 for an empty cell.
+static func option_at(cell: Vector2i, count: int) -> int:
+    var index := CELLS.find(cell)
+    return index if index >= 0 and index < count else -1
 
 ## What CUISSON 2 gives back for each thing it accepts, lifted [too early, in time, too late].
 const SECOND_FRY := {

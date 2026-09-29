@@ -4,7 +4,7 @@ The artist's first delivery (models, textures, UI, logo, font, concept boards) r
 
 ## Decisions
 
-- **Hosting.** The assets are committed under `assets/art/` with a `CREDITS.md` (author, licence, mention of AI use). The repo is private, so **real brands are accepted** (Coca-Cola, Jupiler, AC/DC). Caveat: a GitHub Pages site stays public, so the web build shows them to anyone with the link, and Pages from a private repo needs a paid GitHub plan.
+- **Hosting.** The assets are committed under `art/` (reference pictures in `docs/art/`, which Godot ignores) with a `CREDITS.md` (author, licence, mention of AI use). The artist agreed on 2026-09-29. The repo is private, so **real brands are accepted** (Coca-Cola, Jupiler, AC/DC). Caveat: a GitHub Pages site stays public, so the web build shows them to anyone with the link, and Pages from a private repo needs a paid GitHub plan.
 - **Camera.** The artist's 3/4 isometric view. The arrows stay aligned with the grid: "up" goes towards the back, on a diagonal on screen. The camera turns 45° so that both grid axes are symmetric diagonals.
 - **Characters are paper cut-outs**: Sprite3D billboards that turn around the vertical axis only, so they stay upright. The 3D figurines were placeholders.
   - `MainCharacter01`–`04` are the players. **PEINTURE chooses one of the four characters** (blue, red, green or yellow T-shirt), unique in the team. `Looks.COLORS` shrinks to these four, and the colour still stands for the player everywhere.
@@ -82,26 +82,28 @@ Rendering follows the artist's readme: unlit materials, everything in the textur
 
 ## Steps (one version each)
 
-1. **Intake.**
+The art comes before the rest of the roadmap. Steps 1–4 are 0.1.32–0.1.35; step 5 completes the art and is **0.2.0**. The later roadmap (reconnect, campaign, mitraillette, debug tools) follows as 0.2.1–0.2.4.
+
+1. **Intake** (0.1.32).
    - Copy the assets, write `CREDITS.md`, add the unlit import script and the Bebas Kai theme.
    - Implement the menu layout rule (in `Menu` and `Simulation._use_menu`, with tests).
-2. **Room and camera.**
+2. **Room and camera** (0.1.33).
    - Put the `Room01` shell around the grid, aligned on the floor tiles, and the queue outside along the street.
    - Set the isometric camera, the background colour, and unlit rendering.
    - Remove the Kenney floor and `GridView`.
-3. **Paper characters.**
+3. **Paper characters** (0.1.34).
    - Players, customers and the boss become billboards.
    - PEINTURE offers four characters.
    - Fat widens the sprite, K.O. lays it on the floor, and stun keeps the stars.
    - The beer helmet becomes an overlay.
-4. **Stations.**
+4. **Stations** (0.1.35).
    - Models on their cells, with the fridge, bin and basket animations.
    - Oil and fire particles, and the alert siren.
-5. **Items and HUD.**
+5. **Items and HUD** (0.2.0).
    - Held-item icons, order bubbles, menu bubbles over stations.
    - Gauges, hearts, clock and mood bar.
    - Announcements, the end notebook with stars, and the logo over the lobby.
-6. **Menu** (within the campaign): ketchup first, then boulette and brochette, then the burger recipe.
+6. **Menu**, within the campaign (0.2.2): ketchup first, then boulette and brochette, then the burger recipe.
 
 ## To ask the artist
 
@@ -115,4 +117,4 @@ Rendering follows the artist's readme: unlit materials, everything in the textur
   - the beer helmet as a sprite;
   - a lying pose for the knock-out, if flipping the sprite doesn't look right.
 - **Fryer:** a 1 m module, or a split of the 3 m unit, to fit our 4 fryer cells (CUISSON 1 over 2 cells, two CUISSON 2).
-- **Licence:** agreement to keep the assets in the (private) repo and in the public web build, and the credits wording.
+- **Credits:** the name and wording to put in `CREDITS.md` (their agreement was given on 2026-09-29).
