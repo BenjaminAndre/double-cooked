@@ -50,6 +50,11 @@ var _alert: Sprite3D
 var _menu_open := false
 ## Sheet texture path -> its sprite.
 var _flipbooks := {}
+## Whether the station has something to do tonight (Menu.station_in_use); greyed out if not.
+var _in_use := true
+## Material -> its darkened copy, shared like UnlitArt's.
+static var _greyed := {}
+const GREYED := Color(0.4, 0.4, 0.42)
 
 
 ## A pale shell around the station, while a player at this keyboard stands at it.
@@ -72,11 +77,12 @@ func set_highlighted(on: bool) -> void:
 ## Shows a fire on any station, and on fryers the gauge while something fries, or the
 ## portions left of a batch waiting on CUISSON 1.
 func show_station(station: SimStation, rules: SimRules) -> void:
+    _show_in_use(Menu.station_in_use(kind, rules.menu))
     var label := ""
     var frying := kind in FRYERS and station.basket != null and station.frying and not station.burning
     if station.burning:
         label = "FEU !"
-    elif kind == &"frigo":
+    elif kind == &"frigo" and _in_use:
         label = "bière ×%d" % station.beers
     elif kind in FRYERS and station.basket and not station.frying:
         label = "×%d" % station.basket.portions
@@ -98,6 +104,43 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
     # The siren: about to catch fire, past the ready zone.
     _show_alert(frying and station.cook > Fryer.window(station).y)
+
+
+## A station with nothing to do tonight is greyed out, its name too (GDD §4.2).
+func _show_in_use(on: bool) -> void:
+    if on == _in_use:
+        return
+    _in_use = on
+    if models:
+        for mesh: MeshInstance3D in models.find_children("*", "MeshInstance3D", true, false):
+            if not mesh.mesh:
+                continue
+            for surface in mesh.mesh.get_surface_count():
+                _grey_surface(mesh, surface, not on)
+    var name_label := get_node_or_null("Label") as Label3D
+    if name_label:
+        name_label.modulate = Color.WHITE if on else Color(0.5, 0.5, 0.5)
+
+
+## Swaps a surface to a darkened copy of its material, or back. Opaque, so it sorts like the
+## rest of the kitchen.
+static func _grey_surface(mesh: MeshInstance3D, surface: int, grey: bool) -> void:
+    var key := "normal_%d" % surface
+    if not grey:
+        if mesh.has_meta(key):
+            # Kept in an array: a null meta would erase itself.
+            mesh.set_surface_override_material(surface, mesh.get_meta(key)[0])
+            mesh.remove_meta(key)
+        return
+    var material := mesh.get_active_material(surface) as BaseMaterial3D
+    if not material or mesh.has_meta(key):
+        return
+    mesh.set_meta(key, [mesh.get_surface_override_material(surface)])
+    if not _greyed.has(material):
+        var copy := material.duplicate() as BaseMaterial3D
+        copy.albedo_color = material.albedo_color * GREYED
+        _greyed[material] = copy
+    mesh.set_surface_override_material(surface, _greyed[material])
 
 
 func _show_alert(on: bool) -> void:

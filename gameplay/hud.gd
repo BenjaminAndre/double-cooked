@@ -35,6 +35,8 @@ var _recap: RichTextLabel
 ## The clock and warnings: hidden in the lobby.
 var _corner: VBoxContainer
 var _next: Label
+## The best campaign so far, under the logo in the lobby.
+var _record: RichTextLabel
 
 
 func _ready() -> void:
@@ -80,6 +82,18 @@ func _ready() -> void:
     _logo.grow_horizontal = Control.GROW_DIRECTION_BEGIN
     _logo.visible = false
     add_child(_logo)
+    _record = RichTextLabel.new()
+    _record.bbcode_enabled = true
+    _record.fit_content = true
+    _record.autowrap_mode = TextServer.AUTOWRAP_OFF
+    _record.custom_minimum_size.x = 300
+    _record.add_theme_font_size_override("normal_font_size", 26)
+    _record.add_theme_constant_override("outline_size", 8)
+    _record.add_theme_color_override("font_outline_color", Color.BLACK)
+    _record.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 12)
+    _record.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+    _record.position.y += 200
+    add_child(_record)
     _banner = ArtUi.panel(ArtUi.notebook())
     add_child(_banner)
     var column := VBoxContainer.new()
@@ -109,7 +123,7 @@ func _process(delta: float) -> void:
     _mood.visible = not night.in_lobby
     if _logo.visible and _anyone_moving():
         _logo.visible = false
-    _set_text(_status, clock(sim.clock_minutes()) \
+    _set_text(_status, night_name(night.campaign_night) + clock(sim.clock_minutes()) \
             + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _mood.mood = float(sim.crowd.mood) / sim.rules.riot
     var warnings := PackedStringArray()
@@ -124,16 +138,21 @@ func _process(delta: float) -> void:
     _announce_left = maxf(_announce_left - delta, 0.0)
     _announce.visible = _announce_left > 0.0
     _banner.visible = sim.outcome != &""
+    # The summary takes the middle of the screen.
+    _announce.visible = _announce.visible and not _banner.visible
     if _banner.visible:
-        var next := "Entrée : retour à la salle"
-        if night.role == Night.Role.HOST:
+        var goes_on := night.campaign_night > 0 and sim.outcome == &"won"
+        var next := "Entrée : nuit %d" % (night.campaign_night + 1) if goes_on else "Entrée : retour à la salle"
+        if night.role == Night.Role.HOST and not goes_on:
             next = "Entrée : tout le monde en salle"
         elif night.role == Night.Role.CLIENT:
             next = "En attente de l'hôte..."
         next += "\nF3 : télécharger le replay"
-        _set_text(_title, title(sim))
+        _set_text(_title, title(sim, night.campaign_night))
         _show_stars(stars(sim))
-        var recap_text := "[center]%s[/center]" % recap(sim)
+        var recap_text := "[center]%s[/center]" % recap(sim, night.campaign_night)
+        if night.campaign_night > 0 and sim.outcome != &"won" and night.campaign_record().night > 0:
+            recap_text += "\n[center]%s[/center]" % record_text(night.campaign_record(), night.new_record)
         if _recap.text != recap_text:
             _recap.text = recap_text
         _set_text(_next, next)
@@ -167,6 +186,17 @@ func _show_announcement(text: String) -> void:
 
 func _on_began() -> void:
     _logo.visible = night.in_lobby
+    var record := night.campaign_record()
+    _record.visible = night.in_lobby and record.night > 0
+    if _record.visible:
+        _record.text = "[right]%s[/right]" % record_text(record)
+    if night.campaign_night > 0:
+        var added := Campaign.new_on(night.campaign_night)
+        var words := PackedStringArray()
+        for entry in added:
+            words.append(ItemNames.DISHES.get(entry, ItemNames.word(entry)))
+        _show_announcement("Nuit %d" % night.campaign_night
+                + ("\nNouveau : %s" % ", ".join(words) if not words.is_empty() else ""))
 
 
 func _anyone_moving() -> bool:
@@ -202,7 +232,12 @@ func _show_notice(text: String) -> void:
     _notice_left = NOTICE_TIME
 
 
-static func title(sim: Simulation) -> String:
+## campaign_night: which night of a campaign (Night.campaign_night), 0 for a single night.
+static func title(sim: Simulation, campaign_night := 0) -> String:
+    if campaign_night > 0:
+        if sim.outcome == &"won":
+            return "Nuit %d tenue !" % campaign_night
+        return "Campagne perdue à la nuit %d." % campaign_night
     match sim.outcome_reason:
         &"closing":
             return "Fermeture ! Vous avez tenu la nuit."
@@ -211,8 +246,22 @@ static func title(sim: Simulation) -> String:
     return "Émeute ! La nuit s'arrête à %s." % clock(sim.clock_minutes())
 
 
-## The end-of-night fun stats (GDD §4).
-static func recap(sim: Simulation) -> String:
+## "Nuit N · " in front of the clock during a campaign.
+static func night_name(campaign_night: int) -> String:
+    return "Nuit %d · " % campaign_night if campaign_night > 0 else ""
+
+
+## The best campaign (Night.campaign_record()), with the crew that reached it.
+static func record_text(record: Dictionary, new := false) -> String:
+    var crew := PackedStringArray()
+    for color: int in record.colors:
+        crew.append(swatch(color))
+    return "%s : nuit %d  %s" % ["Nouveau record" if new else "Record", record.night, " ".join(crew)]
+
+
+## The end-of-night fun stats (GDD §4). In a campaign, or with more than one player, each
+## player's own line too.
+static func recap(sim: Simulation, campaign_night := 0) -> String:
     var stats := sim.stats
     var lines := ["Clients servis : %d · Repartis furieux : %d · Partis sans rien : %d" \
             % [stats.served, stats.angry, stats.walk_outs],
@@ -220,11 +269,12 @@ static func recap(sim: Simulation) -> String:
             % [stats.beers, stats.cans_hit, stats.fires]]
     if stats.boss_came:
         lines.append("Commandes du boss servies : %d sur %d" % [stats.boss_served, sim.rules.boss_orders])
-    if sim.players.size() > 1:
+    if sim.players.size() > 1 or campaign_night > 0:
         var players := []
         for slot in sim.players.size():
-            players.append("%s  %d bousculades, %d K.O., %d relevés" % [swatch(sim.players[slot].color),
-                    stats.bumps[slot], stats.knockouts[slot], stats.revives[slot]])
+            players.append("%s  %d servis, %d ratés, %d bières · %d bousculades, %d K.O., %d relevés" \
+                    % [swatch(sim.players[slot].color), stats.served_by[slot], stats.missed_by[slot],
+                    stats.beers_by[slot], stats.bumps[slot], stats.knockouts[slot], stats.revives[slot]])
         lines.append_array(players)
         var most: int = stats.knockouts.max()
         if most > 0:

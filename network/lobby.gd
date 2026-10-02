@@ -79,11 +79,12 @@ func _unhandled_input(event: InputEvent) -> void:
     if key.physical_keycode == KEY_ESCAPE and night.has_open_menu():
         return
     match [state, key.physical_keycode]:
-        # Once a night is over, Enter takes everyone back to the lobby (during one, it eats).
+        # Once a night is over, Enter takes everyone on: the next night of a campaign, or the lobby
+        # (during one, it eats).
         [State.HOSTING, KEY_ENTER], [State.HOSTING, KEY_KP_ENTER]:
             if night.simulation.outcome == &"" or night.role != Night.Role.HOST:
                 return
-            night.host_lobby()
+            night.continue_after_night()
         [State.HOSTING, KEY_ESCAPE], [State.JOINING, KEY_ESCAPE], [State.JOINED, KEY_ESCAPE]:
             _leave()
         _:

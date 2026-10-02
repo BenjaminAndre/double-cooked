@@ -25,7 +25,7 @@ static func from_replay(level: SimLevel, replay: Dictionary) -> Scenario:
     var spawns := PackedInt32Array()
     for spawn_name: String in replay.spawns:
         spawns.append(level.find(spawn_name))
-    var scenario := Scenario.new(level, spawns, int(replay.seed))
+    var scenario := Scenario.new(level, spawns, int(replay.seed), Campaign.rules_for(int(replay.get("night", 0))))
     scenario.simulation.apply_looks(PackedInt32Array(replay.get("looks", [])))
     for join: Array in replay.get("joins", []):
         scenario.join_at(int(join[0]), int(join[1]), int(join[2]), int(join[3]))

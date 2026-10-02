@@ -55,6 +55,10 @@ func _initialize() -> void:
             sim.players[1].color = 3
             night.submit(0, Simulation.Command.INTERACT)
             night.submit(0, Simulation.Command.MOVE_LEFT)
+        "lobby_record":
+            # The best campaign so far, under the logo.
+            night._record = {"night": 7, "colors": [1, 3]}
+            night.play_lobby(1)
         "lobby_door":
             # The host at the door while a teammate isn't ready yet.
             night.play_lobby(2)
@@ -68,6 +72,16 @@ func _initialize() -> void:
             night.simulation.crowd.mood = 420
         "duo":
             night.play_local(2)
+        "campaign":
+            # Night 2 of a campaign: sauces are new, FRIGO, VIANDES and PAIN are greyed out.
+            night.play_local(2, 2)
+        "campaign_lost":
+            # A campaign lost on its 4th night, with each player's stats.
+            night.play_local(2, 4)
+            var sim := night.simulation
+            sim.stats.merge({"served": 14, "angry": 3, "served_by": [9, 5], "missed_by": [1, 2],
+                    "beers_by": [0, 2], "bumps": [5, 2], "knockouts": [0, 2], "revives": [2, 0]}, true)
+            sim.crowd.mood = sim.rules.riot
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0

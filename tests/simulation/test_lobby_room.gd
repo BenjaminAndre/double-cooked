@@ -94,7 +94,11 @@ func test_the_host_opens_the_door_once_everyone_else_is_ready() -> void:
     sim.players[1].node = level.find("pret")
     assert_eq(sim.action_for(sim.players[0]), &"open")
     assert_eq(sim.action_for(sim.players[1]), &"")
+    # The door opens its menu: a campaign first, or a single night.
     scenario.at(1, 0, C.INTERACT).run_until(2)
+    assert_false(_started(scenario), "not before choosing")
+    assert_eq(Menu.options(&"porte")[sim.players[0].menu_choice], Menu.DOOR_CAMPAIGN)
+    scenario.at(2, 0, C.INTERACT).run_until(3)
     assert_true(_started(scenario))
 
 

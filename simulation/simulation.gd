@@ -63,7 +63,8 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     stats = {"served": 0, "angry": 0, "walk_outs": 0, "beers": 0, "fires": 0, "cans_hit": 0,
             "boss_came": false, "boss_served": 0,
             "bumps": per_player.duplicate(), "knockouts": per_player.duplicate(),
-            "revives": per_player.duplicate()}
+            "revives": per_player.duplicate(), "served_by": per_player.duplicate(),
+            "missed_by": per_player.duplicate(), "beers_by": per_player.duplicate()}
 
 
 ## A player joining the night under way (GDD §9.1), standing at node, in this colour (taken
@@ -75,7 +76,7 @@ func add_player(node: int, color: int, hat: int) -> int:
     player.color = Looks.default_color(player.slot)
     players.append(player)
     apply_looks(PackedInt32Array([color, hat]), player.slot)
-    for key in [&"bumps", &"knockouts", &"revives"]:
+    for key in [&"bumps", &"knockouts", &"revives", &"served_by", &"missed_by", &"beers_by"]:
         stats[key].append(0)
     return player.slot
 
@@ -511,6 +512,9 @@ func _station_action(player: SimPlayer) -> StringName:
         return &"extinguish" if held and held.kind == EXTINGUISHER and not player.down else &""
     if player.down and station.kind != &"frigo":
         return &""
+    # A knocked-out player can still crawl to a beer, drinks on the menu or not.
+    if not player.down and not Menu.station_in_use(station.kind, rules.menu):
+        return &""
     match station.kind:
         &"cuisson_1":
             if not station.basket:
@@ -710,12 +714,15 @@ func _count(step_events: Array[Dictionary]) -> void:
         match event.type:
             &"served":
                 stats.served += 1
+                _count_by(&"served_by", event.by)
             &"angry":
                 stats.angry += 1
+                _count_by(&"missed_by", event.by)
             &"can_hit":
                 stats.cans_hit += 1
             &"beer_gift":
                 stats.beers += 1
+                _count_by(&"beers_by", event.by)
             &"walk_out":
                 stats.walk_outs += 1
             &"fire_started", &"fire_spread":
@@ -730,6 +737,15 @@ func _count(step_events: Array[Dictionary]) -> void:
                 stats.boss_came = true
             &"boss_served":
                 stats.boss_served += 1
+                _count_by(&"served_by", event.by)
+            &"boss_missed":
+                _count_by(&"missed_by", event.by)
+
+
+## Counts one for a player, when the event has one (by is -1 for a customer who walked out).
+func _count_by(key: StringName, by: int) -> void:
+    if by >= 0 and by < stats[key].size():
+        stats[key][by] += 1
 
 
 func _end(result: StringName, reason: StringName) -> void:

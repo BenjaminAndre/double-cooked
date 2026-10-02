@@ -25,11 +25,20 @@ const ITEMS := {
     Menu.FRICADELLE: ["Fricadelle_Cooked", Color.WHITE],
     Menu.FRICADELLE_UNDERCOOKED: ["Fricadelle_Raw", WASHED],
     Menu.FRICADELLE_BURNT: ["Fricadelle_Cooked", BURNT],
+    Menu.BOULETTE_RAW: ["Boulette_Raw", Color.WHITE],
+    Menu.BOULETTE: ["Boulette_Cooked", Color.WHITE],
+    Menu.BOULETTE_UNDERCOOKED: ["Boulette_Raw", WASHED],
+    Menu.BOULETTE_BURNT: ["Boulette_Cooked", BURNT],
+    Menu.BROCHETTE_RAW: ["Brochette_Raw", Color.WHITE],
+    Menu.BROCHETTE: ["Brochette_Cooked", Color.WHITE],
+    Menu.BROCHETTE_UNDERCOOKED: ["Brochette_Raw", WASHED],
+    Menu.BROCHETTE_BURNT: ["Brochette_Cooked", BURNT],
     Menu.COLA: ["Coca", Color.WHITE],
     Menu.BEER: ["Jupiler", Color.WHITE],
     Simulation.EXTINGUISHER: ["Extincteur", Color.WHITE],
     Menu.MAYO: ["Sauce_Mayo", Color.WHITE],
     Menu.ANDALOUSE: ["Sauce_Andalouse", Color.WHITE],
+    Menu.KETCHUP: ["Sauce_Ketchup", Color.WHITE],
 }
 ## Dishes as ordered (Menu.order_key) -> the item that serves them.
 const DISHES := {
@@ -37,6 +46,8 @@ const DISHES := {
     &"fricadelle": Menu.FRICADELLE,
     &"cervelas_froid": Menu.CERVELAS,
     &"cervelas_chaud": Menu.CERVELAS_WARM,
+    &"boulette": Menu.BOULETTE,
+    &"brochette": Menu.BROCHETTE,
     Menu.COLA: Menu.COLA,
     Menu.BEER: Menu.BEER,
 }

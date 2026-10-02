@@ -134,14 +134,22 @@ func test_sauces_only_open_for_a_food_without_sauce() -> void:
     assert_eq(player.menu, SimLevel.NONE, "no sauce on cold fries nor on a cola")
 
 
-func test_the_menu_opens_on_its_first_option_and_grows_to_the_right() -> void:
-    var scenario := Scenario.new(level, [sauces])
+func test_the_menu_opens_on_its_first_option_and_grows_to_the_right_then_left() -> void:
+    var rules := SimRules.new()
+    rules.menu.erase(Menu.KETCHUP)
+    var scenario := Scenario.new(level, [sauces], 0, rules)
     var player := scenario.simulation.players[0]
     player.item = SimItem.new(Fryer.FRIES_GOOD)
     scenario.at(0, 0, INTERACT).at(1, 0, LEFT).run_until(2)
     assert_eq(player.menu_choice, 0, "nothing on the left of two options")
     scenario.at(2, 0, RIGHT).at(3, 0, RIGHT).run_until(4)
     assert_eq(player.menu_choice, 1, "and nothing past the second")
+    # The whole menu: the third sauce, ketchup, on the left.
+    scenario = Scenario.new(level, [sauces])
+    player = scenario.simulation.players[0]
+    player.item = SimItem.new(Fryer.FRIES_GOOD)
+    scenario.at(0, 0, INTERACT).at(1, 0, LEFT).run_until(2)
+    assert_eq(Menu.options(&"sauces")[player.menu_choice], Menu.KETCHUP)
 
 
 func test_the_bin_empties_the_hand() -> void:

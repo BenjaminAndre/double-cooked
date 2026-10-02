@@ -18,10 +18,19 @@ const NAMES := {
     Menu.FRICADELLE: "fricadelle",
     Menu.FRICADELLE_UNDERCOOKED: "fricadelle pas cuite",
     Menu.FRICADELLE_BURNT: "fricadelle brûlée",
+    Menu.BOULETTE_RAW: "boulette crue",
+    Menu.BOULETTE: "boulette",
+    Menu.BOULETTE_UNDERCOOKED: "boulette pas cuite",
+    Menu.BOULETTE_BURNT: "boulette brûlée",
+    Menu.BROCHETTE_RAW: "brochette crue",
+    Menu.BROCHETTE: "brochette",
+    Menu.BROCHETTE_UNDERCOOKED: "brochette pas cuite",
+    Menu.BROCHETTE_BURNT: "brochette brûlée",
     Menu.COLA: "cola",
     Menu.BEER: "bière",
     Menu.MAYO: "mayo",
     Menu.ANDALOUSE: "andalouse",
+    Menu.KETCHUP: "ketchup",
     Menu.NATURE: "nature",
     Simulation.EXTINGUISHER: "extincteur",
     Looks.NONE: "rien",
@@ -30,6 +39,8 @@ const NAMES := {
     Menu.PHONE_HOST: "créer",
     Menu.PHONE_JOIN: "rejoindre",
     Menu.PHONE_LEAVE: "quitter",
+    Menu.DOOR_CAMPAIGN: "campagne",
+    Menu.DOOR_FREE_NIGHT: "nuit libre",
 }
 
 ## Dishes as customers order them (see Menu.DISHES).
@@ -38,6 +49,8 @@ const DISHES := {
     &"fricadelle": "fricadelle",
     &"cervelas_froid": "cervelas froid",
     &"cervelas_chaud": "cervelas chaud",
+    &"boulette": "boulette",
+    &"brochette": "brochette",
     Menu.COLA: "cola",
     Menu.BEER: "bière",
 }

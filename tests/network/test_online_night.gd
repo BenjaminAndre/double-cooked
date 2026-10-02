@@ -137,9 +137,14 @@ func test_the_lobby_is_shared_and_the_door_takes_everyone_with_their_looks() -> 
             return sim.players[0].node == door and not sim.players[0].is_moving() \
                     and sim.others_ready(sim.players[0]), 5.0)
     assert_eq(host_night.simulation.action_for(host_night.simulation.players[0]), &"open")
+    # The door's menu opens on the campaign.
+    host_night.submit(0, C.INTERACT)
+    await wait_until(func() -> bool: return host_night.simulation.players[0].menu != SimLevel.NONE, 5.0)
     host_night.submit(0, C.INTERACT)
     await wait_until(func() -> bool: return not client_night.in_lobby, 5.0)
     assert_false(host_night.in_lobby)
+    assert_eq(client_night.campaign_night, 1, "the first night of a campaign, on both")
+    assert_eq(client_night.simulation.rules.menu, Campaign.menu_for(1))
     for night in [host_night, client_night]:
         assert_eq(night.simulation.players[1].color, 3)
         assert_eq(Looks.HATS[night.simulation.players[1].hat], Looks.BEER_HELMET)

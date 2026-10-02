@@ -62,6 +62,10 @@ var in_lobby := false
 var player_id := ""
 ## The host is gone and a new one is taking over: the night stands still meanwhile.
 var reconnecting := false
+## Which night of a campaign this is (GDD §4.2), 0 for a single night or the lobby.
+var campaign_night := 0
+## The campaign just ended on a night further than any before, on this browser.
+var new_record := false
 
 @onready var _link: NightLink = $Link
 
@@ -104,6 +108,8 @@ var _pending_joins := {}
 var _expected := {}
 var _reconnect_left := 0.0
 var _web_page: WebPage
+## campaign_record(), read once from looks_path.
+var _record := {}
 
 
 func _ready() -> void:
@@ -134,9 +140,9 @@ func play_lobby(local_players: int) -> void:
     _play_offline(local_players, true)
 
 
-## Offline night with one or two players on this keyboard.
-func play_local(local_players: int) -> void:
-    _play_offline(local_players, false)
+## Offline night with one or two players on this keyboard; campaign_night 0 for a single night.
+func play_local(local_players: int, p_campaign_night := 0) -> void:
+    _play_offline(local_players, false, p_campaign_night)
 
 
 ## Host: everyone connected into the lobby, e.g. when someone joins.
@@ -145,20 +151,35 @@ func host_lobby() -> void:
 
 
 ## Host: starts an online night with every connected peer.
-func host_online() -> void:
-    _host_begin(false)
+func host_online(p_campaign_night := 0) -> void:
+    _host_begin(false, p_campaign_night)
 
 
-func _play_offline(local_players: int, lobby: bool) -> void:
+## Once a night is over (Enter, or the host's Enter online): a campaign goes on to its next
+## night when this one was held; otherwise everyone goes back to the lobby.
+func continue_after_night() -> void:
+    var next := campaign_night + 1 if campaign_night > 0 and simulation.outcome == &"won" else 0
+    if role == Role.HOST:
+        if next > 0:
+            host_online(next)
+        else:
+            host_lobby()
+    elif next > 0:
+        play_local(_local_slots.size(), next)
+    else:
+        play_lobby(_local_slots.size())
+
+
+func _play_offline(local_players: int, lobby: bool, p_campaign_night := 0) -> void:
     var slots := PackedInt32Array()
     for slot in local_players:
         slots.append(slot)
-    _begin(local_players, slots, _new_seed(), Role.OFFLINE, lobby, _current_looks())
+    _begin(local_players, slots, _new_seed(), Role.OFFLINE, lobby, _current_looks(), p_campaign_night)
 
 
 ## The host is slot 0. The others keep their slot from one night to the next, and newcomers
 ## follow in peer id order; each keeps their looks (a newcomer's from their hello).
-func _host_begin(lobby: bool) -> void:
+func _host_begin(lobby: bool, p_campaign_night := 0) -> void:
     var by_peer := {1: _look_of(_local_slots[0] if not _local_slots.is_empty() else 0)}
     for peer in _peer_slots:
         by_peer[peer] = _look_of(_peer_slots[peer])
@@ -181,10 +202,11 @@ func _host_begin(lobby: bool) -> void:
         ids.append(hello[0])
     var seed_value := _new_seed()
     var count := _peer_order.size() + 1
-    _begin(count, PackedInt32Array([0]), seed_value, Role.HOST, lobby, looks)
+    _begin(count, PackedInt32Array([0]), seed_value, Role.HOST, lobby, looks, p_campaign_night)
     _slot_ids = ids
     for peer in _peer_order:
-        _link.begin_night.rpc_id(peer, count, _peer_slots[peer], seed_value, lobby, looks, ids)
+        _link.begin_night.rpc_id(peer, count, _peer_slots[peer], seed_value, lobby, campaign_night, looks,
+                ids)
 
 
 ## [colour, hat] of this slot in the current simulation, [-1, -1] if there is none.
@@ -286,10 +308,10 @@ func _unhandled_input(event: InputEvent) -> void:
         notice.emit(export_replay())
         get_viewport().set_input_as_handled()
         return
-    # Once a night is over, Enter goes back to the lobby (online, the host's Lobby does it).
+    # Once a night is over, Enter goes on (online, the host's Lobby does it).
     if role == Role.OFFLINE and key and key.pressed and not key.echo and simulation.outcome != &"" \
             and key.physical_keycode in [KEY_ENTER, KEY_KP_ENTER]:
-        play_lobby(_local_slots.size())
+        continue_after_night()
         get_viewport().set_input_as_handled()
         return
     var command := _input.read(event)
@@ -386,13 +408,20 @@ func _step() -> bool:
             # Deferred: the lobby may start over, which replaces this simulation.
             phone_used.emit.call_deferred(event.choice)
         elif event.type == &"start_night" and role != Role.CLIENT:
-            (host_online if role == Role.HOST else play_local.bind(_local_slots.size())).call_deferred()
+            var first := 1 if event.get("campaign", false) else 0
+            if role == Role.HOST:
+                host_online.call_deferred(first)
+            else:
+                play_local.call_deferred(_local_slots.size(), first)
+        elif event.type == &"night_over" and campaign_night > 0 and event.outcome == &"lost":
+            new_record = _save_record()
     return true
 
 
 ## looks: colour, hat per slot (-1 keeps the default), carried from the lobby to the night.
+## p_campaign_night: which night of a campaign, 0 for a single night (ignored in the lobby).
 func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p_role: Role,
-        lobby := false, looks := PackedInt32Array()) -> void:
+        lobby := false, looks := PackedInt32Array(), p_campaign_night := 0) -> void:
     _save_replay()
     role = p_role
     in_lobby = lobby and lobby_room != null
@@ -410,13 +439,15 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     var spawn_nodes := PackedInt32Array()
     for spawn_name: String in spawn_names:
         spawn_nodes.append(level.find(spawn_name))
-    var rules := SimRules.new()
+    campaign_night = 0 if in_lobby else p_campaign_night
+    new_record = false
+    var rules := Campaign.rules_for(campaign_night)
     rules.lobby = in_lobby
     simulation = Simulation.new(level, spawn_nodes, seed_value, rules)
     simulation.apply_looks(looks)
     room.camera.current = true
     _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
-            "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby}
+            "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby, "night": campaign_night}
     _log.clear()
     _local_slots = local_slots
     _input = LocalInput.new(local_slots.size())
@@ -428,7 +459,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     _left.clear()
     desyncs = 0
     desync_ticks = PackedInt32Array()
-    _start = {"count": player_count, "seed": seed_value, "looks": looks}
+    _start = {"count": player_count, "seed": seed_value, "looks": looks, "night": campaign_night}
     _joins.clear()
     _pending_joins.clear()
     _expected.clear()
@@ -453,9 +484,9 @@ func _on_command_received(peer_id: int, command: int) -> void:
         _pending[_peer_slots[peer_id]].append(command)
 
 
-func _on_night_began(player_count: int, slot: int, seed_value: int, lobby: bool,
+func _on_night_began(player_count: int, slot: int, seed_value: int, lobby: bool, p_campaign_night: int,
         looks: PackedInt32Array, ids: PackedStringArray) -> void:
-    _begin(player_count, PackedInt32Array([slot]), seed_value, Role.CLIENT, lobby, looks)
+    _begin(player_count, PackedInt32Array([slot]), seed_value, Role.CLIENT, lobby, looks, p_campaign_night)
     _slot_ids = ids
 
 
@@ -556,7 +587,7 @@ func _send_catch_up(peer: int, slot: int) -> void:
 ## step budget allows, then follows the host from its current tick.
 func _on_caught_up(start: Dictionary, slot: int, ids: PackedStringArray, left: PackedInt32Array) -> void:
     _begin(int(start.count), PackedInt32Array([slot]), int(start.seed), Role.CLIENT, false,
-            PackedInt32Array(start.looks))
+            PackedInt32Array(start.looks), int(start.get("night", 0)))
     _slot_ids = ids
     for gone in left:
         _left[gone] = true
@@ -722,7 +753,7 @@ func _show(p_alpha: float) -> void:
         var disabled: Array = []
         if player.menu != SimLevel.NONE:
             var menu_station := simulation.stations[player.menu]
-            var menu_options: Array = Menu.STATION_OPTIONS[menu_station.kind]
+            var menu_options: Array = Menu.options(menu_station.kind, simulation.rules.menu)
             for index in menu_options.size():
                 var option: StringName = menu_options[index]
                 if menu_station.kind == &"peinture":
@@ -816,3 +847,32 @@ func _saved_looks() -> Array:
     if looks_path == "" or config.load(looks_path) != OK:
         return []
     return [int(config.get_value("looks", "color", 0)), int(config.get_value("looks", "hat", Looks.DEFAULT_HAT))]
+
+
+## The team's best campaign on this browser (GDD §4.2): {"night": the night it fell on, 0 if
+## none yet, "colors": the colours of that crew}.
+func campaign_record() -> Dictionary:
+    if not _record.is_empty():
+        return _record
+    var config := ConfigFile.new()
+    _record = {"night": 0, "colors": []}
+    if looks_path != "" and config.load(looks_path) == OK:
+        _record = {"night": int(config.get_value("campaign", "best", 0)),
+                "colors": Array(config.get_value("campaign", "colors", []))}
+    return _record
+
+
+## Keeps this campaign if it went further than the record. Returns whether it did.
+func _save_record() -> bool:
+    if looks_path == "" or campaign_night <= campaign_record().night:
+        return false
+    var config := ConfigFile.new()
+    config.load(looks_path)
+    config.set_value("campaign", "best", campaign_night)
+    var colors := []
+    for player in simulation.players:
+        colors.append(player.color)
+    config.set_value("campaign", "colors", colors)
+    config.save(looks_path)
+    _record = {"night": campaign_night, "colors": colors}
+    return true

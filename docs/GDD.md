@@ -27,14 +27,23 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 - One game is one night, 18:00 to 04:00 in just under 6 minutes of real time. **At 04:00 the door closes**: nobody comes in any more, and the night only ends once every customer still inside has been dealt with.
 - The pace follows the clock (revised after the fourth playtest): calm until 20:00, then a steady build-up of customers until the peak at closing time. Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors.
-- **(proposal)** Variety comes from difficulty levels and random events, not from progression between nights.
+- A single night (**nuit libre** at the PORTE) has the whole menu. Progression comes from the campaign (§4.2).
 - **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37"), **up to three stars** on the artist's notebook (one for holding until closing, one for a room still in the green, under half the riot, one for serving every order of the boss; a lost night has none), plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no points or economy behind it.
 
 ### 4.1 The lobby (after the first online playtest)
 - The game opens in a **waiting room that plays like the kitchen**: the same grid, walking and station menus, with no customers, clock or hunger. Online, everyone connected is in it together; a newcomer joins it at once (during a night, they wait for the next lobby).
 - **PEINTURE**: choose one of the **four characters** (their faces, laid out like any menu, §5.4). Each is unique in the team (a teammate's is greyed out). **CASQUETTE**: nothing, a cap, or a beer helmet with straws. Looks are kept between sessions, and carried into the night (§5.5).
 - **TÉLÉPHONE**: create an online game, join one (type the code), two players on this keyboard or back to one, and leave the online game. It replaces the old H / J / F2 keys and the text over the screen.
-- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. After a night, Entrée takes everyone back to the lobby.
+- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. Its menu offers a **campagne** (first, §4.2) or a **nuit libre**. After a single night, Entrée takes everyone back to the lobby.
+
+### 4.2 The campaign (0.2.3)
+- Like the rounds of a zombie game: **nights one after the other, endless, until the crew falls**. A held night leads to the next one (Entrée, the host's online); a riot or the whole crew K.O. **loses the campaign** and everyone goes back to the lobby. No purchases between nights yet.
+- **The score is the night reached.** The best one is the team's record, kept on this browser (`user://looks.cfg`) with the colours of that crew, and shown under the logo in the lobby.
+- **Each night is busier**: arrival delays are divided by 1 + 0.05 × (night − 1) (`SimRules.busier_per_night`). The calm-to-mad curve inside a night is unchanged.
+- **The menu grows** (`Campaign.UNLOCKS`): night 1 plain fries; 2 mayo and andalouse; 3 cold cervelas; 4 fricadelle; 5 cola and beer; 6 warm cervelas; 7 ketchup; 8 boulette; 9 brochette. Customers only order from it, and the night's announcement says what is new.
+- **Station menus only offer tonight's items**, and a station with nothing to do is **greyed out and inert** (today PAIN, FRIGO before night 5, VIANDES before night 3, SAUCES on night 1). A knocked-out player can still crawl to the FRIGO for a beer.
+- **The summary** shows the night reached and, per player (by colour): served, missed, beers given, bumps, K.O., revives; at the end of a campaign, the record.
+- Later (§12): barricades against the cans, special nights every N nights, an easter egg.
 
 ## 5. Players
 
@@ -139,10 +148,11 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
   - **fricadelle** (raw from VIANDES, fried once in a CUISSON 2) with a sauce;
   - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON 2, with a sauce;
   - **cola** or **bière** from the FRIGO. Colas never run out; the FRIGO holds **5 beers** and gets one back every 25 s (shown over it and in its menu), so beers are a shared, scarce resource for orders, gifts, rescues and healing (after the fourth playtest: one player was spending the night gifting beers).
-- The sauces are **mayo** and **andalouse**, or **nature** (no sauce), which customers order too.
+- **boulette** and **brochette**, raw from VIANDES and fried in a CUISSON 2 like the fricadelle.
+- The sauces are **mayo**, **andalouse** and **ketchup**, or **nature** (no sauce), which customers order too. A campaign night only has part of the menu (§4.2).
 - Nothing with sauce goes into a fryer.
 - CUISSON 2 lifts meats with the same window as fries: too early gives undercooked (fricadelle) or lukewarm (cervelas), too late gives burnt. Both are served at a mood penalty.
-- Later: samouraï and other sauces, boulette, a mitraillette (bread + meat + fries + sauce), a menu board in the kitchen as in Cat Cafe.
+- Later: samouraï and other sauces, a mitraillette (bread + meat + fries + sauce), a menu board in the kitchen as in Cat Cafe.
 
 ## 8. Hazards
 
@@ -214,5 +224,5 @@ From the first playtest:
 
 ## 12. Towards v1.0
 
-- **Campaign mode:** successive nights get progressively harder, with more complex orders (the mitraillette) and much more choice of meats and sauces.
+- **Campaign mode** (first version in §4.2): later, more complex orders (the mitraillette), barricades to build against the cans, special nights every N nights (like the dog rounds), and an easter egg: a hidden quest in the kitchen that unlocks a secret hat or colour.
 - **Grid menus:** station menus as a 3×3 grid (5×5 at harder levels), the cursor starting in the middle, moved with the arrows. Efficient with a keyboard and quick to learn.
