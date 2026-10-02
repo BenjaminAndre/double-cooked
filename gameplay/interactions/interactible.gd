@@ -287,6 +287,21 @@ func _flat_material(color: Color) -> StandardMaterial3D:
 
 ## The basket rises out of the oil and drops back.
 func _lift_basket() -> void:
+    var eject: Array = basket_model.get_meta(StationModels.EJECT, [])
+    if eject.size() > 1:
+        # The artist's move: the basket tips its food out and comes back.
+        var rest_pose: Transform3D = basket_model.get_meta(&"rest", basket_model.transform)
+        basket_model.set_meta(&"rest", rest_pose)
+        var pose := func(frame: float) -> void:
+            var index := mini(int(frame), eject.size() - 2)
+            var weight := frame - index
+            var offset: Vector3 = eject[index][0].lerp(eject[index + 1][0], weight)
+            var turn: Quaternion = eject[index][1].slerp(eject[index + 1][1], weight)
+            basket_model.transform = Transform3D(rest_pose.basis * Basis(turn),
+                    rest_pose.origin + rest_pose.basis * offset)
+        basket_model.create_tween().tween_method(pose, 0.0, eject.size() - 1.0,
+                (eject.size() - 1) / StationModels.FPS)
+        return
     var rest: float = basket_model.get_meta(&"rest_y", basket_model.position.y)
     basket_model.set_meta(&"rest_y", rest)
     var tween := basket_model.create_tween()

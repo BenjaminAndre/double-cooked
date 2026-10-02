@@ -55,6 +55,12 @@ func _initialize() -> void:
             sim.players[1].color = 3
             night.submit(0, Simulation.Command.INTERACT)
             night.submit(0, Simulation.Command.MOVE_LEFT)
+        "eject":
+            # Both CUISSON 2 baskets halfway through tipping out, about 1 s in.
+            var views := LevelReader.stations(game.get_node("Restaurant/Kitchen").anchors_root())
+            for view: Interactible in views:
+                if view.kind == &"cuisson_2":
+                    create_timer(0.75).timeout.connect(view._lift_basket)
         "lobby_record":
             # The best campaign so far, under the logo.
             night._record = {"night": 7, "colors": [1, 3]}

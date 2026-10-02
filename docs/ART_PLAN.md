@@ -111,7 +111,8 @@ The art comes before the rest of the roadmap. Steps 1–4 are 0.1.32–0.1.35; s
 
 - Done in 0.2.4: the fixed `Counter`, sauce bottles and `PropsAtlas`; the three fat drawings per character, shown from 1, 3 and 5 BMI points over the start (`Player.FAT_STAGES`).
 - Done in 0.2.6: transparent glass (`Glass_Opacity` on the `_Glass` meshes, fire drawn above it).
-- Still to do: the oil and fire particles with the readme's settings; the fridge, bin and basket animations; thrown items as the artist's meshes (Jupiler, Coca, folded can). Done in 0.2.5: the camera's 25° field of view, from further back.
+- Done in 0.2.7: the baskets' "eject food" move from the fryer's animation (the fridge and bin doors already played theirs).
+- Still to do: the oil and fire particles with the readme's settings; thrown items as the artist's meshes (Jupiler, Coca, folded can). Done in 0.2.5: the camera's 25° field of view, from further back.
 
 ## To ask the artist
 

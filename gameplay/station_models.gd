@@ -27,6 +27,10 @@ const DOOR_CLOSE := Vector2(11, 24)
 ## Meta keys on the returned root: the baskets in order, and the cooked fries on CUISSON 1.
 const BASKETS := &"baskets"
 const COOKED := &"cooked"
+## Meta key on each basket: its "eject food" move (_eject_frames), frames 0 to 30 of the
+## fryer's animation (Readme_SettingsV2).
+const EJECT := &"eject"
+const EJECT_FRAMES := Vector2i(0, 30)
 
 
 ## Builds the models for a station of this kind over cells cells (1 or more), centred on the
@@ -90,9 +94,14 @@ static func _fryer(root: Node3D, cells: int, cell_z: Array[float]) -> void:
             _take(fryer, "DoubleCooked_DeepFryer_Basket01", root)]
     var stretch := span / FRYER_LENGTH
     fryer.scale.z = stretch
-    # The model animates its baskets where they were: not any more.
-    var player := fryer.find_child("AnimationPlayer", true, false)
+    # The model animates its baskets where they were: not any more. Each keeps the artist's
+    # "eject food" move, as offsets from where it rests, to play wherever it ends up.
+    var player := fryer.find_child("AnimationPlayer", true, false) as AnimationPlayer
     if player:
+        if not player.get_animation_list().is_empty():
+            var animation := player.get_animation(player.get_animation_list()[0])
+            for basket in baskets:
+                basket.set_meta(EJECT, _eject_frames(animation, basket.name))
         player.free()
     # Slid so its two oil wells fall on the CUISSON 2 it covers, one in each.
     var following := span - cells
@@ -125,6 +134,29 @@ static func _fryer(root: Node3D, cells: int, cell_z: Array[float]) -> void:
             basket.free()
     root.set_meta(BASKETS, placed)
     root.set_meta(COOKED, cooked)
+
+
+## A basket's tracks over EJECT_FRAMES, one [offset, rotation] per frame, both in the basket's
+## own space and from its first frame (a basket rests unrotated).
+static func _eject_frames(animation: Animation, basket: String) -> Array:
+    var position_track := -1
+    var rotation_track := -1
+    for track in animation.get_track_count():
+        if not String(animation.track_get_path(track)).ends_with(basket):
+            continue
+        match animation.track_get_type(track):
+            Animation.TYPE_POSITION_3D:
+                position_track = track
+            Animation.TYPE_ROTATION_3D:
+                rotation_track = track
+    if position_track < 0 or rotation_track < 0:
+        return []
+    var start := animation.position_track_interpolate(position_track, EJECT_FRAMES.x / FPS)
+    var frames := []
+    for frame in range(EJECT_FRAMES.x, EJECT_FRAMES.y + 1):
+        frames.append([animation.position_track_interpolate(position_track, frame / FPS) - start,
+                animation.rotation_track_interpolate(rotation_track, frame / FPS)])
+    return frames
 
 
 ## Moves one of a model's parts to root, keeping where it stands in the model.
