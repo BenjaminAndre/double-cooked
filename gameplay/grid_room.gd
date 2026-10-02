@@ -51,8 +51,9 @@ const COLORS := {
     &"poubelle": Color(0.4, 0.4, 0.4),
 }
 ## The 3/4 view (docs/ART_PLAN.md): turned 45° so both grid axes are symmetric diagonals on
-## screen, looking down at camera_pitch degrees from camera_distance.
-const CAMERA_FOV := 35.0
+## screen, looking down at camera_pitch degrees from camera_distance. A narrow field of view
+## as in the artist's scene (Readme_SettingsV2), so the room looks flatter.
+const CAMERA_FOV := 25.0
 
 @export var layout := PackedStringArray()
 @export var names := PackedStringArray()

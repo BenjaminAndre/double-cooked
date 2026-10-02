@@ -41,7 +41,7 @@ dressed = true
 back_offset = 0.9
 front_offset = 0.9
 camera_pitch = 40.0
-camera_distance = 10.2
+camera_distance = 14.5
 camera_yaw = 31.0
 camera_target = Vector3(-0.4, 0, -1.1)
 
@@ -57,7 +57,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
 script = ExtResource("13_room")
 layout = PackedStringArray("peinture casquette telephone . porte", "@ @ @ @ .", "pret pret pret pret .")
 camera_pitch = 40.0
-camera_distance = 8.6
+camera_distance = 12.2
 camera_yaw = 31.0
 camera_target = Vector3(0, 0.75, 0.3)
 
