@@ -186,6 +186,8 @@ func _show_flipbook(sheet: Dictionary, on: bool, height: float, size: float) -> 
         sprite.vframes = sheet.rows
         sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
         sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+        # Fire over everything, the glass included (Readme_SettingsV2).
+        sprite.render_priority = UnlitArt.GLASS_PRIORITY + 1
         sprite.pixel_size = size / (sprite.texture.get_width() / sheet.columns)
         sprite.position = Vector3(_flipbook_x(), height, 0)
         add_child(sprite)
