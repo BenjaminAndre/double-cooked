@@ -9,6 +9,8 @@ const COLORS: Array[StringName] = [&"bleu", &"rouge", &"vert", &"jaune"]
 const TINTS: Array[Color] = [Color(0.24, 0.49, 0.73), Color(0.69, 0.12, 0.12), Color(0.24, 0.69, 0.26),
         Color(0.91, 0.83, 0.23)]
 const CHARACTERS := "res://art/textures/MainCharacter%02d.png"
+const CHARACTERS_FAT := "res://art/textures/MainCharacter%02d_Fat%02d.png"
+const FAT_PICTURES := 3
 const NONE := &"rien"
 const CAP := &"casquette"
 const BEER_HELMET := &"casque_bieres"
@@ -37,5 +39,9 @@ static func player_name(color: int) -> String:
 
 
 ## The character drawn in this colour.
-static func character(color: int) -> Texture2D:
-    return load(CHARACTERS % (clampi(color, 0, COLORS.size() - 1) + 1))
+## fat: 0 for the drawing as is, 1 to 3 for the artist's fatter ones (MainCharacterXX_FatYY).
+static func character(color: int, fat := 0) -> Texture2D:
+    var number := clampi(color, 0, COLORS.size() - 1) + 1
+    if fat > 0:
+        return load(CHARACTERS_FAT % [number, mini(fat, FAT_PICTURES)])
+    return load(CHARACTERS % number)

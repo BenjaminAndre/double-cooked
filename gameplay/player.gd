@@ -4,8 +4,11 @@ extends Node3D
 ## show_state() every frame.
 
 const BUMP_HOP := 0.15
-## How much wider a player gets per BMI point over a healthy start, and thinner per point under.
-const FAT_WIDTH := 0.12
+## The artist's fatter drawings (Looks.character) from this many BMI points over a healthy
+## start: Fat01, Fat02, Fat03. Past the last one the drawing still widens by FAT_WIDTH per
+## point, and under the start it gets thinner by THIN_WIDTH per point.
+const FAT_STAGES: Array[int] = [1, 3, 5]
+const FAT_WIDTH := 0.06
 const THIN_WIDTH := 0.07
 ## Where a hat sits: the top of the drawn head.
 const HEAD_TOP := PaperFigure.HEIGHT - 0.12
@@ -34,6 +37,8 @@ var _menu_at := Vector3.ZERO
 var _stars: Node3D
 ## What the body and hat last showed (SimPlayer.color, hat), to change them only when needed.
 var _color := -1
+## Which fat drawing shows (fat_stage).
+var _fat := 0
 var _hat := -1
 var _helmet: Node3D
 ## The paper cut-out (docs/ART_PLAN.md).
@@ -100,14 +105,16 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)
         shown = shown.lerp(level.positions[state.path[0]], t)
     global_position = shown
-    # Wider with every BMI point, thinner as they waste away (GDD §5.1).
+    # Fatter with BMI points, thinner as they waste away (GDD §5.1).
     var over := state.bmi - level_start_bmi
-    var girth := 1.0 + (FAT_WIDTH if over > 0 else THIN_WIDTH) * over
+    var fat := fat_stage(over)
+    var girth := 1.0 + THIN_WIDTH * over if over < 0 else 1.0 + FAT_WIDTH * maxi(over - FAT_STAGES[-1], 0)
     hungry = state.bmi <= hungry_below
     _figure.set_girth(girth)
-    if state.color != _color:
+    if state.color != _color or fat != _fat:
         _color = state.color
-        _figure.set_picture(Looks.character(_color))
+        _fat = fat
+        _figure.set_picture(Looks.character(_color, _fat))
     if state.hat != _hat:
         _hat = state.hat
         _wear(Looks.HATS[_hat])
@@ -200,6 +207,14 @@ func show_bump() -> void:
     _bump_tween = create_tween()
     _bump_tween.tween_property(model, "position:y", BUMP_HOP, 0.06)
     _bump_tween.tween_property(model, "position:y", 0.0, 0.09)
+
+
+## 0 for the drawing as is, then 1 to 3 (FAT_STAGES) for BMI points over a healthy start.
+static func fat_stage(over: int) -> int:
+    var stage := 0
+    while stage < FAT_STAGES.size() and over >= FAT_STAGES[stage]:
+        stage += 1
+    return stage
 
 
 ## A discreet "+Gras" (or "-Gras" as walking burns it off) rising and fading by the head.
