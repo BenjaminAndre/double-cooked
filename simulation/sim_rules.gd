@@ -104,6 +104,22 @@ var can_mood := 0.5
 var can_every := 8 * SECOND
 
 
+## The Nuit unique (GDD §4.3), a score attack: the pace of arrivals follows the crew, faster by
+## pace_up each customer served, slower by pace_down each one lost (angry or walked out), within
+## pace_min and pace_max; and each customer served scores points, more the faster they were
+## served (more than a third of their patience left, more than two thirds). Each of the boss's
+## orders and the colleagues are worth more. A lost night scores nothing.
+var score_attack := false
+var pace_up := 0.04
+var pace_down := 0.08
+var pace_min := 0.6
+var pace_max := 2.5
+var points_served := 20
+var points_fast := 25
+var points_very_fast := 50
+var points_boss_order := 50
+var points_group := 100
+
 ## Tonight's events (NightEvents, GDD §6.4), in their order: [when, as a fraction of the night,
 ## kind]. A campaign night has its day's (Campaign.events_for); a single night none so far.
 var night_events: Array = []

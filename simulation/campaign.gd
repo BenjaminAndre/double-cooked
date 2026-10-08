@@ -54,9 +54,10 @@ static func menu_for(night: int) -> Array[StringName]:
     return menu
 
 
-## The rules of a night: night 0 is a single night, with the whole menu at the base pace.
+## The rules of a night: night 0 is the Nuit unique, a score attack with the whole menu (GDD §4.3).
 static func rules_for(night: int) -> SimRules:
     var rules := SimRules.new()
+    rules.score_attack = night == 0
     if night > 0:
         rules.night_number = night
         rules.menu = menu_for(night)

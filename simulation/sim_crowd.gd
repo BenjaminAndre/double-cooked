@@ -60,6 +60,9 @@ var _next_id := 0
 ## have been drawn.
 var seed := 0
 var _arrivals := 0
+## The Nuit unique (SimRules.score_attack): the points scored so far, and the pace of arrivals.
+var score := 0
+var pace := 1.0
 
 
 func _init(p_rules: SimRules, p_seed := 0) -> void:
@@ -109,6 +112,7 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
             line.remove_at(index)
             change_mood(rules.mood_group_failed if customer.group else rules.mood_walk_out)
             events.append({"type": &"walk_out", "index": index, "by": -1})
+            _lost()
             if customer.group:
                 events.append({"type": &"group_left", "served": false})
     if tick > 0 and tick % rules.line_pressure_every == 0:
@@ -141,6 +145,7 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     if Menu.done_right(item):
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by})
+        _score(_speed_points(customer), events)
     else:
         _leave_angry(0, by, events)
     return true
@@ -159,6 +164,7 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
         line.remove_at(index)
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by})
+        _score(_speed_points(customer), events)
     elif customer.gifts < rules.beer_gifts:
         customer.gifts += 1
         customer.patience = mini(customer.patience + rules.beer_patience, maxi(customer.full_patience, rules.patience))
@@ -183,6 +189,7 @@ func _serve_group(leader: Customer, key: StringName, by: int, events: Array[Dict
         line.erase(leader)
         change_mood(rules.mood_group_served)
         events.append({"type": &"served", "by": by})
+        _score(rules.points_group, events)
         events.append({"type": &"group_left", "served": true})
     return true
 
@@ -206,6 +213,7 @@ func add_group(events: Array[Dictionary]) -> void:
 
 
 func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:
+    _lost()
     change_mood(rules.mood_angry)
     events.append({"type": &"angry", "index": index, "by": by})
 
@@ -218,7 +226,7 @@ func fingerprint() -> Array:
     var customers := []
     for customer in line:
         customers.append(customer.fingerprint())
-    return [customers, mood, next_arrival, boss_came, _next_id, _arrivals, rush, rush_next]
+    return [customers, mood, next_arrival, boss_came, _next_id, _arrivals, rush, rush_next, score, pace]
 
 
 ## The patience each of the boss's orders starts with.
@@ -277,6 +285,7 @@ func _serve_boss(boss: Customer, item: SimItem, by: int, events: Array[Dictionar
         boss.results[boss.current()] = Result.SERVED
         change_mood(rules.mood_served)
         events.append({"type": &"boss_served", "by": by})
+        _score(rules.points_boss_order, events)
         _boss_next(boss, events)
     else:
         _boss_miss(boss, by, events)
@@ -302,6 +311,7 @@ func _boss_thirsty(boss: Customer, events: Array[Dictionary]) -> void:
 
 ## A missed order: worse mood and a salvo of cans (thrown by Simulation), then the next one.
 func _boss_miss(boss: Customer, by: int, events: Array[Dictionary]) -> void:
+    _lost()
     boss.results[boss.current()] = Result.MISSED
     change_mood(rules.mood_boss_miss)
     events.append({"type": &"boss_missed", "by": by})
@@ -342,6 +352,8 @@ func _arrival_delay(tick: int, player_count: int) -> int:
     delay *= lerpf(rules.calm_arrival_factor, rules.mad_arrival_factor, rules.intensity(tick))
     # Each night of a campaign is a little busier than the last.
     delay /= 1.0 + rules.busier_per_night * maxi(rules.night_number - 1, 0)
+    # A Nuit unique follows the crew.
+    delay /= pace
     return maxi(1, roundi(delay))
 
 
@@ -352,3 +364,29 @@ func stream(key: Variant) -> RandomNumberGenerator:
     var keyed := RandomNumberGenerator.new()
     keyed.seed = hash([seed, key])
     return keyed
+
+
+## A Nuit unique (SimRules.score_attack): points for a customer served, and the pace picks up.
+## {"type": &"points", "points": n} lets the display pop them up.
+func _score(points: int, events: Array[Dictionary]) -> void:
+    if not rules.score_attack:
+        return
+    score += points
+    pace = minf(pace * (1.0 + rules.pace_up), rules.pace_max)
+    events.append({"type": &"points", "points": points})
+
+
+## A Nuit unique slows down for a crew losing customers.
+func _lost() -> void:
+    if rules.score_attack:
+        pace = maxf(pace * (1.0 - rules.pace_down), rules.pace_min)
+
+
+## Points for a customer served: more the more patience they had left.
+func _speed_points(customer: Customer) -> int:
+    var left := float(customer.patience) / maxi(customer.full_patience, rules.patience)
+    if left > 2.0 / 3.0:
+        return rules.points_very_fast
+    if left > 1.0 / 3.0:
+        return rules.points_fast
+    return rules.points_served

@@ -809,6 +809,12 @@ func _count_by(key: StringName, by: int) -> void:
         stats[key][by] += 1
 
 
+## The Nuit unique's score (SimRules.score_attack): what was scored so far, nothing once the
+## night is lost (GDD §4.3).
+func score() -> int:
+    return 0 if outcome == &"lost" else crowd.score
+
+
 func _end(result: StringName, reason: StringName) -> void:
     outcome = result
     outcome_reason = reason
