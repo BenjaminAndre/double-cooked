@@ -168,7 +168,7 @@ func _apply(player: SimPlayer, command: int) -> void:
     if command >= LOOK:
         _set_look(player, (command - LOOK) / Looks.HATS.size(), (command - LOOK) % Looks.HATS.size())
         return
-    if player.stun > 0:
+    if player.stun > 0 or player.spraying > 0:
         return
     if player.aim >= 0 and _use_aim(player, command):
         return
@@ -458,6 +458,11 @@ func _advance(player: SimPlayer) -> void:
     if player.stun > 0:
         player.stun -= 1
         return
+    if player.spraying > 0:
+        player.spraying -= 1
+        if player.spraying == 0:
+            _put_out(player)
+        return
     if player.is_moving():
         player.progress += 1
         if player.progress < player.edge_ticks:
@@ -488,6 +493,8 @@ func _advance(player: SimPlayer) -> void:
 ## _interact() only acts when this isn't empty, so the two always agree. A knocked-out player
 ## can only use the FRIGO. Eating and drinking have their own key and hint (eat_action).
 func action_for(player: SimPlayer) -> StringName:
+    if player.spraying > 0:
+        return &"spraying"
     if player.aim >= 0:
         return &"throw" if player.aim_ticks >= rules.aim_hold else &""
     if player.menu != SimLevel.NONE:
@@ -585,9 +592,9 @@ func _interact(player: SimPlayer) -> void:
     var station := stations[index]
     var held := player.item
     if station.burning:
-        station.burning = false
-        station.burn_ticks = 0
-        events.append({"type": &"fire_out", "station": index, "by": player.slot})
+        # Spraying takes a while (see _advance).
+        player.spraying = rules.spray_ticks
+        events.append({"type": &"spraying", "station": index, "by": player.slot})
         return
     match station.kind:
         &"cuisson_1":
@@ -653,13 +660,26 @@ func _advance_fires() -> void:
                 _ignite(candidates[rng.randi_range(0, candidates.size() - 1)], &"fire_spread")
     for player in players:
         var index := level.node_stations[player.node]
-        if player.is_moving() or index == SimLevel.NONE or not stations[index].burning:
+        # Spraying it, they don't get burnt.
+        if player.is_moving() or player.spraying > 0 or index == SimLevel.NONE or not stations[index].burning:
             player.exposure = 0
             continue
         player.exposure += 1
         if player.exposure >= rules.fire_damage_every:
             player.exposure = 0
             _hurt(player)
+
+
+## The spray is over: the fire at the player's station is out, and the extinguisher goes back to
+## its station by itself (the artist's rule).
+func _put_out(player: SimPlayer) -> void:
+    var index := level.node_stations[player.node]
+    if index != SimLevel.NONE and stations[index].burning:
+        stations[index].burning = false
+        stations[index].burn_ticks = 0
+        events.append({"type": &"fire_out", "station": index, "by": player.slot})
+    if player.item and player.item.kind == EXTINGUISHER:
+        player.item = null
 
 
 func _ignite(index: int, event_type: StringName) -> void:
@@ -701,6 +721,7 @@ func _knock_out(player: SimPlayer) -> void:
     if player.down:
         return
     player.down = true
+    player.spraying = 0
     # A falling player finishes the step under way, and nothing more.
     player.path.resize(1 if player.is_moving() else 0)
     events.append({"type": &"knocked_out", "slot": player.slot})

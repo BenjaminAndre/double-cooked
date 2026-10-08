@@ -148,7 +148,7 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
   - **frites** with a sauce;
   - **fricadelle** (raw from VIANDES, fried once in a CUISSON VIANDE) with a sauce;
   - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON VIANDE, with a sauce;
-  - **cola** or **bière** from the FRIGO. Colas never run out; the FRIGO holds **5 beers** and gets one back every 25 s (shown over it and in its menu), so beers are a shared, scarce resource for orders, gifts, rescues and healing (after the fourth playtest: one player was spending the night gifting beers).
+  - **cola** or **bière** from the FRIGO. Colas never run out; the FRIGO holds **5 beers** and gets one back every **12 s** (the artist's figure, 0.2.27; shown over it and in its menu), so beers are a shared, scarce resource for orders, gifts, rescues and healing (after the fourth playtest: one player was spending the night gifting beers).
 - **boulette** and **brochette**, raw from VIANDES and fried in a CUISSON VIANDE like the fricadelle.
 - The sauces are **mayo**, **andalouse** and **ketchup**, or **nature** (no sauce), which customers order too. A campaign night only has part of the menu (§4.2).
 - Nothing with sauce goes into a fryer.
@@ -161,7 +161,7 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 |---|---|---|---|
 | Spill | Dropped drinks/sauce, bumps, customers | Wet node: players slide through it **(proposal)** | Mop? Avoid it? |
 | Thrown can | A customer leaving angry throws one on the way out, at **whoever served them badly** (or gave them one beer too many); walk-outs and random throws past Chaud go to the **player closest to the counter** | The can flies a visible arc (dotted line) to a red ring where the target stood; 1 heart to every player inside the ring when it lands, **no bump** | Step out of the ring; keep the mood low |
-| Grease fire | A basket left in the oil far too long (§7.1) | Blocks the station. **Standing** on its node costs 1 heart every ~2 s (walking past is safe). Spreads to a neighbouring station after ~10 s; EXTINCTEUR itself never burns | Take the extinguisher at EXTINCTEUR (it stays in your hand and goes back on its station), then one interaction at the fire |
+| Grease fire | A basket left in the oil far too long (§7.1) | Blocks the station. **Standing** on its node costs 1 heart every ~2 s (walking past is safe). Spreads to a neighbouring station after ~8 s; EXTINCTEUR itself never burns | Take the extinguisher at EXTINCTEUR, then one interaction at the fire: it sprays for **2 s** (busy, but unhurt), then the fire is out and the extinguisher goes back by itself (the artist's rule, 0.2.27) |
 | Beer (throwing) | A player holding a beer holds interact | Aim: a ▼ over a customer in line (left / right), or **up** for a teammate. Release to throw. A customer who ordered a beer is served; otherwise their first **two** unordered beers buy back 15 s of patience each, and a **third** puts them to sleep for 10 s (the artist's rule, 0.2.24): a Zzz over them, their patience stands still and nobody can serve them, so asleep at the till they block the line. A teammate drinks it on the spot, keeping what they hold: a heart back, and fatter (the artist's troll, 0.2.26); knocked out, it gets them up. A quick tap still uses the station | A breather for an impatient line |
 | Beer (drinking) | **(proposal)** A player drinks one | Heals 1 heart but scrambles controls for a while | Temptation |
 

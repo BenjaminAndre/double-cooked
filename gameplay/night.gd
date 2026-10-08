@@ -774,7 +774,7 @@ func _show(p_alpha: float) -> void:
             if station != SimLevel.NONE:
                 highlighted[station] = true
             var action := simulation.action_for(player)
-            if action in [&"door_wait", &"door_host", &"asleep"]:
+            if action in [&"door_wait", &"door_host", &"asleep", &"spraying"]:
                 # Nothing to press: only why nothing happens (the door shut, a customer asleep).
                 hints.append(["", ItemNames.action(action)])
             elif action == &"choose":

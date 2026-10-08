@@ -79,6 +79,7 @@ const ACTIONS := {
     &"door_wait": "les autres sur PRÊT",
     &"door_host": "l'hôte ouvre",
     &"asleep": "le client dort",
+    &"spraying": "extinction...",
 }
 
 

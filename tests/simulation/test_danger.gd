@@ -80,13 +80,22 @@ func test_a_fire_spreads_to_a_neighbour_but_never_to_the_extinguisher() -> void:
     assert_eq(sim.stats.fires, 2)
 
 
-func test_the_extinguisher_puts_a_fire_out_and_stays_in_hand() -> void:
+func test_the_extinguisher_sprays_a_while_then_goes_back_by_itself() -> void:
     var scenario := _burning_fryer([extinguisher])
     var start := fire_tick + 1
     scenario.at(start, 0, INTERACT).at(start + 1, 0, RIGHT).at(start + 6, 0, INTERACT)
     var sim := scenario.run_until(start + 7)
-    assert_false(sim.stations[1].burning)
-    assert_eq(sim.players[0].item.kind, Simulation.EXTINGUISHER)
+    var player := sim.players[0]
+    assert_true(sim.stations[1].burning, "still spraying")
+    assert_eq(sim.action_for(player), &"spraying")
+    var health := player.health
+    # Busy: walking away does nothing.
+    scenario.at(start + 8, 0, Simulation.Command.MOVE_LEFT)
+    scenario.run_until(start + 6 + rules.spray_ticks + 1)
+    assert_false(sim.stations[1].burning, "out")
+    assert_null(player.item, "the extinguisher went back by itself")
+    assert_eq(player.health, health, "spraying, they don't get burnt")
+    assert_eq(sim.level.node_stations[player.node], 1, "they stayed at the fire")
 
 
 func test_the_extinguisher_goes_back_on_its_station() -> void:

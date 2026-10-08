@@ -64,7 +64,9 @@ var fire_margin := 10 * SECOND
 ## Standing on a burning station's node costs a heart this often.
 var fire_damage_every := 2 * SECOND
 ## A fire left burning this long spreads to a neighbouring station.
-var fire_spread_after := 10 * SECOND
+var fire_spread_after := 8 * SECOND
+## The extinguisher sprays this long at a fire before it is out; then it goes back by itself.
+var spray_ticks := 2 * SECOND
 ## Stations fire never reaches, so the crew can always fight back.
 var fireproof: Array[StringName] = [&"extincteur"]
 ## A knocked-out player crawls one node in this many ticks, to a beer.
@@ -83,7 +85,7 @@ var fat_speeds: Array[float] = [0.95, 0.85, 0.7]
 
 ## Beers in the FRIGO: it starts full and gets one back every fridge_restock ticks.
 var fridge_beers := 5
-var fridge_restock := 25 * SECOND
+var fridge_restock := 12 * SECOND
 
 ## Throwing a beer (GDD §8): hold interact this long with a beer in hand to aim instead of
 ## using the station; release to throw.
