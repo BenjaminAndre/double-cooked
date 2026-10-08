@@ -85,8 +85,12 @@ func _initialize() -> void:
         "duo":
             night.play_local(2)
         "campaign":
-            # Night 2 of a campaign: sauces are new, FRIGO, VIANDES and PAIN are greyed out.
+            # Tuesday of a campaign, its splash: sauces and cola are new; VIANDES and PAIN greyed out.
             night.play_local(2, 2)
+        "campaign_week2":
+            # A Thursday in the second week, the splash just gone.
+            night.play_local(2, 11)
+            night.get_node("../Hud")._splash.dismiss()
         "campaign_lost":
             # A campaign lost on its 4th night, with each player's stats.
             night.play_local(2, 4)

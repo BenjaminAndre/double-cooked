@@ -38,9 +38,10 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 ### 4.2 The campaign (0.2.3)
 - Like the rounds of a zombie game: **nights one after the other, endless, until the crew falls**. A held night leads to the next one (Entrée, the host's online); a riot or the whole crew K.O. **loses the campaign** and everyone goes back to the lobby. No purchases between nights yet.
+- **Each night is a day of the week** (0.2.22, the artist's week without their schedule): lundi, mardi... dimanche, then "lundi, semaine 2". The day shows beside the clock (the artist's day frame), and a **splash** at the start of each night shows it with what is new on the menu tonight, pictures and names (the whole menu on the first night); it leaves after 4 s or as soon as a player at this keyboard moves.
 - **The score is the night reached.** The best one is the team's record, kept on this browser (`user://looks.cfg`) with the colours of that crew, and shown under the logo in the lobby.
 - **Each night is busier**: arrival delays are divided by 1 + 0.05 × (night − 1) (`SimRules.busier_per_night`). The calm-to-mad curve inside a night is unchanged.
-- **The menu grows** (`Campaign.UNLOCKS`): night 1 plain fries and beer (a knocked-out player always has a beer to crawl to: without it, the first night could softlock); 2 mayo, andalouse and cola; 3 cold cervelas; 4 fricadelle; 5 warm cervelas; 6 ketchup; 7 boulette; 8 brochette. Customers only order from it, and the night's announcement says what is new.
+- **The menu grows** (`Campaign.UNLOCKS`): night 1 plain fries and beer (a knocked-out player always has a beer to crawl to: without it, the first night could softlock); 2 mayo, andalouse and cola; 3 cold cervelas; 4 fricadelle; 5 warm cervelas; 6 ketchup; 7 boulette; 8 brochette. Customers only order from it, and the night's splash says what is new.
 - **Station menus only offer tonight's items**, and a station with nothing to do is **greyed out and inert** (today PAIN, VIANDES before night 3, SAUCES on night 1). A menu with nothing in it never opens.
 - **The summary** shows the night reached and, per player (by colour): served, missed, beers given, bumps, K.O., revives; at the end of a campaign, the record.
 - Later (§12): barricades against the cans, special nights every N nights, an easter egg.

@@ -160,6 +160,8 @@ func _process(delta: float) -> void:
     _banner.visible = sim.outcome != &""
     # The summary takes the middle of the screen.
     _announce.visible = _announce.visible and not _banner.visible
+    if _banner.visible and _splash.visible:
+        _splash.visible = false
     if _banner.visible:
         var goes_on := night.campaign_night > 0 and sim.outcome == &"won"
         var next := "Entrée : %s" % Campaign.day_label(night.campaign_night + 1) if goes_on else "Entrée : retour à la salle"
@@ -211,12 +213,9 @@ func _on_began() -> void:
     if _record.visible:
         _record.text = "[right]%s[/right]" % record_text(record)
     if night.campaign_night > 0:
-        var added := Campaign.new_on(night.campaign_night)
-        var words := PackedStringArray()
-        for entry in added:
-            words.append(ItemNames.DISHES.get(entry, ItemNames.word(entry)))
-        _show_announcement("Nuit %d" % night.campaign_night
-                + ("\nNouveau : %s" % ", ".join(words) if not words.is_empty() else ""))
+        _splash.show_night(night.campaign_night)
+    else:
+        _splash.visible = false
 
 
 func _anyone_moving() -> bool:
@@ -256,8 +255,8 @@ func _show_notice(text: String) -> void:
 static func title(sim: Simulation, campaign_night := 0) -> String:
     if campaign_night > 0:
         if sim.outcome == &"won":
-            return "Nuit %d tenue !" % campaign_night
-        return "Campagne perdue à la nuit %d." % campaign_night
+            return "%s tenu !" % capitalized(Campaign.day_label(campaign_night))
+        return "Campagne perdue : %s." % Campaign.day_label(campaign_night)
     match sim.outcome_reason:
         &"closing":
             return "Fermeture ! Vous avez tenu la nuit."
@@ -266,9 +265,9 @@ static func title(sim: Simulation, campaign_night := 0) -> String:
     return "Émeute ! La nuit s'arrête à %s." % clock(sim.clock_minutes())
 
 
-## "Nuit N · " in front of the clock during a campaign.
-static func night_name(campaign_night: int) -> String:
-    return "Nuit %d · " % campaign_night if campaign_night > 0 else ""
+## The text with its first letter in capitals, e.g. a day at the start of a line.
+static func capitalized(text: String) -> String:
+    return text.left(1).to_upper() + text.substr(1)
 
 
 ## The best campaign (Night.campaign_record()), with the crew that reached it.
@@ -276,7 +275,7 @@ static func record_text(record: Dictionary, new := false) -> String:
     var crew := PackedStringArray()
     for color: int in record.colors:
         crew.append(swatch(color))
-    return "%s : nuit %d  %s" % ["Nouveau record" if new else "Record", record.night, " ".join(crew)]
+    return "%s : %s  %s" % ["Nouveau record" if new else "Record", Campaign.day_label(record.night), " ".join(crew)]
 
 
 ## The end-of-night fun stats (GDD §4). In a campaign, or with more than one player, each
