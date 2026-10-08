@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://gameplay/grid_room.gd" id="13_room"]
 [ext_resource type="Script" path="res://gameplay/unlit_art.gd" id="14_unlit"]
 [ext_resource type="PackedScene" path="res://art/scenes/Kitchen2Players.tscn" id="15_kitchen_art"]
+[ext_resource type="PackedScene" path="res://art/scenes/Lobby.tscn" id="17_lobby_art"]
 [ext_resource type="Script" path="res://gameplay/backdrop.gd" id="16_backdrop"]
 
 [sub_resource type="Environment" id="Environment_sky"]
@@ -42,21 +43,26 @@ front_offset = 0.78
 art = NodePath("../KitchenArt")
 squares = true
 
-[node name="Backdrop" type="Node" parent="." node_paths=PackedStringArray("room")]
+[node name="LobbyArt" parent="Restaurant" instance=ExtResource("17_lobby_art")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
+
+[node name="Backdrop" type="Node" parent="." node_paths=PackedStringArray("rooms")]
 process_priority = 10
 script = ExtResource("16_backdrop")
-room = NodePath("../Restaurant/KitchenArt/DoubleCooked_Room01")
+rooms = [NodePath("../Restaurant/KitchenArt/DoubleCooked_Room01"), NodePath("../Restaurant/LobbyArt/DoubleCooked_Room01")]
 
 [node name="Players" type="Node3D" parent="."]
 
-[node name="LobbyRoom" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
+[node name="LobbyRoom" type="Node3D" parent="." node_paths=PackedStringArray("art")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.5, 0, 21)
 script = ExtResource("13_room")
-layout = PackedStringArray("peinture casquette telephone . porte", "@ @ @ @ .", "pret pret pret pret .")
-camera_pitch = 40.0
-camera_distance = 12.2
-camera_yaw = 31.0
-camera_target = Vector3(0, 0.75, 0.3)
+layout = PackedStringArray("peinture casquette telephone . .", "@ @ @ @ .", "pret pret pret pret .", "- - porte - -")
+floor_tiles = false
+back_offset = 0.78
+front_offset = 0.5
+art = NodePath("../Restaurant/LobbyArt")
+squares = true
+labels = true
 
 [node name="Night" type="Node" parent="." node_paths=PackedStringArray("kitchen_room", "players_parent", "queue", "lobby_room")]
 script = ExtResource("6_night")

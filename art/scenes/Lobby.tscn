@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Room01.fbx" id="1_room"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Furniture.fbx" id="2_furniture"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_CashRegister.fbx" id="3_register"]
+
+[node name="Lobby" type="Node3D"]
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(0.520026, -0.5790531, 0.62790954, 0, 0.73512757, 0.67792875, -0.85415035, -0.35254058, 0.3822855, 7.5, 9.85, 3.65)
+fov = 25.0
+near = 0.3
+far = 50.0
+
+[node name="DoubleCooked_Room01" parent="." instance=ExtResource("1_room")]
+
+[node name="DoubleCooked_Furniture01" parent="." instance=ExtResource("2_furniture")]
+transform = Transform3D(-1, 0, 0, 0, 0.92, 0, 0, 0, -1, -3.28, 0, 1)
+
+[node name="DoubleCooked_Furniture02" parent="." instance=ExtResource("2_furniture")]
+transform = Transform3D(-1, 0, 0, 0, 0.92, 0, 0, 0, -1, -3.28, 0, 0)
+
+[node name="DoubleCooked_Furniture03" parent="." instance=ExtResource("2_furniture")]
+transform = Transform3D(-1, 0, 0, 0, 0.92, 0, 0, 0, -1, -3.28, 0, -1)
+
+[node name="DoubleCooked_CashRegister" parent="." instance=ExtResource("3_register")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -3.335, 0.456, -0.831)

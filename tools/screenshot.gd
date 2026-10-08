@@ -69,7 +69,7 @@ func _initialize() -> void:
             # The host at the door while a teammate isn't ready yet.
             night.play_lobby(2)
             var sim := night.simulation
-            sim.players[0].node = sim.level.find("Cell0_4")
+            sim.players[0].node = sim.level.find("Cell3_2")
         "crowd":
             # A full line and a tense room, customers arriving every half second.
             night.simulation.rules.arrival_min = 15

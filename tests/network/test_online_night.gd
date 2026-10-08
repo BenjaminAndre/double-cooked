@@ -128,11 +128,12 @@ func test_the_lobby_is_shared_and_the_door_takes_everyone_with_their_looks() -> 
     client_night.submit(0, C.MOVE_DOWN)
     var ready_tile := host_night.simulation.level.find("Cell2_1")
     await wait_until(func() -> bool: return host_night.simulation.players[1].node == ready_tile, 5.0)
-    # The host walks right along the middle row, then up to the door.
-    for i in 4:
+    # The host walks right along the middle row, then down across the PRÊT tiles to the door.
+    for i in 2:
         host_night.submit(0, C.MOVE_RIGHT)
-    host_night.submit(0, C.MOVE_UP)
-    var door := host_night.simulation.level.find("Cell0_4")
+    for i in 2:
+        host_night.submit(0, C.MOVE_DOWN)
+    var door := host_night.simulation.level.find("Cell3_2")
     await wait_until(func() -> bool:
             var sim := host_night.simulation
             return sim.players[0].node == door and not sim.players[0].is_moving() \

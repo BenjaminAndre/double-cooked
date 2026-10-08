@@ -18,8 +18,8 @@ const LAYER := 20
 const CANVAS_LAYER := -1
 const FRONT_WALLS := preload("res://gameplay/front_walls.gdshader")
 
-## The room drawn as the backdrop.
-@export var room: Node3D
+## The rooms drawn as the backdrop: the kitchen's, the lobby's.
+@export var rooms: Array[Node3D] = []
 ## The sky behind the room.
 @export var background := Color("DCF6FF")
 
@@ -31,10 +31,11 @@ var _looked_at := Vector3.INF
 
 
 func _ready() -> void:
-    for mesh: VisualInstance3D in room.find_children("*", "VisualInstance3D", true, false):
-        mesh.layers = 1 << (LAYER - 1)
-        if mesh is MeshInstance3D:
-            _add_front_walls(mesh)
+    for room in rooms:
+        for mesh: VisualInstance3D in room.find_children("*", "VisualInstance3D", true, false):
+            mesh.layers = 1 << (LAYER - 1)
+            if mesh is MeshInstance3D:
+                _add_front_walls(mesh)
     _viewport = SubViewport.new()
     _viewport.world_3d = get_viewport().world_3d
     _viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS

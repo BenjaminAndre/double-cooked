@@ -6,8 +6,9 @@ extends Node3D
 ## layout holds one string per row, the top row first (the far side, seen from the camera).
 ## Each cell is one of:
 ## - a station kind, e.g. "caisse";
-## - "+": the station of the cell on its left, which spans both cells (CUISSON 1);
-## - "." for bare floor.
+## - "+": the station of the cell on its left, which spans both cells (VIANDES);
+## - "." for bare floor;
+## - "-" for no cell at all (a gap, e.g. a row that is only a doorway).
 ## A trailing "@" marks where a player starts ("@" alone: bare floor), in reading order.
 ## Top-row stations stand behind their cell, bottom-row ones in front of it; a "pret" cell is a
 ## tile on the floor. Columns run to the right of the screen.
@@ -60,6 +61,8 @@ const CAMERA_FOV := 25.0
 const SQUARE := Color(1, 1, 1, 60 / 255.0)
 const SQUARE_TAKEN := Color("FFF0D8", 120 / 255.0)
 const SQUARE_IDLE := Color(0.1, 0.1, 0.12, 0.35)
+## A PRÊT cell's square, green.
+const SQUARE_READY := Color(0.3, 0.85, 0.35, 0.55)
 const SQUARE_SIZE := Vector3(0.7, 0.108, 0.7)
 ## The artist's model each station owns (its door, lid or look), by name.
 const ART_MODELS := {
@@ -96,6 +99,9 @@ const ART_LABEL_HEIGHT := 1.1
 ## The artist's floor squares, one per cell (Readme_SettingsV3): white, warmer under a player,
 ## dark under a station with nothing to do tonight (show_squares).
 @export var squares := false
+## Every station keeps its name over it, e.g. in the lobby, where its look doesn't tell it apart;
+## otherwise, with art, only the fryers do.
+@export var labels := false
 
 var camera: Camera3D
 var _anchors: Node3D
@@ -104,6 +110,8 @@ var _spawns: Array[String] = []
 var _size := Vector2i.ONE
 ## One floor square per cell, in the anchors' order (squares).
 var _squares: Array[MeshInstance3D] = []
+## Each square's own colour, when nobody stands on it.
+var _square_colors: Array[Color] = []
 ## Square colour -> its material, shared by every square.
 static var _square_materials := {}
 
@@ -136,6 +144,10 @@ func _build() -> void:
         var previous: Interactible = null
         for column in cells.size():
             var cell := cells[column]
+            if cell == "-":
+                line.append(null)
+                previous = null
+                continue
             var anchor: Anchor = ANCHOR_SCENE.instantiate()
             anchor.name = cell_names[column] if column < cell_names.size() else "Cell%d_%d" % [row, column]
             # Right on screen is -x, the top row is +z.
@@ -143,6 +155,7 @@ func _build() -> void:
             _anchors.add_child(anchor)
             if squares:
                 _squares.append(_square(anchor))
+                _square_colors.append(SQUARE_READY if cell.trim_suffix("@") == "pret" else SQUARE)
             if floor_tiles:
                 var floor_tile: Node3D = FLOOR.instantiate()
                 floor_tile.position = anchor.position
@@ -168,6 +181,8 @@ func _build() -> void:
     for row in grid.size():
         for column in grid[row].size():
             var anchor: Anchor = grid[row][column]
+            if not anchor:
+                continue
             if row > 0 and column < grid[row - 1].size():
                 anchor.up = grid[row - 1][column]
             if row + 1 < grid.size() and column < grid[row + 1].size():
@@ -257,7 +272,7 @@ func _square(anchor: Anchor) -> MeshInstance3D:
 ## do tonight. Only on change: a material swap, never a rebuild.
 func show_squares(taken: Dictionary, idle: Dictionary) -> void:
     for index in _squares.size():
-        var color := SQUARE_TAKEN if taken.has(index) else SQUARE_IDLE if idle.has(index) else SQUARE
+        var color := SQUARE_TAKEN if taken.has(index) else SQUARE_IDLE if idle.has(index) else _square_colors[index]
         var material := _square_material(color)
         if _squares[index].material_override != material:
             _squares[index].material_override = material
@@ -280,8 +295,9 @@ func _use_art(stations: Node3D) -> void:
         var box: CSGBox3D = station.get_node("CSGBox3D")
         box.visible = false
         var label: Label3D = station.get_node("Label")
-        label.visible = station.kind in Interactible.FRYERS
-        label.position.y = ART_LABEL_HEIGHT
+        label.visible = labels or station.kind in Interactible.FRYERS
+        # A PRÊT tile's name stays low, on its tile.
+        label.position.y = ART_LABEL_HEIGHT if station.kind != &"pret" else label.position.y
         var model_name: String = ART_MODELS.get(station.kind, "")
         if model_name != "":
             station.models = _nearest(station, art.get_children().filter(
