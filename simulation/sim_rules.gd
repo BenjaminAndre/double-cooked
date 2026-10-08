@@ -52,6 +52,9 @@ var riot := 1000
 var mood_served := -50
 ## A customer served the wrong thing, or something badly done, leaves angry.
 var mood_angry := 120
+## A wrong dish is refused: it stays in hand, and the customer loses this much patience (5 s at
+## the front of the line, the artist's figure).
+var wrong_delivery := 5 * 4 * SECOND
 var mood_walk_out := 150
 ## +1 per customer waiting behind the front one, every this many ticks.
 var line_pressure_every := 2 * SECOND

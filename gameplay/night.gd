@@ -425,6 +425,8 @@ func _step() -> bool:
             _views[event.slot].show_fat_change(false)
         elif event.type == &"trashed":
             _station_views[event.station].pulse()
+        elif event.type == &"refused" and queue:
+            queue.flash_refused()
         elif event.type == &"boss_arrived":
             announced.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:

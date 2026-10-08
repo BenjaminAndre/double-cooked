@@ -541,7 +541,8 @@ func _station_action(player: SimPlayer) -> StringName:
             if front and front.asleep > 0 and not front.boss:
                 # Only explains why nothing happens.
                 return &"asleep"
-            return &"serve" if held and front else &""
+            # Only what can be served: a dish or a drink.
+            return &"serve" if held and front and Menu.order_key(held) != &"" else &""
         &"extincteur":
             if not held:
                 return &"take_extinguisher"

@@ -91,9 +91,10 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         change_mood(maxi(line.size() - 1, 0))
 
 
-## Serving is handing over whatever is held (GDD §6.2). The right order, done right, sends
-## the customer off happy; anything else sends them off angry, at the player who served
-## (by). A beer is the exception (see give_beer). Returns whether the item was handed over.
+## Serving is handing over what is held (GDD §6.2). The right order, done right, sends the
+## customer off happy; done wrong (burnt, soggy...), angry, at the player who served (by). A
+## wrong dish is refused and costs them patience. A beer is the exception (see give_beer).
+## Returns whether the item was handed over.
 func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     var customer := front()
     if not customer or not item:
@@ -106,8 +107,12 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     if item.kind == Menu.BEER:
         give_beer(0, by, events)
         return true
+    if Menu.order_key(item) != customer.order:
+        customer.patience -= rules.wrong_delivery
+        events.append({"type": &"refused", "by": by})
+        return false
     line.pop_front()
-    if Menu.order_key(item) == customer.order and Menu.done_right(item):
+    if Menu.done_right(item):
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by})
     else:

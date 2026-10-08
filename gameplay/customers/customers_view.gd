@@ -30,6 +30,8 @@ const BAR_SIZE := Vector2(80, 14)
 ## The boss: the drunk baraki, the same size as everyone (the artist's rule), on a red ticket with
 ## a dot per order (SimCrowd.Result: to come, served, missed).
 const BOSS_TICKET := Color(1.0, 0.55, 0.5)
+## A refused dish flashes the ticket in this colour.
+const REFUSED := Color(1.0, 0.35, 0.3)
 const DOT_SIZE := 14
 const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)]
 
@@ -129,6 +131,15 @@ func _step(figure: Node3D, target: Vector3, inside: bool, delta: float, steady: 
         figure.position = figure.position.move_toward(target, WALK_SPEED * delta)
     else:
         figure.position = figure.position.lerp(target, minf(1.0, SHUFFLE_SPEED * delta))
+
+
+## The customer at the front refused what they were handed: their ticket flashes red.
+func flash_refused() -> void:
+    if _tickets.is_empty() or not _tickets[0].visible:
+        return
+    var ticket := _tickets[0]
+    ticket.modulate = REFUSED
+    ticket.create_tween().tween_property(ticket, "modulate", Color.WHITE, 0.5)
 
 
 ## Forgets every figure, e.g. when a new night starts.

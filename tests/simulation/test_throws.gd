@@ -171,7 +171,8 @@ func test_an_angry_customer_throws_at_whoever_served_them() -> void:
     scenario.run_until(2)
     var sim := scenario.simulation
     sim.crowd.line.resize(1)
-    sim.crowd.front().order = &"frites:mayo"
+    # Their order, but burnt.
+    sim.crowd.front().order = &"frites:nature"
     sim.crowd.next_arrival = NEVER
     sim.players[1].item = SimItem.new(Fryer.FRIES_BURNT)
     scenario.at(sim.tick, 1, C.INTERACT).run_until(sim.tick + 1)

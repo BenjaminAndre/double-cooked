@@ -93,16 +93,27 @@ func test_anything_badly_done_sends_them_off_angry() -> void:
         assert_eq(sim.stats.angry, 1)
 
 
-func test_the_wrong_order_sends_them_off_angry() -> void:
+func test_the_wrong_order_is_refused_and_costs_patience() -> void:
     for served in [_item(Fryer.FRIES_GOOD, Menu.ANDALOUSE), _item(Fryer.FRIES_GOOD, &""),
             _item(Menu.CERVELAS, Menu.MAYO), _item(Menu.COLA, &"")]:
         var scenario := _scenario()
         var sim := _with_order(scenario, &"frites:mayo")
+        var patience := sim.crowd.front().patience
         sim.players[0].item = served
         scenario.at(2, 0, Simulation.Command.RELEASE)
         scenario.at(2, 0, INTERACT).run_until(3)
-        assert_true(sim.crowd.line.is_empty(), "%s isn't frites mayo" % ItemNames.of(served))
-        assert_eq(sim.stats.angry, 1)
+        assert_eq(sim.players[0].item, served, "%s isn't frites mayo: kept" % ItemNames.of(served))
+        assert_eq(sim.crowd.line.size(), 1, "they wait on")
+        assert_eq(sim.crowd.front().patience, patience - rules.wrong_delivery - rules.front_drain)
+        assert_eq(sim.stats.angry, 0)
+
+
+func test_only_dishes_and_drinks_can_be_served() -> void:
+    var scenario := _scenario()
+    var sim := _with_order(scenario, &"frites:mayo")
+    for held in [SimItem.new(Fryer.FRIES_RAW), SimItem.new(Simulation.EXTINGUISHER), SimItem.new(Menu.FRICADELLE_RAW)]:
+        sim.players[0].item = held
+        assert_eq(sim.action_for(sim.players[0]), &"", "nothing to serve with %s" % held.kind)
 
 
 func test_a_warm_cervelas_isnt_a_cold_one() -> void:
@@ -110,7 +121,8 @@ func test_a_warm_cervelas_isnt_a_cold_one() -> void:
     var sim := _with_order(scenario, &"cervelas_chaud:nature")
     sim.players[0].item = _item(Menu.CERVELAS, &"")
     scenario.at(2, 0, INTERACT).run_until(3)
-    assert_eq(sim.stats.angry, 1)
+    assert_not_null(sim.players[0].item, "refused")
+    assert_eq(sim.crowd.line.size(), 1)
 
 
 func test_an_unordered_beer_buys_patience_and_the_customer_stays() -> void:
