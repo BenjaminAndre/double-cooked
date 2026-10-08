@@ -119,6 +119,8 @@ var points_fast := 25
 var points_very_fast := 50
 var points_boss_order := 50
 var points_group := 100
+## Bronze, silver and gold, from these scores (the artist's medals).
+var medal_points: Array[int] = [400, 800, 1200]
 
 ## Tonight's events (NightEvents, GDD §6.4), in their order: [when, as a fraction of the night,
 ## kind]. A campaign night has its day's (Campaign.events_for); a single night none so far.

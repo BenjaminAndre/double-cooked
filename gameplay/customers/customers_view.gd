@@ -43,6 +43,10 @@ const BAR_SIZE := Vector2(80, 14)
 const BOSS_TICKET := Color(1.0, 0.55, 0.5)
 ## A refused dish flashes the ticket in this colour.
 const REFUSED := Color(1.0, 0.35, 0.3)
+## The points popping up: size, how far they rise, for how long.
+const POINTS_SIZE := 64
+const POINTS_RISE := 60.0
+const POINTS_TIME := 1.2
 const DOT_SIZE := 14
 const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)]
 
@@ -72,6 +76,7 @@ var _drinkers: Array[Node3D] = []
 
 func _ready() -> void:
     night.began.connect(clear)
+    night.points_scored.connect(pop_points)
     _layer = CanvasLayer.new()
     add_child(_layer)
 
@@ -147,6 +152,22 @@ func _step(figure: Node3D, target: Vector3, inside: bool, delta: float, steady: 
         figure.position = figure.position.move_toward(target, WALK_SPEED * delta)
     else:
         figure.position = figure.position.lerp(target, minf(1.0, SHUFFLE_SPEED * delta))
+
+
+## Points scored at the Nuit unique: the artist's "+n" rising from the till and fading.
+func pop_points(points: int) -> void:
+    var camera := get_viewport().get_camera_3d()
+    var path := "res://art/textures/UX_Score%d.png" % points
+    if not camera or not ResourceLoader.exists(path):
+        return
+    var pop := ArtUi.picture(load(path), POINTS_SIZE)
+    _layer.add_child(pop)
+    var over_till := camera.unproject_position(global_position + Vector3.UP * PaperFigure.HEIGHT)
+    pop.position = over_till - pop.custom_minimum_size / 2
+    var tween := pop.create_tween().set_parallel()
+    tween.tween_property(pop, "position:y", pop.position.y - POINTS_RISE, POINTS_TIME)
+    tween.tween_property(pop, "modulate:a", 0.0, POINTS_TIME).set_delay(POINTS_TIME / 2)
+    tween.chain().tween_callback(pop.queue_free)
 
 
 ## The customer at the front refused what they were handed: their ticket flashes red.

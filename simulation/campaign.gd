@@ -8,6 +8,9 @@ extends RefCounted
 ## Each night is a day of the week, from Monday, then the next week (the artist's idea).
 const DAYS: Array[String] = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 
+## The Nuit unique's seed, hard-coded: every crew plays the same night (GDD §4.3).
+const NUIT_UNIQUE_SEED := 20261008
+
 ## Events taken turn by turn: Sunday's, and the one more a night from the second week, at
 ## EXTRA_EVENT_AT through the night (00:30, between the day's and the boss).
 const ROTATION: Array[StringName] = [NightEvents.DIABLES_ROUGES, NightEvents.AFSCA, NightEvents.COLLEGUES,

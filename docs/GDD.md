@@ -27,14 +27,14 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 
 - One game is one night, 18:00 to 04:00 in just under 6 minutes of real time. **At 04:00 the door closes**: nobody comes in any more, and the night only ends once every customer still inside has been dealt with.
 - The pace follows the clock (revised after the fourth playtest): calm until 20:00, then a steady build-up of customers until the peak at closing time. Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors. A customer every 8 to 15 s for one player before those factors (raised by half on 2026-10-08: the first night felt empty).
-- A single night (**nuit libre** at the PORTE) has the whole menu. Progression comes from the campaign (§4.2).
+- The PORTE starts a **campaign** (§4.2), which measures how far a crew gets, or the **Nuit unique** (§4.3), a score attack which measures how well.
 - **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37"), **up to three stars** on the artist's notebook (one for holding until closing, one for a room still in the green, under half the riot, one for serving every order of the boss; a lost night has none), plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no points or economy behind it.
 
 ### 4.1 The lobby (after the first online playtest)
 - The game opens in a **waiting room that plays like the kitchen**: the same grid, walking and station menus, with no customers, clock or hunger. Since 0.2.15 it is the artist's room emptied of the kitchen (their idea, `docs/art/Readme_SettingsV3.txt`), dressed with their existing models until they draw lobby props: PEINTURE, CASQUETTE and TÉLÉPHONE (a till for now) on counters against the back wall, PRÊT tiles as green floor squares, and the PORTE is the shop's own doorway. Online, everyone connected is in it together; a newcomer joins it at once (during a night, they wait for the next lobby).
 - **PEINTURE**: choose one of the **four characters** (their faces, laid out like any menu, §5.4). Each is unique in the team (a teammate's is greyed out). **CASQUETTE**: nothing, a cap, or a beer helmet with straws. Looks are kept between sessions, and carried into the night (§5.5).
 - **TÉLÉPHONE**: create an online game, join one (type the code), two players on this keyboard or back to one, and leave the online game. It replaces the old H / J / F2 keys and the text over the screen.
-- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. Its menu offers a **campagne** (first, §4.2) or a **nuit libre**. After a single night, Entrée takes everyone back to the lobby.
+- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. Its menu offers a **campagne** (first, §4.2) or the **nuit unique** (§4.3). After a single night, Entrée takes everyone back to the lobby.
 
 ### 4.2 The campaign (0.2.3)
 - Like the rounds of a zombie game: **nights one after the other, endless, until the crew falls**. A held night leads to the next one (Entrée, the host's online); a riot or the whole crew K.O. **loses the campaign** and everyone goes back to the lobby. No purchases between nights yet.
@@ -45,6 +45,14 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **Station menus only offer tonight's items**, and a station with nothing to do is **greyed out and inert** (today PAIN, VIANDES before night 3, SAUCES on night 1). A menu with nothing in it never opens.
 - **The summary** shows the night reached and, per player (by colour): served, missed, beers given, bumps, K.O., revives; at the end of a campaign, the record.
 - Later (§12): barricades against the cans, special nights every N nights, an easter egg.
+
+### 4.3 The Nuit unique (score attack, 0.2.35)
+- One night with the **whole menu**, on **one hard-coded seed** for everyone: with each customer drawing from their own random stream (§6.2), every crew meets the same customers in the same order.
+- **The pace follows the crew, both ways**: each customer served brings the next ones 4% sooner, each one lost (angry or walked out) 8% later, between ×0.6 and ×2.5. A strong crew gets busier and scores more; a struggling one gets a night it can still enjoy.
+- **Points** only go up: a customer served is worth 20, 25 with more than a third of their patience left, 50 with more than two thirds; each of the boss's orders 50, the colleagues 100. They pop up over the till (the artist's +20, +25, +50, +100), and the score shows beside the clock.
+- **A riot or the whole crew K.O. is game over: zero points, no medal.** Only a night held until closing scores.
+- At the end, the artist's **medal** (bronze from 400, silver from 800, gold from 1200) instead of the campaign's stars, and the **best score** on this browser, kept per crew size since only those compare; the lobby shows it too.
+- No events for now.
 
 ## 5. Players
 

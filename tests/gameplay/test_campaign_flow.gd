@@ -59,3 +59,20 @@ func test_a_single_night_goes_back_to_the_lobby_even_when_held() -> void:
     night.simulation._end(&"won", &"closing")
     night.continue_after_night()
     assert_true(night.in_lobby)
+
+
+func test_the_nuit_unique_keeps_its_best_score_per_crew_size() -> void:
+    night.play_local(1)
+    assert_true(night.simulation.rules.score_attack)
+    assert_eq(night.simulation.rng.seed, Campaign.NUIT_UNIQUE_SEED, "every crew plays the same night")
+    var sim := night.simulation
+    # An empty night that closes at once, with 640 points scored.
+    sim.rules.night_ticks = 5
+    sim.rules.boss_orders = 0
+    sim.crowd.next_arrival = 1 << 30
+    sim.crowd.score = 640
+    await wait_until(func() -> bool: return sim.outcome == &"won", 3.0)
+    await wait_process_frames(1)
+    assert_true(night.new_record)
+    assert_eq(night.nuit_unique_best(1), 640)
+    assert_eq(night.nuit_unique_best(2), 0, "a duo has its own")

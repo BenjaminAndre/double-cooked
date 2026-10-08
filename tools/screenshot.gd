@@ -145,6 +145,17 @@ func _initialize() -> void:
         "drinkers":
             # Three beer drinkers on the pavement (the 8th window of the night).
             night.simulation.tick = CustomersView.DRINKERS_EVERY * 7
+        "score_won":
+            # A Nuit unique held with 900 points: silver, and a new best.
+            var sim := night.simulation
+            sim.rules.night_ticks = 20
+            sim.rules.boss_orders = 0
+            sim.crowd.score = 900
+        "score_play":
+            # A Nuit unique under way: the score, and points popping up at the till.
+            night.simulation.crowd.score = 245
+            await create_timer(0.5).timeout
+            night.points_scored.emit(50)
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0

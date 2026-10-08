@@ -32,6 +32,8 @@ signal began
 signal notice(text: String)
 ## A big announcement, e.g. the boss walking in.
 signal announced(text: String)
+## Points scored at the Nuit unique, as they come.
+signal points_scored(points: int)
 ## One of tonight's events starts (NightEvents).
 signal night_event_started(kind: StringName)
 ## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
@@ -68,7 +70,8 @@ var player_id := ""
 var reconnecting := false
 ## Which night of a campaign this is (GDD §4.2), 0 for a single night or the lobby.
 var campaign_night := 0
-## The campaign just ended on a night further than any before, on this browser.
+## The campaign just ended on a night further than any before, or the Nuit unique on a score
+## higher than any before for this many players, on this browser.
 var new_record := false
 
 @onready var _link: NightLink = $Link
@@ -182,7 +185,8 @@ func _play_offline(local_players: int, lobby: bool, p_campaign_night := 0) -> vo
     var slots := PackedInt32Array()
     for slot in local_players:
         slots.append(slot)
-    _begin(local_players, slots, _new_seed(), Role.OFFLINE, lobby, _current_looks(), p_campaign_night)
+    _begin(local_players, slots, _new_seed(lobby, p_campaign_night), Role.OFFLINE, lobby, _current_looks(),
+            p_campaign_night)
 
 
 ## The host is slot 0. The others keep their slot from one night to the next, and newcomers
@@ -208,7 +212,7 @@ func _host_begin(lobby: bool, p_campaign_night := 0) -> void:
         var look: Array = by_peer.get(peer, Array(hello[1]) if hello[1].size() == 2 else [-1, -1])
         looks.append_array(look)
         ids.append(hello[0])
-    var seed_value := _new_seed()
+    var seed_value := _new_seed(lobby, p_campaign_night)
     var count := _peer_order.size() + 1
     _begin(count, PackedInt32Array([0]), seed_value, Role.HOST, lobby, looks, p_campaign_night)
     _slot_ids = ids
@@ -429,6 +433,8 @@ func _step() -> bool:
             _station_views[event.station].pulse()
         elif event.type == &"refused" and queue:
             queue.flash_refused()
+        elif event.type == &"points":
+            points_scored.emit(event.points)
         elif event.type == &"night_event":
             night_event_started.emit(event.kind)
         elif event.type == &"group_left":
@@ -450,6 +456,8 @@ func _step() -> bool:
                 play_local.call_deferred(_local_slots.size(), first)
         elif event.type == &"night_over" and campaign_night > 0 and event.outcome == &"lost":
             new_record = _save_record()
+        elif event.type == &"night_over" and simulation.rules.score_attack and not in_lobby:
+            new_record = _save_best()
     return true
 
 
@@ -877,8 +885,14 @@ func _unflatten(flat: PackedInt32Array) -> Array:
     return commands
 
 
-func _new_seed() -> int:
-    return night_seed if night_seed != 0 else randi()
+## night_seed if set (tests); the Nuit unique's own seed, the same for everyone so its scores
+## compare (GDD §4.3); otherwise a new one.
+func _new_seed(lobby := false, p_campaign_night := 0) -> int:
+    if night_seed != 0:
+        return night_seed
+    if not lobby and p_campaign_night == 0:
+        return Campaign.NUIT_UNIQUE_SEED
+    return randi()
 
 
 func _save_replay() -> void:
@@ -942,4 +956,26 @@ func _save_record() -> bool:
     config.set_value("campaign", "colors", colors)
     config.save(looks_path)
     _record = {"night": campaign_night, "colors": colors}
+    return true
+
+
+## The best score at the Nuit unique on this browser for a crew of this size, 0 if none yet:
+## scores only compare within the same number of players (GDD §4.3).
+func nuit_unique_best(players: int) -> int:
+    var config := ConfigFile.new()
+    if looks_path == "" or config.load(looks_path) != OK:
+        return 0
+    return int(config.get_value("nuit_unique", "best_%d" % players, 0))
+
+
+## Keeps tonight's score if it beat the best. Returns whether it did.
+func _save_best() -> bool:
+    var players := simulation.players.size()
+    var score := simulation.score()
+    if looks_path == "" or score <= nuit_unique_best(players):
+        return false
+    var config := ConfigFile.new()
+    config.load(looks_path)
+    config.set_value("nuit_unique", "best_%d" % players, score)
+    config.save(looks_path)
     return true

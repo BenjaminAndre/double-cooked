@@ -34,6 +34,11 @@ var _stars: HBoxContainer
 var _recap: RichTextLabel
 ## The clock and warnings: hidden in the lobby.
 var _corner: VBoxContainer
+## The Nuit unique's score, beside the clock (the artist's scoreboard).
+var _score_frame: PanelContainer
+var _score: Label
+## The Nuit unique's medal, on the summary instead of the stars.
+var _medal: TextureRect
 ## The day of a campaign night, beside the clock.
 var _day_frame: PanelContainer
 var _day: Label
@@ -59,6 +64,10 @@ func _ready() -> void:
     frames.size_flags_horizontal = Control.SIZE_SHRINK_END
     frames.add_theme_constant_override("separation", 10)
     corner.add_child(frames)
+    _score_frame = ArtUi.panel(ArtUi.frame("Scoreboard03", Vector4(72, 20, 20, 20), 10))
+    _score_frame.get_theme_stylebox("panel").content_margin_left = 76
+    frames.add_child(_score_frame)
+    _score = _label(30, _score_frame)
     _day_frame = ArtUi.panel(ArtUi.frame("Day", Vector4(80, 20, 20, 20), 10))
     _day_frame.get_theme_stylebox("panel").content_margin_left = 84
     frames.add_child(_day_frame)
@@ -120,6 +129,9 @@ func _ready() -> void:
     column.add_child(_stars)
     for index in 3:
         _stars.add_child(ArtUi.picture(ArtUi.texture("StarEmpty"), STAR_SIZE))
+    _medal = ArtUi.picture(null, STAR_SIZE * 1.4)
+    _medal.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    column.add_child(_medal)
     _recap = RichTextLabel.new()
     _recap.bbcode_enabled = true
     _recap.fit_content = true
@@ -143,6 +155,9 @@ func _process(delta: float) -> void:
     _mood.visible = not night.in_lobby
     if _logo.visible and _anyone_moving():
         _logo.visible = false
+    _score_frame.visible = sim.rules.score_attack and not night.in_lobby
+    if _score_frame.visible:
+        _set_text(_score, str(sim.score()))
     _day_frame.visible = night.campaign_night > 0
     if _day_frame.visible:
         _set_text(_day, capitalized(Campaign.day_label(night.campaign_night)))
@@ -177,8 +192,20 @@ func _process(delta: float) -> void:
             next = "En attente de l'hôte..."
         next += "\nF3 : télécharger le replay"
         _set_text(_title, title(sim, night.campaign_night))
+        # The Nuit unique has its medal, a campaign night its stars.
+        _stars.visible = not sim.rules.score_attack
         _show_stars(stars(sim))
+        var medal_name := medal(sim)
+        _medal.visible = sim.rules.score_attack and medal_name != ""
+        if _medal.visible and _medal.texture != ArtUi.texture(medal_name):
+            _medal.texture = ArtUi.texture(medal_name)
         var recap_text := "[center]%s[/center]" % recap(sim, night.campaign_night)
+        if sim.rules.score_attack and not night.in_lobby:
+            var best := night.nuit_unique_best(sim.players.size())
+            if night.new_record:
+                recap_text += "\n[center]Nouveau record : %d points[/center]" % best
+            elif best > 0:
+                recap_text += "\n[center]Record : %d points[/center]" % best
         if night.campaign_night > 0 and sim.outcome != &"won" and night.campaign_record().night > 0:
             recap_text += "\n[center]%s[/center]" % record_text(night.campaign_record(), night.new_record)
         if _recap.text != recap_text:
@@ -214,10 +241,17 @@ func _show_announcement(text: String) -> void:
 
 func _on_began() -> void:
     _logo.visible = night.in_lobby
+    # In the lobby: the campaign's record, and the Nuit unique's best for a crew this size.
     var record := night.campaign_record()
-    _record.visible = night.in_lobby and record.night > 0
+    var best := night.nuit_unique_best(night.simulation.players.size()) if night.in_lobby else 0
+    var lines := PackedStringArray()
+    if record.night > 0:
+        lines.append(record_text(record))
+    if best > 0:
+        lines.append("Nuit unique : %d points" % best)
+    _record.visible = night.in_lobby and not lines.is_empty()
     if _record.visible:
-        _record.text = "[right]%s[/right]" % record_text(record)
+        _record.text = "[right]%s[/right]" % "\n".join(lines)
     if night.campaign_night > 0:
         _splash.show_night(night.campaign_night)
     else:
@@ -268,6 +302,11 @@ func _show_notice(text: String) -> void:
 
 ## campaign_night: which night of a campaign (Night.campaign_night), 0 for a single night.
 static func title(sim: Simulation, campaign_night := 0) -> String:
+    if sim.rules.score_attack:
+        if sim.outcome == &"won":
+            return "Nuit unique : %d points !" % sim.score()
+        # A riot or the whole crew down: nothing to show for it.
+        return ("Toute l'équipe est K.O." if sim.outcome_reason == &"crew_down" else "Émeute !") + " Zéro point."
     if campaign_night > 0:
         if sim.outcome == &"won":
             return "%s tenu !" % capitalized(Campaign.day_label(campaign_night))
@@ -278,6 +317,16 @@ static func title(sim: Simulation, campaign_night := 0) -> String:
         &"crew_down":
             return "Toute l'équipe est K.O. à %s." % clock(sim.clock_minutes())
     return "Émeute ! La nuit s'arrête à %s." % clock(sim.clock_minutes())
+
+
+## The Nuit unique's medal (SimRules.medal_points): "Gold", "Silver", "Bronze", or "" for none.
+static func medal(sim: Simulation) -> String:
+    var names := ["Bronze", "Silver", "Gold"]
+    var earned := ""
+    for index in names.size():
+        if sim.score() >= sim.rules.medal_points[index]:
+            earned = names[index]
+    return earned
 
 
 ## The text with its first letter in capitals, e.g. a day at the start of a line.
