@@ -55,3 +55,18 @@ func test_the_diables_rouges_bring_a_rush_in_a_hurry() -> void:
     var first := sim.crowd.line[0]
     assert_eq(first.full_patience, roundi(roundi(rules.patience) * rules.rush_patience), "in a hurry")
     assert_eq(Campaign.events_for(3), [[0.3, NightEvents.DIABLES_ROUGES]], "mercredi")
+
+
+func test_the_afsca_inspection_wants_no_fire() -> void:
+    for fire in [false, true]:
+        var rules := _rules([[0.125, NightEvents.AFSCA]])
+        var scenario := Scenario.new(level, [fridge], 1, rules)
+        var sim := scenario.run_until(501)
+        sim.crowd.mood = 500
+        sim.stations[0].burning = fire
+        rules.fire_spread_after = NEVER
+        scenario.run_until(501 + rules.inspection_ticks)
+        var over := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"inspection_over")
+        assert_eq(over.size(), 1)
+        assert_eq(over[0].passed, not fire)
+        assert_eq(sim.crowd.mood, 500 + (rules.mood_inspection_failed if fire else rules.mood_inspection_passed))

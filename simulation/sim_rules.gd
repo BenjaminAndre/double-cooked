@@ -114,6 +114,11 @@ var fridge_breakdown := 25 * SECOND
 var rush_customers := 6
 var rush_every := 20 * SECOND / 6
 var rush_patience := 0.8
+## The AFSCA inspection: this long; then the room cheers up if no fire burnt meanwhile, and
+## sours by a quarter of a riot if one did.
+var inspection_ticks := 20 * SECOND
+var mood_inspection_passed := -150
+var mood_inspection_failed := 250
 
 
 ## The boss (GDD §6.3): one per night, at boss_at through the night (02:00). He cuts to the

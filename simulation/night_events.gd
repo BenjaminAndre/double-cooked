@@ -4,14 +4,20 @@ extends RefCounted
 ## its time (SimRules.night_events), is announced, and changes the rules for a while.
 ## - PANNE_FRIGO: the FRIGO breaks down, no beer comes back for a while.
 ## - DIABLES_ROUGES: half-time of the national team, a rush of customers in a hurry.
+## - AFSCA: the food safety inspector watches the kitchen a while; a fire meanwhile and the room
+##   sours, none and it calms down.
 
 const PANNE_FRIGO := &"panne_frigo"
 const DIABLES_ROUGES := &"diables_rouges"
+const AFSCA := &"afsca"
 
 var rules: SimRules
 var crowd: SimCrowd
 ## Ticks left before the FRIGO works again.
 var fridge_down := 0
+## Ticks left of the AFSCA inspection, and whether a fire burnt during it.
+var inspection := 0
+var inspection_failed := false
 ## How many of tonight's events have started, in their order.
 var _started := 0
 
@@ -22,8 +28,14 @@ func _init(p_rules: SimRules, p_crowd: SimCrowd) -> void:
 
 
 ## One tick: the next event starts once its time comes ({"type": &"night_event", "kind": ...}),
-## and those under way run out.
-func advance(tick: int, events: Array[Dictionary]) -> void:
+## and those under way run out. fire: whether a station is burning.
+func advance(tick: int, events: Array[Dictionary], fire: bool) -> void:
+    if inspection > 0:
+        inspection_failed = inspection_failed or fire
+        inspection -= 1
+        if inspection == 0:
+            crowd.change_mood(rules.mood_inspection_failed if inspection_failed else rules.mood_inspection_passed)
+            events.append({"type": &"inspection_over", "passed": not inspection_failed})
     if fridge_down > 0:
         fridge_down -= 1
         if fridge_down == 0:
@@ -42,7 +54,10 @@ func _start(kind: StringName) -> void:
             fridge_down = rules.fridge_breakdown
         DIABLES_ROUGES:
             crowd.rush = rules.rush_customers
+        AFSCA:
+            inspection = rules.inspection_ticks
+            inspection_failed = false
 
 
 func fingerprint() -> Array:
-    return [fridge_down, _started]
+    return [fridge_down, inspection, inspection_failed, _started]

@@ -10,6 +10,7 @@ const EVENTS := {
     NightEvents.PANNE_FRIGO: ["Event_PanneFrigo", "Panne de frigo !", "Plus de bière qui revient un moment"],
     NightEvents.DIABLES_ROUGES: ["Event_MiTempsDiablesRouges", "Mi-temps des Diables Rouges !",
             "Une foule pressée débarque"],
+    NightEvents.AFSCA: ["Event_Afsca", "Contrôle AFSCA !", "Pas un feu pendant 20 s"],
 }
 
 var _picture: TextureRect

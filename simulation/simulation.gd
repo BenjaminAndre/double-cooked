@@ -138,7 +138,7 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        night_events.advance(tick, events)
+        night_events.advance(tick, events, stations.any(func(station: SimStation) -> bool: return station.burning))
         crowd.advance(tick, players.size(), rng, events)
         _customers_throw()
     _advance_projectiles()

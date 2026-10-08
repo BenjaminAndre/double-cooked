@@ -431,6 +431,8 @@ func _step() -> bool:
             queue.flash_refused()
         elif event.type == &"night_event":
             night_event_started.emit(event.kind)
+        elif event.type == &"inspection_over":
+            announced.emit("Contrôle AFSCA réussi !" if event.passed else "Contrôle AFSCA raté : la salle grogne")
         elif event.type == &"boss_arrived":
             announced.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:

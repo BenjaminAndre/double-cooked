@@ -157,6 +157,7 @@ func _process(delta: float) -> void:
     elif sim.outcome == &"":
         warnings.append(silence_text(night.host_silence()))
     warnings.append(desync_text(night.desyncs))
+    warnings.append(inspection_text(sim.night_events))
     _set_text(_desync, "\n".join(warnings).strip_edges())
     _notice_left = maxf(_notice_left - delta, 0.0)
     _notice.visible = _notice_left > 0.0
@@ -242,6 +243,15 @@ static func desync_text(desyncs: int) -> String:
     if desyncs == 0:
         return ""
     return "Désynchro avec l'hôte (%d) · F3 : replay" % desyncs
+
+
+## The AFSCA inspection under way: its countdown, and whether a fire is spoiling it.
+static func inspection_text(night_events: NightEvents) -> String:
+    if night_events.inspection == 0:
+        return ""
+    if night_events.inspection_failed:
+        return "Contrôle AFSCA : raté, il y a eu le feu"
+    return "Contrôle AFSCA · %d s" % ceili(night_events.inspection / float(Simulation.TICK_RATE))
 
 
 ## Empty unless the host has been silent for a while during a night.
