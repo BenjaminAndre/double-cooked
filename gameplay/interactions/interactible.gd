@@ -1,20 +1,11 @@
 class_name Interactible
 extends Node3D
 ## A station the player interacts with from an Anchor. What it does is a Simulation rule
-## keyed by kind; this node only shows the station's state, such as the fryer gauges.
+## keyed by kind; this node only shows the station's state, such as the fryers' bubbles.
 
 const FRYERS: Array[StringName] = [&"cuisson_1", &"cuisson_2"]
 const LABEL_HEIGHT := 1.3
-## The fryer gauge: a horizontal bar facing the camera, yellow while undercooked, green when
-## ready, red from too late up to the fire at its end; a white line shows the progress.
-const GAUGE_HEIGHT := 1.1
-const GAUGE_SIZE := Vector2(1.0, 0.12)
-const GAUGE_ALPHA := 0.75
-## Drawn after the other see-through things (UnlitArt.GLASS_PRIORITY, the fire), the progress
-## line after its bands.
-const GAUGE_PRIORITY := UnlitArt.GLASS_PRIORITY + 2
-const UNDERCOOKED := Color(1.0, 0.85, 0.2)
-const READY := Color(0.35, 0.72, 0.25)
+## The fire label's colour.
 const TOO_LATE := Color(1.0, 0.25, 0.2)
 
 ## The artist's animated sheets.
@@ -25,7 +16,6 @@ const OIL_HEIGHT := 1.05
 const OIL_SIZE := 0.45
 const FIRE_HEIGHT := 1.0
 const FIRE_SIZE := 1.4
-const ALERT_HEIGHT := 1.65
 ## How high a basket rises when lifted.
 const BASKET_LIFT := 0.3
 
@@ -42,14 +32,11 @@ var cooked_models: Array = []
 
 var _state_label: Label3D
 var _highlight: MeshInstance3D
-var _gauge: Node3D
-## Undercooked, ready and too-late bands, then the progress line.
-var _gauge_parts: Array[MeshInstance3D] = []
-## What the label and the gauge last showed, so they are only rebuilt when it changes.
+## A fryer's bubble (CookingBubble), on screen.
+var _bubble: CookingBubble
+## What the label last showed, so it is only rebuilt when it changes.
 var _label_fire := false
-var _gauge_zones := Vector3i.ZERO
 var _was_frying := false
-var _alert: Sprite3D
 var _menu_open := false
 ## Sheet texture path -> its sprite.
 var _flipbooks := {}
@@ -77,7 +64,7 @@ func set_highlighted(on: bool) -> void:
         _highlight.visible = on
 
 
-## Shows a fire on any station, and on fryers the gauge while something fries, or the
+## Shows a fire on any station, and over fryers a bubble: how far along what fries is, or the
 ## portions left of a batch waiting on CUISSON 1.
 func show_station(station: SimStation, rules: SimRules) -> void:
     _show_in_use(Menu.station_in_use(kind, rules.menu))
@@ -87,14 +74,16 @@ func show_station(station: SimStation, rules: SimRules) -> void:
         label = "FEU !"
     elif kind == &"frigo" and _in_use:
         label = "bière ×%d" % station.beers
-    elif kind in FRYERS and station.basket and not station.frying:
-        label = "×%d" % station.basket.portions
     _show_label(label, station.burning)
     if frying:
         var window := Fryer.window(station)
-        _show_gauge(window, window.y + rules.fire_margin, station.cook)
-    elif _gauge:
-        _gauge.visible = false
+        _cooking_bubble().show_cooking(station.basket.kind, station.cook, window, window.y + rules.fire_margin)
+    elif kind in FRYERS and station.basket and not station.burning:
+        _cooking_bubble().show_waiting(station.basket.kind, station.basket.portions)
+    elif _bubble:
+        _bubble.hide_bubble()
+    if _bubble:
+        _bubble.place_over(centre(), get_viewport().get_camera_3d())
     # This station's basket comes up when what fries in it is lifted out.
     if _was_frying and not frying and not station.burning and basket_model:
         _lift_basket()
@@ -106,8 +95,16 @@ func show_station(station: SimStation, rules: SimRules) -> void:
         cooked_models[index].visible = index < left
     _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
-    # The siren: about to catch fire, past the ready zone.
-    _show_alert(frying and station.cook > Fryer.window(station).y)
+
+
+func _cooking_bubble() -> CookingBubble:
+    if not _bubble:
+        var layer := CanvasLayer.new()
+        layer.layer = CookingBubble.CANVAS_LAYER
+        add_child(layer)
+        _bubble = CookingBubble.new()
+        layer.add_child(_bubble)
+    return _bubble
 
 
 ## A station with nothing to do tonight is greyed out, its name too (GDD §4.2).
@@ -145,20 +142,6 @@ static func _grey_surface(mesh: MeshInstance3D, surface: int, grey: bool) -> voi
         copy.albedo_color = material.albedo_color * GREYED
         _greyed[material] = copy
     mesh.set_surface_override_material(surface, _greyed[material])
-
-
-func _show_alert(on: bool) -> void:
-    if on and not _alert:
-        _alert = Sprite3D.new()
-        _alert.texture = preload("res://art/textures/UX_Alert.png")
-        _alert.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-        _alert.pixel_size = 0.004
-        _alert.no_depth_test = true
-        _alert.position = Vector3(_flipbook_x(), ALERT_HEIGHT, 0)
-        add_child(_alert)
-    if _alert:
-        _alert.visible = on
-        _alert.scale = Vector3.ONE * (1.0 + 0.1 * sin(Time.get_ticks_msec() * 0.015))
 
 
 ## The FRIGO's door stays open while a player has its menu open.
@@ -236,55 +219,6 @@ func _show_label(text: String, fire: bool) -> void:
     if fire:
         # A fire throbs. Scaling only moves the label, where recolouring rebuilt it.
         _state_label.scale = Vector3.ONE * (1.0 + 0.12 * sin(Time.get_ticks_msec() * 0.02))
-
-
-## window: the ready zone in ticks; fire: the tick the gauge ends at; cook: ticks so far.
-## The zones only move when the window changes; the line slides along the quads, which are
-## unit squares scaled into place rather than resized meshes.
-func _show_gauge(window: Vector2i, fire: int, cook: int) -> void:
-    if not _gauge:
-        _gauge = Node3D.new()
-        _gauge.position = Vector3(0, GAUGE_HEIGHT, 0)
-        add_child(_gauge)
-        for color in [UNDERCOOKED, READY, TOO_LATE]:
-            _gauge_parts.append(_quad(Color(color, GAUGE_ALPHA)))
-        _gauge_parts.append(_quad(Color.WHITE))
-        # Over everything, like the hearts and bubbles: the highlight box and the models
-        # around would otherwise wash it out or hide it.
-        for index in _gauge_parts.size():
-            var material: StandardMaterial3D = _gauge_parts[index].mesh.material
-            material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-            material.no_depth_test = true
-            material.render_priority = GAUGE_PRIORITY + (1 if index == 3 else 0)
-        var camera := get_viewport().get_camera_3d()
-        if camera:
-            _gauge.global_basis = camera.global_basis
-    _gauge.visible = true
-    var zones := Vector3i(window.x, window.y, fire)
-    if zones != _gauge_zones:
-        _gauge_zones = zones
-        var bounds := [0, window.x, window.y, fire]
-        for zone in 3:
-            _place(_gauge_parts[zone], float(bounds[zone]) / fire, float(bounds[zone + 1]) / fire, 1.0)
-    var at := clampf(float(cook) / fire, 0.0, 1.0)
-    _place(_gauge_parts[3], at - 0.012, at + 0.012, 1.8)
-    _gauge_parts[3].position.z = 0.002
-
-
-## Stretches a unit quad over [from, to] of the gauge's width, height scaled by tall.
-func _place(part: MeshInstance3D, from: float, to: float, tall: float) -> void:
-    part.scale = Vector3(maxf(to - from, 0.001) * GAUGE_SIZE.x, GAUGE_SIZE.y * tall, 1.0)
-    part.position.x = ((from + to) / 2 - 0.5) * GAUGE_SIZE.x
-
-
-func _quad(color: Color) -> MeshInstance3D:
-    var part := MeshInstance3D.new()
-    var mesh := QuadMesh.new()
-    mesh.size = Vector2.ONE
-    mesh.material = _flat_material(color)
-    part.mesh = mesh
-    _gauge.add_child(part)
-    return part
 
 
 func _flat_material(color: Color) -> StandardMaterial3D:

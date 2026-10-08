@@ -139,7 +139,7 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 **Rules around the fryers**
 - Anything left in the oil 10 s past the end of its window starts a **grease fire**.
 - Bad fries (soggy, burnt) can be served, at a mood penalty. The bin is the clean way out.
-- **Reading the timing:** a horizontal gauge over each fryer, 25% transparent: yellow while undercooked, blue when ready, red from too late up to the fire at its end, with a white line for the progress. A batch waiting on CUISSON 1 shows its portions left (×5), and as many cooked portions on the fryer. The gauge is drawn over everything, so nothing in the kitchen hides it.
+- **Reading the timing** (the artist's ConceptBoard02, 0.2.12): a cream bubble over each fryer, on screen so nothing in the kitchen hides it, with the picture of what is in the oil and the artist's bar: yellow while undercooked, green when ready, red up to the fire, with a cursor. The bands keep the artist's proportions; the cursor crosses each at its own pace, so it enters the green exactly when the food is ready. In the bubble's corner the siren blinks during the last second of green, then the warning triangle in the red. A batch waiting on CUISSON 1 shows its portions left (×5) in the bubble, and as many cooked portions on the fryer. On screen, from bottom to top: key hints, hearts and tickets; fryer bubbles; station menus; the HUD.
 - The fryers are shared between players.
 
 ### 7.2 Menu

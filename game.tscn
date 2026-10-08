@@ -72,6 +72,7 @@ lobby_room = NodePath("../LobbyRoom")
 script = ExtResource("7_link")
 
 [node name="Lobby" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
+layer = 4
 script = ExtResource("8_lobby")
 night = NodePath("../Night")
 
@@ -84,6 +85,7 @@ entrance = Vector3(0.1, 0, -5)
 exit = Vector3(0.2, 0, 4)
 
 [node name="Hud" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
+layer = 4
 script = ExtResource("10_hud")
 night = NodePath("../Night")
 

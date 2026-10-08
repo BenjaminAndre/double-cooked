@@ -4,6 +4,8 @@ extends PanelContainer
 ## options laid out around the first one, then the key that takes the selected one.
 
 const BUBBLE_HEIGHT := 1.6
+## Over everything in the kitchen (fryer bubbles are on 2), under the HUD (4).
+const CANVAS_LAYER := 3
 
 var content: PlayerPanel
 

@@ -55,8 +55,11 @@ func _ready() -> void:
     if is_local_player:
         _panel = PlayerPanel.new()
         layer.add_child(_panel)
+        var menu_layer := CanvasLayer.new()
+        menu_layer.layer = MenuBubble.CANVAS_LAYER
+        add_child(menu_layer)
         _menu_bubble = MenuBubble.new()
-        layer.add_child(_menu_bubble)
+        menu_layer.add_child(_menu_bubble)
     _stars = Node3D.new()
     _stars.position.y = PaperFigure.HEIGHT - 0.1
     add_child(_stars)
