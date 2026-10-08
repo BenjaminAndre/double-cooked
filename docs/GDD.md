@@ -60,7 +60,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ### 5.2 Movement
 - Players move from node to node with the arrow keys, and moves can be queued (already implemented: `Anchor` graph, `future_path`).
 - A node holds one player at a time.
-- The kitchen is a **regular square grid** (6 × 2 in the demo): every node is one metre from its neighbours and the arrows always mean the same direction (fifth playtest: the irregular nodes around the CAISSE were confusing). The CAISSE sits in the bottom row like the other counters. It is built from a layout (`GridRoom`) inside the artist's room: the checkered floor shows the grid (2 × 2 tiles per node), the back row against the back wall, the CAISSE row on the street side, the customers queueing outside on the pavement, in front of the serving window, where they hide no station. The fryer is one long unit over CUISSON 1 and both CUISSON 2: raw and cooked fries on CUISSON 1, one oil well and basket on each CUISSON 2.
+- The kitchen is a **regular square grid** (6 × 2 in the demo): every node is one metre from its neighbours and the arrows always mean the same direction (fifth playtest: the irregular nodes around the CAISSE were confusing). Since 0.2.14 it is **the artist's scene as they built it** (`docs/art/SceneExport_*.md`, turned into `art/scenes/` by `tools/scene_export.gd`): their room, models, camera and scale (characters about 1.37 m), with our grid of cells (`GridRoom`) laid on their floor squares. For two players, the back row is FRIGO, CUISSON 1, CUISSON 2 (fries only), two CUISSON VIANDE (one basket each), POUBELLE; the front row PAIN, CAISSE, SAUCES, VIANDES (two cells) and EXTINCTEUR. Players start at the FRIGO and the second CUISSON VIANDE. Each cell has the artist's **floor square**: white, warmer under a player, dark under a station with nothing to do tonight. The customers queue **inside**, along the counter from the CAISSE, then out of the door onto the pavement; they come in and leave by the door.
 - **The camera is a 3/4 view** like the artist's: 40° down, turned 31° from straight in front (tried at 59°, back to 31° on 2026-09-29: the arrows read more clearly). The arrows keep following the grid: "up" goes towards the back of the kitchen, on a diagonal. The room itself (floor, walls) is drawn behind everything whatever the depth (`Backdrop`), so the tilted paper figures never sink into it, except the walls on the camera's side, drawn again in depth so they hide whoever stands behind them; counters and stations stay in depth with the figures, which are as deep as a card standing upright at their feet: they never sink into what is behind them, and a counter in front of them still hides their legs. Hearts, a word when knocked out or starving, and the held item (a speech bubble pointing down at the player) are drawn on screen over each head, so nothing in the kitchen hides them.
 
 ### 5.3 Collisions (knocking)
@@ -122,7 +122,7 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 
 ### 7.1 Double cuisson (signature mechanic)
 
-Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a second fry at CUISSON 2, one portion at a time. Every step is one interaction with the focused hand. (Revised after the first playtest: resting was removed, and the first fry now makes a batch so both CUISSON 2 get used.)
+Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a second fry at CUISSON 2, one portion at a time. Meats fry in a CUISSON VIANDE, with the same timings as a second fry; CUISSON 2 only takes fries. Every step is one interaction with the focused hand. (Revised after the first playtest: resting was removed, and the first fry now makes a batch so both CUISSON 2 get used.)
 
 **CUISSON 1: first fry (ready from 8 to 20 s)**
 1. **Drop.** Interacting with an empty CUISSON 1 drops a batch of raw fries into the oil. No supply station is needed.
@@ -145,13 +145,13 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 ### 7.2 Menu
 - **Now on the menu:**
   - **frites** with a sauce;
-  - **fricadelle** (raw from VIANDES, fried once in a CUISSON 2) with a sauce;
-  - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON 2, with a sauce;
+  - **fricadelle** (raw from VIANDES, fried once in a CUISSON VIANDE) with a sauce;
+  - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON VIANDE, with a sauce;
   - **cola** or **bière** from the FRIGO. Colas never run out; the FRIGO holds **5 beers** and gets one back every 25 s (shown over it and in its menu), so beers are a shared, scarce resource for orders, gifts, rescues and healing (after the fourth playtest: one player was spending the night gifting beers).
-- **boulette** and **brochette**, raw from VIANDES and fried in a CUISSON 2 like the fricadelle.
+- **boulette** and **brochette**, raw from VIANDES and fried in a CUISSON VIANDE like the fricadelle.
 - The sauces are **mayo**, **andalouse** and **ketchup**, or **nature** (no sauce), which customers order too. A campaign night only has part of the menu (§4.2).
 - Nothing with sauce goes into a fryer.
-- CUISSON 2 lifts meats with the same window as fries: too early gives undercooked (fricadelle) or lukewarm (cervelas), too late gives burnt. Both are served at a mood penalty.
+- A CUISSON VIANDE lifts meats with the same window as the fries' second fry: too early gives undercooked (fricadelle) or lukewarm (cervelas), too late gives burnt. Both are served at a mood penalty.
 - Later: samouraï and other sauces, a mitraillette (bread + meat + fries + sauce), a menu board in the kitchen as in Cat Cafe.
 
 ## 8. Hazards

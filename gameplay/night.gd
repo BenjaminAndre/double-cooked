@@ -107,6 +107,10 @@ var _pending_joins := {}
 ## New host: the slots expected back, and how long it still waits for them.
 var _expected := {}
 var _reconnect_left := 0.0
+## The room being played: the kitchen or the lobby.
+var _room: GridRoom
+## Nodes at a station with nothing to do tonight: their floor squares are dark.
+var _idle_nodes := {}
 var _web_page: WebPage
 ## campaign_record(), read once from looks_path.
 var _record := {}
@@ -429,11 +433,14 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         view.queue_free()
     _views.clear()
     var room := lobby_room if in_lobby else kitchen_room
+    _room = room
     var root := room.anchors_root()
     var level := LevelReader.read(root)
     if queue and not in_lobby:
         level.queue_front = queue.global_position
         level.queue_step = queue.line_step
+        for point in queue.line_points:
+            level.queue_points.append(queue.global_transform * point)
     _station_views = LevelReader.stations(root)
     var spawn_names := room.spawn_names().slice(0, player_count)
     var spawn_nodes := PackedInt32Array()
@@ -445,6 +452,11 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     rules.lobby = in_lobby
     simulation = Simulation.new(level, spawn_nodes, seed_value, rules)
     simulation.apply_looks(looks)
+    _idle_nodes.clear()
+    for node in level.node_stations.size():
+        var station := level.node_stations[node]
+        if station != SimLevel.NONE and not Menu.station_in_use(level.station_kinds[station], rules.menu):
+            _idle_nodes[node] = true
     room.camera.current = true
     _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
             "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby, "night": campaign_night}
@@ -779,12 +791,17 @@ func _show(p_alpha: float) -> void:
                 options.append(word)
         var menu_at: Vector3 = _station_views[player.menu].centre() if player.menu != SimLevel.NONE else Vector3.ZERO
         _views[slot].show_menu(options, player.menu_choice, disabled, menu_at, interact_key)
+    var taken := {}
+    for player in simulation.players:
+        taken[player.node] = true
+    _room.show_squares(taken, _idle_nodes)
     var open_menus := {}
     for player in simulation.players:
         open_menus[player.menu] = true
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
-        _station_views[index].set_highlighted(highlighted.has(index))
+        # The floor squares show where everyone stands, where the room has them.
+        _station_views[index].set_highlighted(highlighted.has(index) and not _room.squares)
         _station_views[index].set_menu_open(open_menus.has(index))
 
 

@@ -38,7 +38,7 @@ The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PL
   - `LevelReader` turns the `Anchor` graph into a `SimLevel`;
   - stations are `Interactible` nodes identified by `kind`, and their effects live in `Simulation`.
   - the art (docs/ART_PLAN.md): `PaperFigure` (characters), `StationModels`, `UnlitArt`, `Backdrop` (the room behind everything, its front walls in depth), `ArtUi` / `ItemIcons` (frames and pictures), `MenuBubble`, `MoodBar`;
-  - `GridRoom` builds a room (Anchors, stations, floor, camera) in code from a grid layout; the lobby is one. `Night` switches between it and the kitchen (`SimRules.lobby`).
+  - `GridRoom` builds a room (Anchors, stations, floor, camera) in code from a grid layout; the lobby and the kitchen are both. The kitchen stands in the artist's scene (`GridRoom.art`, built from their Unity export by `tools/scene_export.gd` into `art/scenes/`), whose camera and models it uses. `Night` switches between the rooms (`SimRules.lobby`).
 - `network/` handles online play:
   - `NightLink` holds the RPCs. The host relays each tick's commands to the clients, who re-simulate, plus a fingerprint every second.
   - `Lobby` drives Tube (WebRTC) from the lobby room's TÉLÉPHONE (`Night.phone_used`). It creates the `TubeClient` only on demand, because the client takes over the tree's multiplayer API.

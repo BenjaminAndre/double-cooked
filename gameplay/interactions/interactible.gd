@@ -3,7 +3,7 @@ extends Node3D
 ## A station the player interacts with from an Anchor. What it does is a Simulation rule
 ## keyed by kind; this node only shows the station's state, such as the fryers' bubbles.
 
-const FRYERS: Array[StringName] = [&"cuisson_1", &"cuisson_2"]
+const FRYERS: Array[StringName] = [&"cuisson_1", &"cuisson_2", &"cuisson_viande"]
 const LABEL_HEIGHT := 1.3
 ## The fire label's colour.
 const TOO_LATE := Color(1.0, 0.25, 0.2)
@@ -12,9 +12,9 @@ const TOO_LATE := Color(1.0, 0.25, 0.2)
 const OIL := {"texture": "res://art/textures/FryingOilSheet.png", "columns": 5, "rows": 5}
 const FIRE := {"texture": "res://art/textures/FireSheet.png", "columns": 5, "rows": 3}
 const FLIPBOOK_FPS := 20.0
-const OIL_HEIGHT := 1.05
+const OIL_HEIGHT := 0.45
 const OIL_SIZE := 0.45
-const FIRE_HEIGHT := 1.0
+const FIRE_HEIGHT := 0.86
 const FIRE_SIZE := 1.4
 ## How high a basket rises when lifted.
 const BASKET_LIFT := 0.3
@@ -25,6 +25,8 @@ var models: Node3D
 ## Its own basket on the fryer (CUISSON 2), and the cooked fries on the fryer (CUISSON 1).
 var basket_model: Node3D
 var cooked_models: Array = []
+## The FRIGO's beers, one shown per beer left (the artist's Beers01 to 05).
+var stock_models: Array = []
 
 ## Station kind: cuisson_1, cuisson_2, sauces, poubelle, soins, caisse, extincteur, boissons,
 ## pain, viandes. Empty means the station does nothing yet.
@@ -93,6 +95,8 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     var left := station.basket.portions if batch_waiting else 0
     for index in cooked_models.size():
         cooked_models[index].visible = index < left
+    for index in stock_models.size():
+        stock_models[index].visible = index < station.beers
     _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
 
@@ -232,6 +236,8 @@ func _flat_material(color: Color) -> StandardMaterial3D:
 
 ## The basket rises out of the oil and drops back.
 func _lift_basket() -> void:
+    if not basket_model:
+        return
     var eject: Array = basket_model.get_meta(StationModels.EJECT, [])
     if eject.size() > 1:
         # The artist's move: the basket tips its food out and comes back.

@@ -107,6 +107,8 @@ const DISHES := {
 const FRIES_DISHES: Array[StringName] = [&"frites"]
 const MEAT_DISHES: Array[StringName] = [&"fricadelle", &"cervelas_froid", &"cervelas_chaud", &"boulette",
         &"brochette"]
+## The dishes a CUISSON VIANDE cooks.
+const COOKED_MEATS: Array[StringName] = [&"cervelas_chaud", &"fricadelle", &"boulette", &"brochette"]
 ## Which dish each raw meat from VIANDES leads to.
 const MEAT_FOR := {
     CERVELAS: [&"cervelas_froid", &"cervelas_chaud"],
@@ -182,6 +184,8 @@ static func station_in_use(kind: StringName, menu: Array[StringName] = FULL_MENU
     match kind:
         &"pain":
             return false
+        &"cuisson_viande":
+            return COOKED_MEATS.any(func(dish: StringName) -> bool: return dish in menu)
         &"sauces", &"frigo", &"viandes":
             return not options(kind, menu).is_empty()
     return true

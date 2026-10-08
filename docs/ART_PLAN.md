@@ -122,7 +122,8 @@ The art comes before the rest of the roadmap. Steps 1–4 are 0.1.32–0.1.35; s
 - Done in 0.2.11: the walls on the camera's side hide what is behind them.
 - Done in 0.2.12: their cooking bubbles over the fryers (ConceptBoard02).
 - Done in 0.2.13: the new pictures and characters; the burnt pictures replace the darkened tints.
-- Next: the kitchen as their 2-player scene, with the structural models (room, 4-well fryer, counter, fridge, bin) and the new atlas and food models, which go together; then the lobby in `Room01`, the art polish, the 3- and 4-player rooms.
+- Done in 0.2.14: the kitchen as their 2-player scene (`art/scenes/Kitchen2Players.tscn`, from `tools/scene_export.gd`), with all their models and the new atlas: the 4-well fryer (CUISSON 1, CUISSON 2, two CUISSON VIANDE), the fridge's beers showing the stock, the floor squares, the queue inside, their camera and scale. Note: their export's "Godot" coordinates mirror Z; our FBX imports mirror X, which the tool uses.
+- Next: the lobby in `Room01`, the art polish, the 3- and 4-player rooms.
 
 ## To ask the artist
 

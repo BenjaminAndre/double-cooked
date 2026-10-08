@@ -1,5 +1,5 @@
 extends GutTest
-## VIANDES, FRIGO and the meats in CUISSON 2 (GDD §7.2).
+## VIANDES, FRIGO and the meats in a CUISSON VIANDE (GDD §7.2).
 
 const INTERACT := Simulation.Command.INTERACT
 const RIGHT := Simulation.Command.MOVE_RIGHT
@@ -11,11 +11,11 @@ var fryer: int
 var fridge: int
 
 
-## A row VIANDES - CUISSON 2 - FRIGO, one unit apart.
+## A row VIANDES - CUISSON VIANDE - FRIGO, one unit apart.
 func before_each() -> void:
     level = SimLevel.new()
     meats = level.add_node(Vector3(0, 0, 0), level.add_station(&"viandes"), "V")
-    fryer = level.add_node(Vector3(1, 0, 0), level.add_station(&"cuisson_2"), "F")
+    fryer = level.add_node(Vector3(1, 0, 0), level.add_station(&"cuisson_viande"), "F")
     fridge = level.add_node(Vector3(2, 0, 0), level.add_station(&"frigo"), "K")
     for pair in [[meats, fryer], [fryer, fridge]]:
         level.link(pair[0], SimLevel.Direction.RIGHT, pair[1])

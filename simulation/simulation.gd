@@ -390,8 +390,8 @@ func _throw_can(index: int, target: int) -> void:
     var aimed: SimPlayer = players[target] if target >= 0 and not players[target].down else null
     if not aimed:
         for player in players:
-            if not player.down and (not aimed or player_position(player).distance_to(level.queue_front)
-                    < player_position(aimed).distance_to(level.queue_front)):
+            if not player.down and (not aimed or player_position(player).distance_to(level.queue_position(0))
+                    < player_position(aimed).distance_to(level.queue_position(0))):
                 aimed = player
     if not aimed:
         return
@@ -523,9 +523,9 @@ func _station_action(player: SimPlayer) -> StringName:
                 var in_time := station.cook >= Fryer.FIRST_FRY_MIN and station.cook <= Fryer.FIRST_FRY_MAX
                 return &"lift" if in_time or not held else &""
             return &"take" if not held else &""
-        &"cuisson_2":
+        &"cuisson_2", &"cuisson_viande":
             if not station.basket:
-                return &"fry" if Fryer.can_second_fry(held) else &""
+                return &"fry" if Fryer.can_second_fry(held, station.kind) else &""
             return &"lift" if not held else &""
         &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
             return _menu_action(station, player)
@@ -588,7 +588,7 @@ func _interact(player: SimPlayer) -> void:
     match station.kind:
         &"cuisson_1":
             Fryer.use_first(station, player)
-        &"cuisson_2":
+        &"cuisson_2", &"cuisson_viande":
             Fryer.use_second(station, player)
         &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
             player.menu = index

@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://gameplay/projectiles_view.gd" id="11_projectiles"]
 [ext_resource type="Script" path="res://gameplay/grid_room.gd" id="13_room"]
 [ext_resource type="Script" path="res://gameplay/unlit_art.gd" id="14_unlit"]
-[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Room01.fbx" id="15_room01"]
+[ext_resource type="PackedScene" path="res://art/scenes/Kitchen2Players.tscn" id="15_kitchen_art"]
 [ext_resource type="Script" path="res://gameplay/backdrop.gd" id="16_backdrop"]
 
 [sub_resource type="Environment" id="Environment_sky"]
@@ -29,26 +29,23 @@ transform = Transform3D(-0.09827772, -0.3643391, 0.9260662, 1.2006495e-08, 0.930
 [node name="Restaurant" type="Node3D" parent="."]
 script = ExtResource("14_unlit")
 
-[node name="Room01" parent="Restaurant" instance=ExtResource("15_room01")]
+[node name="KitchenArt" parent="Restaurant" instance=ExtResource("15_kitchen_art")]
 
-[node name="Kitchen" type="Node3D" parent="Restaurant"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.5, 0, 1.1)
+[node name="Kitchen" type="Node3D" parent="Restaurant" node_paths=PackedStringArray("art")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.5, 0, 1)
 script = ExtResource("13_room")
-layout = PackedStringArray("frigo@ cuisson_1 + cuisson_2 cuisson_2 pain@", "extincteur@ sauces caisse viandes + poubelle@")
-names = PackedStringArray("Anchor Anchor2 Anchor3 Anchor4 Anchor5 Anchor6", "Anchor8 Anchor9 Anchor10 Anchor11 Anchor12 Anchor13")
+layout = PackedStringArray("frigo@ cuisson_1 cuisson_2 cuisson_viande cuisson_viande@ poubelle", "pain@ caisse sauces viandes + extincteur@")
+names = PackedStringArray("Frigo Cuisson1 Cuisson2 CuissonViande1 CuissonViande2 Poubelle", "Pain Caisse Sauces ViandesA ViandesB Extincteur")
 floor_tiles = false
-dressed = true
-back_offset = 0.9
-front_offset = 0.9
-camera_pitch = 40.0
-camera_distance = 14.5
-camera_yaw = 31.0
-camera_target = Vector3(-0.4, 0, -1.1)
+back_offset = 0.87
+front_offset = 0.78
+art = NodePath("../KitchenArt")
+squares = true
 
 [node name="Backdrop" type="Node" parent="." node_paths=PackedStringArray("room")]
 process_priority = 10
 script = ExtResource("16_backdrop")
-room = NodePath("../Restaurant/Room01")
+room = NodePath("../Restaurant/KitchenArt/DoubleCooked_Room01")
 
 [node name="Players" type="Node3D" parent="."]
 
@@ -77,12 +74,15 @@ script = ExtResource("8_lobby")
 night = NodePath("../Night")
 
 [node name="Customers" type="Node3D" parent="." node_paths=PackedStringArray("night")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 0, -0.9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0, 0)
 script = ExtResource("9_customers")
 night = NodePath("../Night")
-line_step = Vector3(0, 0, -0.55)
-entrance = Vector3(0.1, 0, -5)
-exit = Vector3(0.2, 0, 4)
+line_step = Vector3(0, 0, -1)
+line_points = PackedVector3Array(0, 0, 0, 0, 0, -1, 0, 0, -2, 0, 0, -3, 0.75, 0, -1, 1.5, 0, -1, 1.5, 0, -2, 1.5, 0, -3, 1.5, 0, -4)
+inside_places = 4
+door = Vector3(0.75, 0, -1)
+entrance = Vector3(1.5, 0, -5)
+exit = Vector3(1.5, 0, 5)
 
 [node name="Hud" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
 layer = 4

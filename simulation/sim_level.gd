@@ -18,9 +18,11 @@ var names := PackedStringArray()
 ## Kind of each station (see Interactible.kind).
 var station_kinds: Array[StringName] = []
 var station_names := PackedStringArray()
-## Where the customers stand: the front of the line, and the step from one to the next.
+## Where the customers stand: explicit places from the front of the line (queue_points), then on
+## from the last one by queue_step. Without points, a straight line from queue_front.
 var queue_front := Vector3.ZERO
 var queue_step := Vector3(-0.45, 0, 0)
+var queue_points := PackedVector3Array()
 
 
 func add_station(kind: StringName, station_name: String = "") -> int:
@@ -58,9 +60,25 @@ func station_kind_at(node: int) -> StringName:
 
 
 func queue_position(index: int) -> Vector3:
-    return queue_front + queue_step * index
+    if queue_points.is_empty():
+        return queue_front + queue_step * index
+    if index < queue_points.size():
+        return queue_points[index]
+    return queue_points[-1] + queue_step * (index - queue_points.size() + 1)
 
 
 ## The place in line nearest to a point on the floor.
 func queue_index_at(point: Vector3) -> int:
-    return roundi((point - queue_front).dot(queue_step) / queue_step.length_squared())
+    if queue_points.is_empty():
+        return roundi((point - queue_front).dot(queue_step) / queue_step.length_squared())
+    var nearest := 0
+    for index in queue_points.size():
+        if point.distance_squared_to(queue_points[index]) < point.distance_squared_to(queue_points[nearest]):
+            nearest = index
+    # Further along, past the last place.
+    var beyond := roundi((point - queue_points[-1]).dot(queue_step) / queue_step.length_squared())
+    if beyond >= 1:
+        var index := queue_points.size() - 1 + beyond
+        if point.distance_squared_to(queue_position(index)) < point.distance_squared_to(queue_points[nearest]):
+            nearest = index
+    return nearest

@@ -63,7 +63,7 @@ func _setup_crowd() -> void:
 
 func _setup_fryers() -> void:
     var sim := _night.simulation
-    for anchor in ["Anchor2", "Anchor4", "Anchor5"]:
+    for anchor in ["Cuisson1", "Cuisson2", "CuissonViande1"]:
         var station := sim.stations[sim.level.node_stations[sim.level.find(anchor)]]
         station.basket = SimItem.new(Fryer.FRIES_BLANCHED)
         station.frying = true
@@ -73,7 +73,7 @@ func _setup_fryers() -> void:
 func _setup_fire() -> void:
     var sim := _night.simulation
     sim.rules.fire_spread_after = 1 << 30
-    for anchor in ["Anchor2", "Anchor4", "Anchor9"]:
+    for anchor in ["Cuisson1", "Cuisson2", "Sauces"]:
         var station := sim.stations[sim.level.node_stations[sim.level.find(anchor)]]
         station.basket = null
         station.frying = false

@@ -56,10 +56,10 @@ func _initialize() -> void:
             night.submit(0, Simulation.Command.INTERACT)
             night.submit(0, Simulation.Command.MOVE_LEFT)
         "eject":
-            # Both CUISSON 2 baskets halfway through tipping out, about 1 s in.
+            # Both CUISSON VIANDE baskets halfway through tipping out, about 1 s in.
             var views := LevelReader.stations(game.get_node("Restaurant/Kitchen").anchors_root())
             for view: Interactible in views:
-                if view.kind == &"cuisson_2":
+                if view.kind == &"cuisson_viande":
                     create_timer(0.75).timeout.connect(view._lift_basket)
         "lobby_record":
             # The best campaign so far, under the logo.
@@ -103,7 +103,7 @@ func _initialize() -> void:
             # Two players, CUISSON 1 on fire, P2 knocked out.
             night.play_local(2)
             var sim := night.simulation
-            sim.stations[sim.level.node_stations[sim.level.find("Anchor2")]].burning = true
+            sim.stations[sim.level.node_stations[sim.level.find("Cuisson1")]].burning = true
             sim.players[1].health = 0
             sim.players[1].down = true
             sim.players[0].item = SimItem.new(Simulation.EXTINGUISHER)
@@ -136,25 +136,25 @@ func _initialize() -> void:
                 station.basket = SimItem.new(Fryer.FRIES_RAW)
                 station.frying = true
                 station.cook = cook
-            fry.call("Anchor2", Fryer.FIRST_FRY_MIN + 60)
-            fry.call("Anchor4", Fryer.SECOND_FRY_MIN / 2)
-            fry.call("Anchor5", Fryer.SECOND_FRY_MAX + 120)
+            fry.call("Cuisson1", Fryer.FIRST_FRY_MIN + 60)
+            fry.call("Cuisson2", Fryer.SECOND_FRY_MIN / 2)
+            fry.call("CuissonViande1", Fryer.SECOND_FRY_MAX + 120)
         "portions":
             # A batch on CUISSON 1 with 3 portions left; a player highlighting a frying CUISSON 2.
             var sim := night.simulation
-            var batch := sim.stations[sim.level.node_stations[sim.level.find("Anchor2")]]
+            var batch := sim.stations[sim.level.node_stations[sim.level.find("Cuisson1")]]
             batch.basket = SimItem.new(Fryer.FRIES_BLANCHED)
             batch.basket.portions = 3
-            var second := sim.stations[sim.level.node_stations[sim.level.find("Anchor4")]]
+            var second := sim.stations[sim.level.node_stations[sim.level.find("Cuisson2")]]
             second.basket = SimItem.new(Fryer.FRIES_BLANCHED)
             second.frying = true
             second.cook = Fryer.SECOND_FRY_MIN
-            sim.players[0].node = sim.level.find("Anchor4")
+            sim.players[0].node = sim.level.find("Cuisson2")
         "menu":
             # The SAUCES menu open on andalouse, and a line of three-line orders.
             var sim := night.simulation
             var player := sim.players[0]
-            player.node = sim.level.find("Anchor9")
+            player.node = sim.level.find("Sauces")
             player.item = SimItem.new(Fryer.FRIES_GOOD)
             player.menu = sim.level.node_stations[player.node]
             player.menu_choice = 1
@@ -170,11 +170,11 @@ func _initialize() -> void:
             sim.rules.arrival_max = 5
             sim.crowd.next_arrival = 1
             var p1 := sim.players[0]
-            p1.node = sim.level.find("Anchor9")
+            p1.node = sim.level.find("Sauces")
             p1.item = SimItem.new(Menu.BEER)
             p1.aim = 1
             p1.aim_ticks = 100
-            sim.players[1].node = sim.level.find("Anchor11")
+            sim.players[1].node = sim.level.find("ViandesA")
             await create_timer(0.6).timeout
             p1.aim = 1
             var can := SimProjectile.new(SimProjectile.CAN, sim.level.queue_position(0) + Vector3.UP,
@@ -200,10 +200,10 @@ func _initialize() -> void:
             night.play_local(2)
             var sim := night.simulation
             sim.players[0].bmi = 25
-            sim.players[0].node = sim.level.find("Anchor3")
+            sim.players[0].node = sim.level.find("Cuisson2")
             night._views[0].show_fat_change(true)
             var p2 := sim.players[1]
-            p2.node = sim.level.find("Anchor11")
+            p2.node = sim.level.find("ViandesA")
             p2.bmi = 17
             p2.item = SimItem.new(Menu.BEER)
             p2.aim = 0
@@ -213,8 +213,8 @@ func _initialize() -> void:
             # P1 at CUISSON 1 with an empty fryer, P2 next to it holding resting fries.
             night.play_local(2)
             var sim := night.simulation
-            sim.players[0].node = sim.level.find("Anchor2")
-            sim.players[1].node = sim.level.find("Anchor4")
+            sim.players[0].node = sim.level.find("Cuisson1")
+            sim.players[1].node = sim.level.find("Cuisson2")
             sim.players[1].item = SimItem.new(Fryer.FRIES_BLANCHED)
     await create_timer(seconds).timeout
     await process_frame

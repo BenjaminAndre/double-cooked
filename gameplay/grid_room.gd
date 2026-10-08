@@ -27,6 +27,7 @@ const LABELS := {
     &"frigo": "FRIGO",
     &"cuisson_1": "CUISSON 1",
     &"cuisson_2": "CUISSON 2",
+    &"cuisson_viande": "CUISSON VIANDE",
     &"pain": "PAIN",
     &"extincteur": "EXTINCTEUR",
     &"sauces": "SAUCES",
@@ -43,6 +44,7 @@ const COLORS := {
     &"frigo": Color(0.2, 0.45, 0.8),
     &"cuisson_1": Color(0.85, 0.8, 0.2),
     &"cuisson_2": Color(0.8, 0.7, 0.15),
+    &"cuisson_viande": Color(0.75, 0.45, 0.15),
     &"pain": Color(0.7, 0.5, 0.25),
     &"extincteur": Color(0.8, 0.15, 0.15),
     &"sauces": Color(0.75, 0.4, 0.75),
@@ -54,13 +56,26 @@ const COLORS := {
 ## screen, looking down at camera_pitch degrees from camera_distance. A narrow field of view
 ## as in the artist's scene (Readme_SettingsV2), so the room looks flatter.
 const CAMERA_FOV := 25.0
+## Colours of the floor squares: as they are, under a player, under a station not in use.
+const SQUARE := Color(1, 1, 1, 60 / 255.0)
+const SQUARE_TAKEN := Color("FFF0D8", 120 / 255.0)
+const SQUARE_IDLE := Color(0.1, 0.1, 0.12, 0.35)
+const SQUARE_SIZE := Vector3(0.7, 0.108, 0.7)
+## The artist's model each station owns (its door, lid or look), by name.
+const ART_MODELS := {
+    &"frigo": "DoubleCooked_Fridge",
+    &"poubelle": "DoubleCooked_Trash",
+    &"pain": "DoubleCooked_BreadBag",
+    &"caisse": "DoubleCooked_CashRegister",
+    &"extincteur": "DoubleCooked_FireCase",
+}
+## Where the fryers' names float in the artist's kitchen.
+const ART_LABEL_HEIGHT := 1.1
 
 @export var layout := PackedStringArray()
 @export var names := PackedStringArray()
 ## Kenney floor tiles under each cell (the kitchen has the artist's floor instead).
 @export var floor_tiles := true
-## The artist's models on the stations that have one (StationModels), instead of plain boxes.
-@export var dressed := false
 ## How far station boxes stand from their cell, behind the top row and in front of the bottom one.
 @export var back_offset := 0.8
 @export var front_offset := 0.8
@@ -74,12 +89,23 @@ const CAMERA_FOV := 25.0
 ## Where the camera looks, from the grid's centre (in the room's own axes), e.g. to take in
 ## the line of customers outside.
 @export var camera_target := Vector3.ZERO
+## The artist's scene the room stands in (tools/scene_export.gd), if any: its camera replaces the
+## room's own, its models go to the stations they belong to (the FRIGO's door and beers, the
+## bin's lid, the fryer's baskets and cooked fries), and the stations' boxes hide.
+@export var art: Node3D
+## The artist's floor squares, one per cell (Readme_SettingsV3): white, warmer under a player,
+## dark under a station with nothing to do tonight (show_squares).
+@export var squares := false
 
 var camera: Camera3D
 var _anchors: Node3D
 var _spawns: Array[String] = []
 ## Columns and rows of the grid.
 var _size := Vector2i.ONE
+## One floor square per cell, in the anchors' order (squares).
+var _squares: Array[MeshInstance3D] = []
+## Square colour -> its material, shared by every square.
+static var _square_materials := {}
 
 
 ## The parent of the room's Anchors, built on first use (Night reads it in its own _ready).
@@ -108,8 +134,6 @@ func _build() -> void:
         var cell_names := names[row].split(" ", false) if row < names.size() else PackedStringArray()
         var line := []
         var previous: Interactible = null
-        # [station, cells it covers, kind of the station on its left], in reading order.
-        var row_stations := []
         for column in cells.size():
             var cell := cells[column]
             var anchor: Anchor = ANCHOR_SCENE.instantiate()
@@ -117,6 +141,8 @@ func _build() -> void:
             # Right on screen is -x, the top row is +z.
             anchor.position = Vector3(-column, 0, -row) * SPACING
             _anchors.add_child(anchor)
+            if squares:
+                _squares.append(_square(anchor))
             if floor_tiles:
                 var floor_tile: Node3D = FLOOR.instantiate()
                 floor_tile.position = anchor.position
@@ -127,23 +153,18 @@ func _build() -> void:
             if cell == "+" and previous:
                 _widen(previous)
                 anchor.interactible = previous
-                row_stations[-1][1] += 1
             elif cell != "." and cell != "":
                 var side := 0.0
                 if row == 0:
                     side = back_offset
                 elif row == layout.size() - 1:
                     side = -front_offset
-                var left_kind: StringName = previous.kind if previous else &""
                 previous = _station(stations, StringName(cell), anchor.position, side)
                 anchor.interactible = previous
-                row_stations.append([previous, 1, left_kind, row])
             else:
                 previous = null
             line.append(anchor)
         grid.append(line)
-        if dressed:
-            _dress_row(row_stations, row)
     for row in grid.size():
         for column in grid[row].size():
             var anchor: Anchor = grid[row][column]
@@ -156,6 +177,10 @@ func _build() -> void:
             if column + 1 < grid[row].size():
                 anchor.right = grid[row][column + 1]
     _size = Vector2i(grid[0].size() if not grid.is_empty() else 1, grid.size())
+    if art and art.get_node_or_null("Camera"):
+        camera = art.get_node("Camera")
+        _use_art(stations)
+        return
     camera = Camera3D.new()
     camera.fov = CAMERA_FOV
     add_child(camera)
@@ -164,6 +189,8 @@ func _build() -> void:
 
 ## Puts the camera where the camera_* settings say, e.g. again after changing them.
 func place_camera() -> void:
+    if art:
+        return
     var centre := Vector3(-(_size.x - 1) / 2.0, 0, -(_size.y - 1) / 2.0) * SPACING + camera_target
     # From the front (-z), turned camera_yaw towards camera_side, looking down camera_pitch.
     var pitch := deg_to_rad(camera_pitch)
@@ -215,56 +242,92 @@ func _widen(station: Interactible) -> void:
     label.position.x -= SPACING / 2
 
 
-## Swaps the stations' boxes in a row for the artist's models, facing their cells. infos:
-## [station, cells, kind on its left, row] in reading order. A CUISSON 1's fryer also covers
-## the CUISSON 2 right after it, one basket each.
-func _dress_row(infos: Array, row: int) -> void:
-    var index := 0
-    while index < infos.size():
-        var station: Interactible = infos[index][0]
-        var cells: int = infos[index][1]
-        var covered: Array[Interactible] = []
-        if station.kind == &"cuisson_1":
-            var next := index + 1
-            while next < infos.size() and infos[next][0].kind == &"cuisson_2" and infos[next][1] == 1:
-                covered.append(infos[next][0])
-                next += 1
-        index += 1 + covered.size()
-        var span := cells + covered.size()
-        # The model's length runs along the station's x, one way behind the top row and the
-        # other in front of the bottom one.
-        var side := 1.0 if row == 0 else -1.0
-        var cell_z: Array[float] = []
-        for cell in span:
-            cell_z.append(side * ((span - 1) / 2.0 - cell) * SPACING)
-        var models := StationModels.build(station.kind, cells, cell_z)
-        if not models:
-            continue
-        # Models face +x: towards -z (the cells) behind the top row, +z in front of the bottom one.
-        models.rotation.y = PI / 2 if row == 0 else -PI / 2
-        models.position.x = -(span - 1) / 2.0 * SPACING
-        station.add_child(models)
-        station.models = models
-        var baskets: Array = models.get_meta(StationModels.BASKETS, [])
-        if station.kind == &"cuisson_2" and not baskets.is_empty():
-            station.basket_model = baskets[0]
-        station.cooked_models = models.get_meta(StationModels.COOKED, [])
-        _fit_box(station)
-        for covered_index in covered.size():
-            var end := covered[covered_index]
-            end.models = models
-            end.basket_model = baskets[covered_index] if covered_index < baskets.size() else null
-            _fit_box(end)
+func _square(anchor: Anchor) -> MeshInstance3D:
+    var square := MeshInstance3D.new()
+    square.name = "Square"
+    var mesh := BoxMesh.new()
+    mesh.size = SQUARE_SIZE
+    square.mesh = mesh
+    square.material_override = _square_material(SQUARE)
+    anchor.add_child(square)
+    return square
 
 
-## The station's hidden box takes its model's height and depth, so the highlight and the labels
-## fit it. Only the fryers keep their name: CUISSON 1 and 2 look alike.
-func _fit_box(station: Interactible) -> void:
-    var box: CSGBox3D = station.get_node("CSGBox3D")
-    box.visible = false
-    var height := StationModels.height(station.kind)
-    box.size = Vector3(box.size.x, height, StationModels.DEPTH)
-    box.position.y = height / 2
-    var label: Label3D = station.get_node("Label")
-    label.visible = station.kind in [&"cuisson_1", &"cuisson_2"]
-    label.position.y = height + 0.3
+## taken: nodes (anchor indices) a player stands on; idle: nodes at a station with nothing to
+## do tonight. Only on change: a material swap, never a rebuild.
+func show_squares(taken: Dictionary, idle: Dictionary) -> void:
+    for index in _squares.size():
+        var color := SQUARE_TAKEN if taken.has(index) else SQUARE_IDLE if idle.has(index) else SQUARE
+        var material := _square_material(color)
+        if _squares[index].material_override != material:
+            _squares[index].material_override = material
+
+
+static func _square_material(color: Color) -> StandardMaterial3D:
+    if not _square_materials.has(color):
+        var material := StandardMaterial3D.new()
+        material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+        material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+        material.albedo_color = color
+        _square_materials[color] = material
+    return _square_materials[color]
+
+
+## Hands the artist's models to the stations they belong to, the nearest of each kind, and hides
+## the stations' boxes. Only the fryers keep their name: the cooking stations look alike.
+func _use_art(stations: Node3D) -> void:
+    for station: Interactible in stations.get_children():
+        var box: CSGBox3D = station.get_node("CSGBox3D")
+        box.visible = false
+        var label: Label3D = station.get_node("Label")
+        label.visible = station.kind in Interactible.FRYERS
+        label.position.y = ART_LABEL_HEIGHT
+        var model_name: String = ART_MODELS.get(station.kind, "")
+        if model_name != "":
+            station.models = _nearest(station, art.get_children().filter(
+                    func(node: Node) -> bool: return node.name.begins_with(model_name)))
+        match station.kind:
+            &"frigo":
+                if station.models:
+                    station.stock_models = _sorted(station.models.find_children("*_Beers0*", "", true, false))
+            &"cuisson_1":
+                var fryer := art.get_node_or_null("DoubleCooked_DeepFryer")
+                if fryer:
+                    station.cooked_models = _sorted(fryer.find_children("DoubleCooked_FriesCooked*", "", true, false))
+            &"cuisson_viande":
+                var fryer := art.get_node_or_null("DoubleCooked_DeepFryer")
+                if fryer:
+                    station.basket_model = _nearest(station, fryer.find_children("DoubleCooked_DeepFryer_Basket*", "", true, false))
+                    var player := fryer.find_child("AnimationPlayer", true, false) as AnimationPlayer
+                    if station.basket_model and player and not player.get_animation_list().is_empty():
+                        station.basket_model.set_meta(StationModels.EJECT, StationModels.eject_frames(
+                                player.get_animation(player.get_animation_list()[0]), station.basket_model.name))
+
+
+## The node nearest to the station on the floor, null if there is none.
+func _nearest(station: Node3D, nodes: Array) -> Node3D:
+    var best: Node3D = null
+    var at := _world(station)
+    for node: Node3D in nodes:
+        if not best or _flat_distance(_world(node), at) < _flat_distance(_world(best), at):
+            best = node
+    return best
+
+
+static func _flat_distance(a: Vector3, b: Vector3) -> float:
+    return Vector2(a.x - b.x, a.z - b.z).length()
+
+
+static func _sorted(nodes: Array) -> Array:
+    nodes.sort_custom(func(a: Node, b: Node) -> bool: return String(a.name) < String(b.name))
+    return nodes
+
+
+## Like global_position, before the room is in the tree (Night reads it in its own _ready).
+static func _world(node: Node3D) -> Vector3:
+    var transform := Transform3D.IDENTITY
+    var current: Node = node
+    while current is Node3D:
+        transform = (current as Node3D).transform * transform
+        current = current.get_parent()
+    return transform.origin

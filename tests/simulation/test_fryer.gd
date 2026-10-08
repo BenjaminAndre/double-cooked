@@ -98,6 +98,17 @@ func test_cuisson_2_only_takes_blanched_fries() -> void:
     assert_eq(scenario.simulation.players[0].item.kind, Fryer.FRIES_COLD, "kept: eating has its own key")
 
 
+func test_cuisson_2_is_for_fries_and_cuisson_viande_for_meats() -> void:
+    var meat := SimItem.new(Menu.FRICADELLE_RAW)
+    var fries := SimItem.new(Fryer.FRIES_BLANCHED)
+    assert_true(Fryer.can_second_fry(fries, &"cuisson_2"))
+    assert_false(Fryer.can_second_fry(meat, &"cuisson_2"), "no meat in the fries' oil")
+    assert_true(Fryer.can_second_fry(meat, &"cuisson_viande"))
+    assert_false(Fryer.can_second_fry(fries, &"cuisson_viande"), "no fries in the meat fryer")
+    assert_true(Menu.station_in_use(&"cuisson_viande", Campaign.menu_for(4)), "fricadelle")
+    assert_false(Menu.station_in_use(&"cuisson_viande", Campaign.menu_for(3)), "cold cervelas only")
+
+
 func test_the_sauces_menu_puts_the_chosen_sauce_on() -> void:
     var scenario := Scenario.new(level, [sauces])
     var player := scenario.simulation.players[0]

@@ -1,7 +1,9 @@
 class_name CustomersView
 extends Node3D
 ## Shows the line of customers in front of the counter. This node's position is the front of
-## the line; the rest queue up along line_step. The first SimRules.visible_orders customers
+## the line; the first places follow line_points (inside, along the counter, then the door, in
+## the artist's scene), the rest queue up along line_step from the last one. Customers cross the
+## front wall only through the door. The first SimRules.visible_orders customers
 ## show a ticket with their order and patience (GDD §6.2).
 
 ## The customers, as paper cut-outs; which one comes follows the customer id, so every peer
@@ -11,6 +13,8 @@ const CUSTOMER_KINDS := 5
 const BOSS_PICTURE := preload("res://art/textures/DrunkCharacter01.png")
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
+## How fast they walk round to the door, in metres per second.
+const WALK_SPEED := 3.0
 ## Tickets are drawn on screen under their customer (clear of the counter), and pushed apart so
 ## they never overlap.
 const TICKET_GAP_BELOW := 6.0
@@ -20,15 +24,20 @@ const FRONT_ICON := 44
 const BACK_ICON := 34
 const SAUCE_SCALE := 0.75
 const BAR_SIZE := Vector2(80, 14)
-## The boss: the drunk baraki, bigger, on a red ticket with a dot per order (SimCrowd.Result: to come,
-## served, missed).
-const BOSS_SCALE := 1.6
+## The boss: the drunk baraki, the same size as everyone (the artist's rule), on a red ticket with
+## a dot per order (SimCrowd.Result: to come, served, missed).
 const BOSS_TICKET := Color(1.0, 0.55, 0.5)
 const DOT_SIZE := 14
 const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)]
 
 @export var night: Night
 @export var line_step := Vector3(-0.45, 0, 0)
+## The first places in line, from the front (0, 0, 0), relative to this node; empty: a straight
+## line along line_step. The first inside_places of them are inside, behind the front wall.
+@export var line_points := PackedVector3Array()
+@export var inside_places := 0
+## The doorway, for whoever crosses the front wall; INF: there is no wall to go round.
+@export var door := Vector3.INF
 ## Where customers come from and go to, relative to the front of the line.
 @export var entrance := Vector3(-6, 0, 0)
 @export var exit := Vector3(2.5, 0, -1)
@@ -59,17 +68,40 @@ func _process(delta: float) -> void:
         if not _figures.has(customer.id):
             _figures[customer.id] = _new_figure(customer)
         var figure: Node3D = _figures[customer.id]
-        figure.position = figure.position.lerp(line_step * index, minf(1.0, SHUFFLE_SPEED * delta))
+        _walk(figure, place(index), index < inside_places, delta)
     for id in _figures.keys():
         if not present.has(id):
             _leaving.append(_figures[id])
             _figures.erase(id)
     for figure in _leaving.duplicate():
-        figure.position = figure.position.move_toward(exit, 3.0 * delta)
+        _walk(figure, exit, false, delta, true)
         if figure.position.is_equal_approx(exit):
             _leaving.erase(figure)
             figure.queue_free()
     _show_tickets(crowd)
+
+
+## Where the customer at this place in line stands, relative to this node.
+func place(index: int) -> Vector3:
+    if line_points.is_empty():
+        return line_step * index
+    if index < line_points.size():
+        return line_points[index]
+    return line_points[-1] + line_step * (index - line_points.size() + 1)
+
+
+## Takes a figure towards target (shuffling up, or steady when leaving), round by the door when
+## it is on the other side of the front wall: inside tells which side target is.
+func _walk(figure: Node3D, target: Vector3, inside: bool, delta: float, steady := false) -> void:
+    if door != Vector3.INF and figure.get_meta(&"inside", false) != inside:
+        figure.position = figure.position.move_toward(door, WALK_SPEED * delta)
+        if figure.position.distance_to(door) < 0.05:
+            figure.set_meta(&"inside", inside)
+        return
+    if steady:
+        figure.position = figure.position.move_toward(target, WALK_SPEED * delta)
+    else:
+        figure.position = figure.position.lerp(target, minf(1.0, SHUFFLE_SPEED * delta))
 
 
 ## Forgets every figure, e.g. when a new night starts.
@@ -196,7 +228,7 @@ func _new_ticket() -> PanelContainer:
 func _new_figure(customer: SimCrowd.Customer) -> Node3D:
     var picture: Texture2D = BOSS_PICTURE if customer.boss \
             else load(CUSTOMERS % (customer.id % CUSTOMER_KINDS + 1))
-    var figure := PaperFigure.new(picture, PaperFigure.HEIGHT * (BOSS_SCALE if customer.boss else 1.0))
+    var figure := PaperFigure.new(picture)
     figure.position = entrance
     add_child(figure)
     return figure

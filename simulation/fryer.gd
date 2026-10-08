@@ -4,7 +4,8 @@ extends RefCounted
 ## Every step acts on the player's focused hand; there is never a put-down step.
 ##
 ## CUISSON 1 fries a batch of BATCH portions. Lifted in time, the batch stays on the fryer
-## and players take its portions one by one, each ready for a CUISSON 2.
+## and players take its portions one by one, each ready for a CUISSON 2. CUISSON 2 only fries
+## those; the meats go to a CUISSON VIANDE (the artist's layout), with the same timings.
 
 const FRIES_RAW := &"frites_crues"
 const FRIES_COLD := &"frites_froides"
@@ -54,12 +55,13 @@ static func use_first(station: SimStation, player: SimPlayer) -> void:
             station.basket = null
 
 
-## CUISSON 2: takes what it can fry (a blanched portion, a raw fricadelle, a cold cervelas)
-## from the focused hand, or lifts the frying one into it (see Menu.SECOND_FRY).
+## CUISSON 2 and CUISSON VIANDE: take what they can fry (a blanched portion; a raw fricadelle,
+## a cold cervelas...) from the focused hand, or lift the frying one into it (see
+## Menu.SECOND_FRY).
 static func use_second(station: SimStation, player: SimPlayer) -> void:
     var held := player.item
     if not station.basket:
-        if can_second_fry(held):
+        if can_second_fry(held, station.kind):
             station.basket = held
             station.frying = true
             station.cook = 0
@@ -74,8 +76,12 @@ static func use_second(station: SimStation, player: SimPlayer) -> void:
         _lift_into_hand(station, player, outcomes[2])
 
 
-static func can_second_fry(item: SimItem) -> bool:
-    return item != null and Menu.SECOND_FRY.has(item.kind) and item.sauce == &""
+## Whether this fryer (CUISSON 2 or CUISSON VIANDE) takes this item: fries for the one, meats
+## for the other, never with a sauce.
+static func can_second_fry(item: SimItem, kind := &"cuisson_2") -> bool:
+    if item == null or not Menu.SECOND_FRY.has(item.kind) or item.sauce != &"":
+        return false
+    return (item.kind == FRIES_BLANCHED) == (kind == &"cuisson_2")
 
 
 ## Every tick: frying time runs.

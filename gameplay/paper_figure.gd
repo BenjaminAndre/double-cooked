@@ -5,8 +5,9 @@ extends Node3D
 ## that of a card standing upright there (paper_figure.gdshader), so it never sinks into what
 ## is behind it. It can widen (fat) and lie flat on the floor (knocked out).
 
-## Height of a standing figure, in metres (a counter is about 0.95 m).
-const HEIGHT := 1.55
+## Height of a standing figure, in metres: the artist's 1024-pixel drawings at 750 pixels a
+## metre, as in their scenes (Readme_SettingsV3). Everyone is the same size.
+const HEIGHT := 1.37
 ## A portrait is this tall for its width (the head and cap).
 const PORTRAIT_RATIO := 1.1
 const SHADER := preload("res://gameplay/paper_figure.gdshader")

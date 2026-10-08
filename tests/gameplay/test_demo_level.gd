@@ -8,14 +8,17 @@ func test_reads_every_anchor_with_its_links_and_stations() -> void:
     var game := GAME_SCENE.instantiate()
     var level := LevelReader.read(game.get_node("Restaurant/Kitchen").anchors_root())
     assert_eq(level.positions.size(), 12)
-    var spawn := level.find("Anchor")
-    assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Anchor2"))
-    assert_eq(level.neighbour(spawn, SimLevel.Direction.DOWN), level.find("Anchor8"))
+    var spawn := level.find("Frigo")
+    assert_eq(level.neighbour(spawn, SimLevel.Direction.RIGHT), level.find("Cuisson1"))
+    assert_eq(level.neighbour(spawn, SimLevel.Direction.DOWN), level.find("Pain"))
     assert_eq(level.neighbour(spawn, SimLevel.Direction.UP), SimLevel.NONE)
-    assert_eq(level.station_kind_at(level.find("Anchor")), &"frigo")
-    assert_eq(level.node_stations[level.find("Anchor2")], level.node_stations[level.find("Anchor3")],
-            "both anchors reach the same CUISSON 1")
-    assert_eq(level.station_kinds.size(), 10)
+    assert_eq(level.station_kind_at(level.find("Frigo")), &"frigo")
+    assert_eq(level.node_stations[level.find("ViandesA")], level.node_stations[level.find("ViandesB")],
+            "both anchors reach the same VIANDES")
+    assert_eq(level.station_kind_at(level.find("CuissonViande1")), &"cuisson_viande")
+    assert_ne(level.node_stations[level.find("CuissonViande1")], level.node_stations[level.find("CuissonViande2")],
+            "each meat fryer has its own basket")
+    assert_eq(level.station_kinds.size(), 11)
     game.free()
 
 
@@ -90,17 +93,18 @@ func test_a_scripted_player_serves_good_fries_on_the_demo_level() -> void:
     var lift := 10 + Fryer.FIRST_FRY_MIN
     var put_in := lift + 20
     var done := put_in + Fryer.SECOND_FRY_MIN
-    var scenario := Scenario.new(level, [level.find("Anchor")], 1) \
+    # FRIGO, then right to CUISSON 1 and CUISSON 2, down to SAUCES, left to the CAISSE.
+    var scenario := Scenario.new(level, [level.find("Frigo")], 1) \
             .at(0, 0, C.MOVE_RIGHT) \
             .at(10, 0, C.INTERACT) \
             .at(lift, 0, C.INTERACT) \
             .at(lift + 1, 0, C.INTERACT) \
-            .at(lift + 2, 0, C.MOVE_RIGHT).at(lift + 2, 0, C.MOVE_RIGHT) \
+            .at(lift + 2, 0, C.MOVE_RIGHT) \
             .at(put_in, 0, C.INTERACT) \
             .at(done, 0, C.INTERACT) \
-            .at(done + 1, 0, C.MOVE_DOWN).at(done + 1, 0, C.MOVE_LEFT).at(done + 1, 0, C.MOVE_LEFT) \
+            .at(done + 1, 0, C.MOVE_DOWN) \
             .at(done + 30, 0, C.INTERACT).at(done + 31, 0, C.INTERACT) \
-            .at(done + 32, 0, C.MOVE_RIGHT).at(done + 32, 0, C.MOVE_DOWN) \
+            .at(done + 32, 0, C.MOVE_LEFT) \
             .at(done + 60, 0, C.INTERACT)
     var sim := scenario.run_until(done + 1)
     assert_eq(level.station_kind_at(sim.players[0].node), &"cuisson_2")
@@ -120,7 +124,7 @@ func test_knocked_out_alone_a_player_crawls_to_the_fridge_and_drinks() -> void:
     var level := LevelReader.read(game.get_node("Restaurant/Kitchen").anchors_root())
     game.free()
     const C := Simulation.Command
-    var scenario := Scenario.new(level, [level.find("Anchor2")], 1)
+    var scenario := Scenario.new(level, [level.find("Cuisson1")], 1)
     for i in SimPlayer.MAX_HEALTH:
         scenario.at(0, 0, C.DEBUG_DAMAGE)
     var sim := scenario.at(1, 0, C.MOVE_LEFT).run_until(1 + 2 * sim_rules().crawl_ticks)

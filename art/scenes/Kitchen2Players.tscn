@@ -1,0 +1,139 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Room01.fbx" id="1_aoe6s"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Fridge.fbx" id="2_pf874"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_DeepFryer.fbx" id="3_jwoe6"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Trash.fbx" id="4_oiqho"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Furniture.fbx" id="5_mwtfm"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_BreadBag.fbx" id="6_2t80g"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_CashRegister.fbx" id="7_ijv4g"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_PaperBag.fbx" id="8_wf2yy"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_Counter.fbx" id="9_t7jci"]
+[ext_resource type="PackedScene" path="res://art/models/DoubleCooked_FireCase.fbx" id="10_mp6i6"]
+
+[node name="Kitchen2Players" type="Node3D" unique_id=2028923421]
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1340209488]
+transform = Transform3D(0.520026, -0.5790531, 0.62790954, 0, 0.73512757, 0.67792875, -0.85415035, -0.35254058, 0.3822855, 7.5, 9.85, 3.65)
+fov = 25.0
+near = 0.3
+far = 50.0
+
+[node name="DoubleCooked_Room01" type="Node3D" parent="." unique_id=889497250 instance=ExtResource("1_aoe6s")]
+
+[node name="DoubleCooked_Fridge" type="Node3D" parent="." unique_id=1760006447 instance=ExtResource("2_pf874")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.575, 0, 0.907)
+
+[node name="DoubleCooked_DeepFryer" type="Node3D" parent="." unique_id=852566189 instance=ExtResource("3_jwoe6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.344, 0, -1.03)
+
+[node name="DoubleCooked_Trash" type="Node3D" parent="." unique_id=1964959607 instance=ExtResource("4_oiqho")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.344, 0, -3.977)
+
+[node name="DoubleCooked_Furniture01" type="Node3D" parent="." unique_id=407721847 instance=ExtResource("5_mwtfm")]
+transform = Transform3D(1, 0, 0, 0, 0.92, 0, 0, 0, 1, -0.72, 0, 0.886)
+
+[node name="DoubleCooked_BreadBag" type="Node3D" parent="." unique_id=1834955683 instance=ExtResource("6_2t80g")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, 0.462, 0.874)
+
+[node name="DoubleCooked_Furniture02" type="Node3D" parent="." unique_id=1348701906 instance=ExtResource("5_mwtfm")]
+transform = Transform3D(1, 0, 0, 0, 0.92, 0, 0, 0, 1, -0.72, 0, -0.034)
+
+[node name="DoubleCooked_CashRegister" type="Node3D" parent="." unique_id=242102961 instance=ExtResource("7_ijv4g")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.665, 0.456, -0.203)
+
+[node name="DoubleCooked_PaperBag" type="Node3D" parent="." unique_id=466476817 instance=ExtResource("8_wf2yy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.729, 0.457, 0.295)
+
+[node name="DoubleCooked_Counter" type="Node3D" parent="." unique_id=1111297381 instance=ExtResource("9_t7jci")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, 0, -1.995)
+
+[node name="DoubleCooked_FireCase" type="Node3D" parent="." unique_id=1794385917 instance=ExtResource("10_mp6i6")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.614, 0.746, -4.373)
+
+[node name="Cases" type="Node3D" parent="." unique_id=294619669]
+
+[node name="Case0" type="Marker3D" parent="Cases" unique_id=1778268473]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 0)
+
+[node name="Case1" type="Marker3D" parent="Cases" unique_id=1275161557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 1)
+
+[node name="Case2" type="Marker3D" parent="Cases" unique_id=149809230]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -1)
+
+[node name="Case3" type="Marker3D" parent="Cases" unique_id=1814779605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -2)
+
+[node name="Case4" type="Marker3D" parent="Cases" unique_id=1795057381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -3)
+
+[node name="Case5" type="Marker3D" parent="Cases" unique_id=110638733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -4)
+
+[node name="Case6" type="Marker3D" parent="Cases" unique_id=277633522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -4)
+
+[node name="Case7" type="Marker3D" parent="Cases" unique_id=1523501253]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -3)
+
+[node name="Case8" type="Marker3D" parent="Cases" unique_id=1980395094]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -2)
+
+[node name="Case9" type="Marker3D" parent="Cases" unique_id=1011394526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -1)
+
+[node name="Case10" type="Marker3D" parent="Cases" unique_id=818744417]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 0)
+
+[node name="Case11" type="Marker3D" parent="Cases" unique_id=630374717]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 1)
+
+[node name="Oil" type="Node3D" parent="." unique_id=1903450802]
+
+[node name="Oil0" type="Marker3D" parent="Oil" unique_id=642462995]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.374, 0.389, -2.028)
+
+[node name="Oil1" type="Marker3D" parent="Oil" unique_id=214094376]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.398, 0.389, -1.037)
+
+[node name="Oil2" type="Marker3D" parent="Oil" unique_id=40673574]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.405, 0.389, -0.078)
+
+[node name="Oil3" type="Marker3D" parent="Oil" unique_id=179706927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.372, 0.389, -3.026)
+
+[node name="Fire" type="Node3D" parent="." unique_id=1798575881]
+
+[node name="Fire0" type="Marker3D" parent="Fire" unique_id=260661147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.154, 0.86, -1.008)
+
+[node name="Fire1" type="Marker3D" parent="Fire" unique_id=186600301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.168, 0.86, 0.877)
+
+[node name="Fire2" type="Marker3D" parent="Fire" unique_id=746442096]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.154, 0.86, -0.06)
+
+[node name="Fire3" type="Marker3D" parent="Fire" unique_id=642131824]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.154, 0.86, -2.013)
+
+[node name="Fire4" type="Marker3D" parent="Fire" unique_id=1708588064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.154, 0.86, -3)
+
+[node name="Fire5" type="Marker3D" parent="Fire" unique_id=259529269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.605, 0.86, 0.991)
+
+[node name="Fire6" type="Marker3D" parent="Fire" unique_id=1656621351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.148, 0.86, -3.972)
+
+[node name="Fire7" type="Marker3D" parent="Fire" unique_id=2098501965]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.604, 0.86, -2.991)
+
+[node name="Fire8" type="Marker3D" parent="Fire" unique_id=1313496139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.621, 0.86, -1.99)
+
+[node name="Fire9" type="Marker3D" parent="Fire" unique_id=1516722123]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.544, 0.86, -1.032)
+
+[node name="Fire10" type="Marker3D" parent="Fire" unique_id=643429347]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.531, 0.86, -0.001)
