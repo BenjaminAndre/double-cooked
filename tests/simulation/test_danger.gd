@@ -285,3 +285,12 @@ func test_being_thin_is_not_faster_but_being_heavy_is_slower() -> void:
         ticks[bmi] = scenario.at(0, 0, RIGHT).run_until(1).players[0].edge_ticks
     assert_eq(ticks[rules.start_bmi - 3], ticks[rules.start_bmi])
     assert_gt(ticks[rules.start_bmi + 3], ticks[rules.start_bmi])
+
+
+## The artist's steps (GDD §5.1): 95% one point over a healthy start, 85% from three, 70% from five.
+func test_fatter_players_walk_slower_by_stages() -> void:
+    var speeds := []
+    for over in [0, 1, 2, 3, 5, 9]:
+        speeds.append(rules.walk_speed(rules.start_bmi + over))
+    assert_eq(speeds, [1.0, 0.95, 0.95, 0.85, 0.7, 0.7])
+    assert_eq(rules.fat_stage(rules.start_bmi - 4), 0, "thin is no stage")

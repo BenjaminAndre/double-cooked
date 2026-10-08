@@ -554,6 +554,7 @@ func _add_view(slot: int) -> void:
     var view: Player = PLAYER_SCENE.instantiate()
     view.is_local_player = slot in _local_slots
     view.level_start_bmi = simulation.rules.start_bmi
+    view.rules = simulation.rules
     view.hungry_below = simulation.rules.knockout_bmi + 2
     # The colour stands for the player: no name over their head.
     view.pseudo = GONE if _left.has(slot) else ""

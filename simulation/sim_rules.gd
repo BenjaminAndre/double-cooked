@@ -66,12 +66,14 @@ var crawl_ticks := 2 * SECOND
 ## A bumped player is stunned this long: no moving, no acting (GDD §5.3).
 var bump_stun := 15
 ## Body mass index (GDD §5.1): everyone starts healthy, each thing eaten or drunk adds a point,
-## and every moves_per_bmi nodes walked burns one. Above start_bmi a player is slower by
-## bmi_slowdown per point; at knockout_bmi they collapse, undernourished.
+## and every moves_per_bmi nodes walked burns one. At knockout_bmi they collapse, undernourished.
 var start_bmi := 21
 var knockout_bmi := 16
 var moves_per_bmi := 25
-var bmi_slowdown := 0.12
+## Over start_bmi a player gets fatter by stages (the artist's fat01 to fat03 drawings), from
+## fat_stages points over it, and walks at the stage's fat_speeds (theirs: 95%, 85%, 70%).
+var fat_stages: Array[int] = [1, 3, 5]
+var fat_speeds: Array[float] = [0.95, 0.85, 0.7]
 
 ## Beers in the FRIGO: it starts full and gets one back every fridge_restock ticks.
 var fridge_beers := 5
@@ -109,6 +111,20 @@ var boss_can_every := 6 * SECOND
 var boss_drink_again := 8 * SECOND
 var boss_drink_patience := 20 * SECOND
 var boss_drink_penalty := 4 * 15 * SECOND
+
+
+## 0 at a healthy weight or under, then 1 to 3: how fat a player with this BMI is.
+func fat_stage(bmi: int) -> int:
+    var stage := 0
+    while stage < fat_stages.size() and bmi - start_bmi >= fat_stages[stage]:
+        stage += 1
+    return stage
+
+
+## How fast a player with this BMI walks, 1 at a healthy weight; thinner isn't faster.
+func walk_speed(bmi: int) -> float:
+    var stage := fat_stage(bmi)
+    return 1.0 if stage == 0 else fat_speeds[stage - 1]
 
 
 ## The tick the boss walks in.

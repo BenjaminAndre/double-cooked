@@ -476,9 +476,9 @@ func _advance(player: SimPlayer) -> void:
         events.append({"type": &"bump", "by": player.slot, "target": occupant.slot})
         occupant.stun = rules.bump_stun
         return
-    # Every BMI point over a healthy start makes the walk slower (GDD §5.1); thinner isn't faster.
+    # A fatter player walks slower, by stages (GDD §5.1); thinner isn't faster.
     player.edge_ticks = rules.crawl_ticks if player.down \
-            else roundi(_walk_ticks(player.node, target) * (1.0 + maxi(player.bmi - rules.start_bmi, 0) * rules.bmi_slowdown))
+            else roundi(_walk_ticks(player.node, target) / rules.walk_speed(player.bmi))
 
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
