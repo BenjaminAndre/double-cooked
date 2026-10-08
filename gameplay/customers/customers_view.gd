@@ -93,6 +93,13 @@ func place(index: int) -> Vector3:
 ## Takes a figure towards target (shuffling up, or steady when leaving), round by the door when
 ## it is on the other side of the front wall: inside tells which side target is.
 func _walk(figure: Node3D, target: Vector3, inside: bool, delta: float, steady := false) -> void:
+    var from := figure.position
+    _step(figure, target, inside, delta, steady)
+    if figure is PaperFigure:
+        (figure as PaperFigure).face(figure.position - from, get_viewport().get_camera_3d())
+
+
+func _step(figure: Node3D, target: Vector3, inside: bool, delta: float, steady: bool) -> void:
     if door != Vector3.INF and figure.get_meta(&"inside", false) != inside:
         figure.position = figure.position.move_toward(door, WALK_SPEED * delta)
         if figure.position.distance_to(door) < 0.05:

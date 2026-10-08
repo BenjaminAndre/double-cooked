@@ -10,6 +10,8 @@ uniform vec2 size = vec2(0.5, 1.55);
 uniform float girth = 1.0;
 // Standing: facing the camera. Otherwise the quad lies as the node is turned (knocked out).
 uniform bool standing = true;
+// Walking towards the left of the screen: the drawing is flipped (the artist's rule).
+uniform bool mirrored = false;
 
 void vertex() {
 	// The quad spans -0.5..0.5: centred on the feet, drawn upwards from them.
@@ -29,7 +31,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec4 color = texture(picture, UV);
+	vec4 color = texture(picture, mirrored ? vec2(1.0 - UV.x, UV.y) : UV);
 	ALBEDO = color.rgb;
 	ALPHA = color.a;
 	ALPHA_SCISSOR_THRESHOLD = 0.5;

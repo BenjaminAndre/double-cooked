@@ -107,6 +107,7 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
     if state.is_moving():
         var t := minf((state.progress + alpha) / state.edge_ticks, 1.0)
         shown = shown.lerp(level.positions[state.path[0]], t)
+        _figure.face(level.positions[state.path[0]] - level.positions[state.node], get_viewport().get_camera_3d())
     global_position = shown
     # Fatter with BMI points, thinner as they waste away (GDD §5.1).
     var over := state.bmi - level_start_bmi

@@ -20,6 +20,7 @@ static var _portraits := {}
 var _mesh: MeshInstance3D
 var _material: ShaderMaterial
 var _lying := false
+var _mirrored := false
 
 
 func _init(texture: Texture2D = null, height := HEIGHT) -> void:
@@ -41,6 +42,23 @@ func set_picture(texture: Texture2D, height := HEIGHT) -> void:
     if texture:
         _material.set_shader_parameter(&"size",
                 Vector2(height * texture.get_width() / texture.get_height(), height))
+
+
+## Walking to the left of the screen: the drawing flips; to the right, it faces as drawn.
+func set_mirrored(mirrored: bool) -> void:
+    if mirrored != _mirrored:
+        _mirrored = mirrored
+        _material.set_shader_parameter(&"mirrored", mirrored)
+
+
+## Turns the figure to face where it walks along this direction in the world, seen from this
+## camera; standing still keeps it as it was.
+func face(direction: Vector3, camera: Camera3D) -> void:
+    if not camera:
+        return
+    var sideways := direction.dot(camera.global_basis.x)
+    if absf(sideways) > 0.001:
+        set_mirrored(sideways < 0.0)
 
 
 ## 1 is the drawing as is; more is wider.
