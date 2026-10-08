@@ -104,6 +104,9 @@ const SHELF_QUARTER := 0.25
 ## Every station keeps its name over it, e.g. in the lobby, where its look doesn't tell it apart;
 ## otherwise, with art, only the fryers do.
 @export var labels := false
+## Where the front of the customers' line stands, in the art scene's space (CustomersView keeps
+## the line's shape from there); INF: no line in this room.
+@export var queue_front := Vector3.INF
 
 var camera: Camera3D
 var _anchors: Node3D
@@ -202,6 +205,13 @@ func _build() -> void:
     camera.fov = CAMERA_FOV
     add_child(camera)
     place_camera()
+
+
+## The front of the customers' line in the world, INF without one.
+func queue_front_position() -> Vector3:
+    if queue_front == Vector3.INF:
+        return Vector3.INF
+    return _world_transform(art) * queue_front if art else _world_transform(self) * queue_front
 
 
 ## Puts the camera where the camera_* settings say, e.g. again after changing them.

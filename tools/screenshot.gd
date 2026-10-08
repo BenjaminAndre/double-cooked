@@ -61,6 +61,12 @@ func _initialize() -> void:
             for view: Interactible in views:
                 if view.kind == &"cuisson_viande":
                     create_timer(0.75).timeout.connect(view._lift_basket)
+        "kitchen3", "kitchen4":
+            # A crew of three or four in its own kitchen, customers coming fast.
+            night._begin(int(setup.right(1)), PackedInt32Array([0]), 1, Night.Role.OFFLINE)
+            night.simulation.rules.arrival_min = 15
+            night.simulation.rules.arrival_max = 15
+            night.simulation.crowd.next_arrival = 1
         "lobby_record":
             # The best campaign so far, under the logo.
             night._record = {"night": 7, "colors": [1, 3]}

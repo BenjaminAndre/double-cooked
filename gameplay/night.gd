@@ -35,8 +35,10 @@ signal announced(text: String)
 ## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
 signal phone_used(choice: StringName)
 
-## The kitchen the nights are played in; its spawns are also the maximum player count.
+## The kitchen for one or two players (the artist's base layout), and the bigger ones (GDD §5.2):
+## a night is played in the first one with a spawn for everyone.
 @export var kitchen_room: GridRoom
+@export var bigger_kitchens: Array[GridRoom] = []
 @export var players_parent: Node3D
 ## 0 picks a new random seed for each night.
 @export var night_seed := 0
@@ -230,7 +232,26 @@ func _current_looks() -> PackedInt32Array:
 
 
 func _max_players(lobby: bool) -> int:
-    return lobby_room.spawn_names().size() if lobby and lobby_room else kitchen_room.spawn_names().size()
+    if lobby and lobby_room:
+        return lobby_room.spawn_names().size()
+    var most := 0
+    for kitchen in kitchens():
+        most = maxi(most, kitchen.spawn_names().size())
+    return most
+
+
+## Every kitchen, smallest first.
+func kitchens() -> Array[GridRoom]:
+    var all: Array[GridRoom] = [kitchen_room]
+    all.append_array(bigger_kitchens)
+    return all
+
+
+## The kitchen sized for this many players (GDD §5.2): the artist's layout for one or two, an
+## extra lane for three, an extra column for four.
+func kitchen_for(player_count: int) -> GridRoom:
+    var all := kitchens()
+    return all[clampi(player_count - 2, 0, all.size() - 1)]
 
 
 ## Queues a command from a player at this keyboard, as if their key was pressed.
@@ -432,11 +453,13 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     for view in _views:
         view.queue_free()
     _views.clear()
-    var room := lobby_room if in_lobby else kitchen_room
+    var room := lobby_room if in_lobby else kitchen_for(player_count)
     _room = room
     var root := room.anchors_root()
     var level := LevelReader.read(root)
     if queue and not in_lobby:
+        if room.queue_front_position() != Vector3.INF:
+            queue.global_position = room.queue_front_position()
         level.queue_front = queue.global_position
         level.queue_step = queue.line_step
         for point in queue.line_points:
@@ -459,7 +482,8 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
             _idle_nodes[node] = true
     room.camera.current = true
     _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
-            "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby, "night": campaign_night}
+            "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby, "night": campaign_night,
+            "room": String(room.name)}
     _log.clear()
     _local_slots = local_slots
     _input = LocalInput.new(local_slots.size())
@@ -650,7 +674,7 @@ func _free_spawn() -> int:
         occupied[player.occupied_node()] = true
     for joining: Array in _joins:
         occupied[joining[1]] = true
-    for spawn_name in kitchen_room.spawn_names():
+    for spawn_name in _room.spawn_names():
         var node := simulation.level.find(spawn_name)
         if not occupied.has(node):
             return node

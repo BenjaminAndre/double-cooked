@@ -80,7 +80,8 @@ func _add(root: Node3D, entry: Dictionary, markers: Dictionary) -> void:
     model.position = position
     model.rotation.y = -deg_to_rad(_vector(entry.get("Rotation monde Unity (euler)", "(0, 0, 0)")).y)
     model.scale = _vector(entry.get("Échelle monde (lossy)", "(1, 1, 1)"), false)
-    root.add_child(model)
+    # Two of a kind (two tills in the 4-player kitchen): the second gets a number.
+    root.add_child(model, true)
     model.owner = root
 
 

@@ -161,3 +161,26 @@ func test_the_drink_hint_shows_when_knocked_out_with_a_beer() -> void:
 
 func sim_rules() -> SimRules:
     return SimRules.new()
+
+
+## Three players play in the kitchen with a middle lane, four in the one with an extra column,
+## a second FRIGO and a second CAISSE (GDD §5.2); both are regular grids too.
+func test_bigger_crews_get_bigger_kitchens() -> void:
+    var game: Node = add_child_autofree(GAME_SCENE.instantiate())
+    var night: Night = game.get_node("Night")
+    assert_eq(night.kitchen_for(1).name, "Kitchen")
+    assert_eq(night.kitchen_for(2).name, "Kitchen")
+    night._begin(3, PackedInt32Array([0]), 1, Night.Role.OFFLINE)
+    var level := night.simulation.level
+    assert_eq(level.positions.size(), 18)
+    assert_eq(level.station_kind_at(night.simulation.players[2].node), &"", "the third starts in the lane")
+    night._begin(4, PackedInt32Array([0]), 1, Night.Role.OFFLINE)
+    level = night.simulation.level
+    assert_eq(level.positions.size(), 21)
+    assert_eq(level.station_kinds.count(&"frigo"), 2)
+    assert_eq(level.station_kinds.count(&"caisse"), 2)
+    for node in level.positions.size():
+        for direction in 4:
+            var next := level.neighbour(node, direction)
+            if next != SimLevel.NONE:
+                assert_almost_eq(level.positions[node].distance_to(level.positions[next]), 1.0, 0.01)
