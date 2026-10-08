@@ -178,15 +178,18 @@ func test_a_beer_thrown_to_a_knocked_out_teammate_gets_them_up() -> void:
     assert_eq(sim.stats.revives[1], 1)
 
 
-func test_a_beer_thrown_to_a_teammate_lands_in_an_empty_hand() -> void:
+func test_a_teammate_hit_by_a_beer_drinks_it_and_gets_fatter() -> void:
     var scenario := _scenario([sauces, fridge])
     var sim := scenario.run_until(1)
+    sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
+    sim.players[0].health = 2
     sim.players[1].item = SimItem.new(Menu.BEER)
     scenario.at(1, 1, INTERACT).at(2, 1, Simulation.Command.MOVE_UP) \
             .at(2 + rules.aim_hold, 1, Simulation.Command.RELEASE)
     scenario.run_until(3 + rules.aim_hold + rules.beer_flight)
-    assert_eq(sim.players[0].item.kind, Menu.BEER)
-    assert_eq(sim.players[0].bmi, 21, "caught, not drunk")
+    assert_eq(sim.players[0].item.kind, Fryer.FRIES_GOOD, "they keep what they hold")
+    assert_eq(sim.players[0].bmi, 22, "drunk on the spot")
+    assert_eq(sim.players[0].health, 3)
 func test_the_night_is_lost_when_the_whole_crew_is_down() -> void:
     var scenario := _scenario([sauces, extinguisher])
     for slot in 2:

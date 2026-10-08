@@ -339,8 +339,8 @@ func _throw_beer(player: SimPlayer, target: int, mate: int) -> void:
     events.append({"type": &"beer_thrown", "by": player.slot, "target": target, "mate": mate})
 
 
-## A beer landing on the crew: whoever stands close enough catches it. Knocked out, they drink
-## it and get back up; otherwise it goes to an empty hand, or falls if their hand is full.
+## A beer landing on the crew: whoever stands close enough drinks it on the spot, keeping what
+## they hold: a heart back and fatter (the artist's troll). Knocked out, it gets them back up.
 func _beer_to_mate(can: SimProjectile) -> void:
     var landing := Vector3(can.to.x, 0, can.to.z)
     for player in players:
@@ -351,10 +351,10 @@ func _beer_to_mate(can: SimProjectile) -> void:
             _consume(player)
             events.append({"type": &"revived", "slot": player.slot, "by": can.by})
             return
-        if not player.item:
-            player.item = SimItem.new(Menu.BEER)
-            events.append({"type": &"beer_caught", "slot": player.slot})
-            return
+        # Drunk on the spot, whatever they hold: a heart back, and fatter (the artist's troll).
+        _drink(player)
+        events.append({"type": &"beer_drunk", "slot": player.slot, "by": can.by})
+        return
     events.append({"type": &"beer_missed"})
 
 
@@ -619,6 +619,11 @@ func _interact(player: SimPlayer) -> void:
 ## was what they lacked), even at full health (GDD §5.1).
 func _consume(player: SimPlayer) -> void:
     player.item = null
+    _drink(player)
+
+
+## Eating or drinking: a heart back, a BMI point more (GDD §5.1).
+func _drink(player: SimPlayer) -> void:
     player.health = mini(player.health + 1, SimPlayer.MAX_HEALTH)
     player.bmi += 1
     # Back up once they have a heart and aren't starving any more.
