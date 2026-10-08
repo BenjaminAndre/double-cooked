@@ -10,7 +10,13 @@ extends Node3D
 ## sees the same.
 const CUSTOMERS := "res://art/textures/Character%02d.png"
 const CUSTOMER_KINDS := 5
-const BOSS_PICTURE := preload("res://art/textures/DrunkCharacter01.png")
+## The boss: the drunk baraki, or a drunk Santa every other night (the artist's variant).
+const BOSS_PICTURES: Array[Texture2D] = [preload("res://art/textures/DrunkCharacter01.png"),
+        preload("res://art/textures/DrunkCharacter02.png")]
+## Now and then, people drinking their own beer on the pavement, just for the atmosphere: for
+## DRINKERS_EVERY ticks at a time, some of EventCharacter07 to 09, or nobody.
+const DRINKERS_EVERY := 40 * Simulation.TICK_RATE
+const DRINKERS_AT := Vector3(-1.0, 0, 2.3)
 ## The colleagues (NightEvents.COLLEGUES): their leader queues, the others wait outside with a
 ## can, around COLLEAGUES_AT (relative to this node).
 const LEADER := "res://art/textures/EventCharacter01.png"
@@ -61,6 +67,7 @@ var _drink_ticket: PanelContainer
 var _layer: CanvasLayer
 ## The colleagues waiting outside, while their leader is in line.
 var _colleagues: Array[Node3D] = []
+var _drinkers: Array[Node3D] = []
 
 
 func _ready() -> void:
@@ -92,6 +99,7 @@ func _process(delta: float) -> void:
             _leaving.erase(figure)
             figure.queue_free()
     _show_colleagues(crowd.line.any(func(customer: SimCrowd.Customer) -> bool: return customer.group))
+    _show_drinkers(night.simulation.tick if not night.in_lobby else -1)
     _show_tickets(crowd)
 
 
@@ -170,6 +178,23 @@ func _group_lines(leader: SimCrowd.Customer) -> Array:
             kinds.append(pictures[part])
             counts.append(times[index] if part == 0 else 0)
     return [kinds, counts]
+
+
+## The beer drinkers on the pavement for this tick of the night (-1: none), the same on every
+## peer since it only follows the tick.
+func _show_drinkers(tick: int) -> void:
+    if _drinkers.is_empty():
+        for index in 3:
+            var drinker := PaperFigure.new(load(COLLEAGUE % (index + 7)))
+            drinker.position = DRINKERS_AT + Vector3(index * 0.6, 0, (index % 2) * 0.35)
+            drinker.set_mirrored(index != 1)
+            add_child(drinker)
+            _drinkers.append(drinker)
+    var roll := hash(tick / DRINKERS_EVERY) if tick >= 0 else 0
+    # One window out of three is empty; otherwise one to three of them.
+    var count := 0 if roll % 3 == 0 else 1 + (roll / 3) % 3
+    for index in _drinkers.size():
+        _drinkers[index].visible = index < count
 
 
 ## The leader's colleagues, standing outside with their cans while he is in line.
@@ -322,7 +347,7 @@ func _new_ticket() -> PanelContainer:
 func _new_figure(customer: SimCrowd.Customer) -> Node3D:
     var picture: Texture2D = load(CUSTOMERS % (customer.id % CUSTOMER_KINDS + 1))
     if customer.boss:
-        picture = BOSS_PICTURE
+        picture = BOSS_PICTURES[customer.id % BOSS_PICTURES.size()]
     elif customer.group:
         picture = load(LEADER)
     var figure := PaperFigure.new(picture)

@@ -125,6 +125,8 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 - **Contrôle AFSCA** (jeudi, 22:00): the inspector watches the kitchen for 20 s (a countdown under the clock). No fire meanwhile, and the room calms down (−150); a fire, and it sours by a quarter of a riot. Without floor items in our game, "clean" means no fire.
 - **Les collègues** (vendredi, 19:00): announced 20 s ahead, while the FRIGO restocks twice as fast. Their leader queues like anyone and orders for the whole group, **5 or 6 beers** and 4 dishes, served one line at a time **in any order** (a thrown beer counts), with 100 s of patience at the front; his colleagues drink outside meanwhile. All served, the room cheers up (−300); walked out, it sours by a quarter of a riot.
 - **Panne de frigo** (samedi, mid-night): the FRIGO breaks down, no beer comes back for 25 s ("en panne" over it). Cola has to do.
+- **Dimanche** has one of these four, turn by turn week after week; **from the second week** every night has one more, at 00:30, never the same as the day's.
+- Just for the atmosphere, people sometimes drink their own beer on the pavement (the artist's EventCharacter07 to 09), and every other boss is a **drunk Santa** (same fight, another look).
 
 ## 7. Cooking
 

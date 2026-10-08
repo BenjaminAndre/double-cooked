@@ -156,3 +156,14 @@ func test_each_night_is_a_day_of_the_week() -> void:
     assert_eq(Campaign.day_label(7), "dimanche")
     assert_eq(Campaign.day_label(8), "lundi, semaine 2")
     assert_eq(Campaign.day_label(16), "mardi, semaine 3")
+
+
+func test_sundays_take_turns_and_later_weeks_have_one_more_event() -> void:
+    assert_eq(Campaign.events_for(7), [[0.3, Campaign.ROTATION[0]]], "first Sunday")
+    assert_eq(Campaign.events_for(14)[0], [0.3, Campaign.ROTATION[1]], "second Sunday")
+    assert_eq(Campaign.events_for(8).size(), 1, "Monday of week 2: one extra")
+    for night in range(8, 30):
+        var events := Campaign.events_for(night)
+        if events.size() == 2:
+            assert_ne(events[0][1], events[1][1], "never twice the same in a night")
+            assert_lt(events[0][0], events[1][0], "in their order")

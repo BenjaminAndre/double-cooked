@@ -8,6 +8,12 @@ extends RefCounted
 ## Each night is a day of the week, from Monday, then the next week (the artist's idea).
 const DAYS: Array[String] = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 
+## Events taken turn by turn: Sunday's, and the one more a night from the second week, at
+## EXTRA_EVENT_AT through the night (00:30, between the day's and the boss).
+const ROTATION: Array[StringName] = [NightEvents.DIABLES_ROUGES, NightEvents.AFSCA, NightEvents.COLLEGUES,
+        NightEvents.PANNE_FRIGO]
+const EXTRA_EVENT_AT := 0.65
+
 ## What each night adds to the menu (Menu.FULL_MENU), from the first.
 const UNLOCKS: Array = [
     [&"frites", Menu.NATURE, Menu.BEER],
@@ -58,20 +64,30 @@ static func rules_for(night: int) -> SimRules:
     return rules
 
 
-## The events of this night (SimRules.night_events): the artist's week, so far Wednesday's
+## The events of this night (SimRules.night_events), in their order: the artist's week, Wednesday's
 ## half-time of the Diables Rouges (21:00), Thursday's AFSCA inspection (22:00), Friday's
-## colleagues (19:00) and Saturday's fridge breakdown.
+## colleagues (19:00), Saturday's fridge breakdown, and on Sunday one of them, turn by turn
+## (ROTATION). From the second week every night has one more, at 00:30.
 static func events_for(night: int) -> Array:
+    var events := []
     match day(night):
         "mercredi":
-            return [[0.3, NightEvents.DIABLES_ROUGES]]
+            events.append([0.3, NightEvents.DIABLES_ROUGES])
         "jeudi":
-            return [[0.4, NightEvents.AFSCA]]
+            events.append([0.4, NightEvents.AFSCA])
         "vendredi":
-            return [[0.1, NightEvents.COLLEGUES]]
+            events.append([0.1, NightEvents.COLLEGUES])
         "samedi":
-            return [[0.5, NightEvents.PANNE_FRIGO]]
-    return []
+            events.append([0.5, NightEvents.PANNE_FRIGO])
+        "dimanche":
+            events.append([0.3, ROTATION[(week(night) - 1) % ROTATION.size()]])
+    if week(night) > 1:
+        # Not twice the same event in a night.
+        var extra: StringName = ROTATION[(night - 1) % ROTATION.size()]
+        if not events.is_empty() and events[0][1] == extra:
+            extra = ROTATION[night % ROTATION.size()]
+        events.append([EXTRA_EVENT_AT, extra])
+    return events
 
 
 ## What the menu gets new tonight, for the start of the night (nothing on the first).

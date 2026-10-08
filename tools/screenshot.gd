@@ -142,6 +142,9 @@ func _initialize() -> void:
             sim.rules.arrival_min = 15
             sim.rules.arrival_max = 15
             sim.crowd.next_arrival = 1
+        "drinkers":
+            # Three beer drinkers on the pavement (the 8th window of the night).
+            night.simulation.tick = CustomersView.DRINKERS_EVERY * 7
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0
