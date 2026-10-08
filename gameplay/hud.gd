@@ -34,6 +34,11 @@ var _stars: HBoxContainer
 var _recap: RichTextLabel
 ## The clock and warnings: hidden in the lobby.
 var _corner: VBoxContainer
+## The day of a campaign night, beside the clock.
+var _day_frame: PanelContainer
+var _day: Label
+## The start of a campaign night (DaySplash).
+var _splash: DaySplash
 var _next: Label
 ## The best campaign so far, under the logo in the lobby.
 var _record: RichTextLabel
@@ -46,11 +51,19 @@ func _ready() -> void:
     corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
     corner.alignment = BoxContainer.ALIGNMENT_END
     add_child(corner)
-    # The clock on the artist's frame: its face on the left, the time on the dark part.
+    # The day (in a campaign) and the clock on the artist's frames: their picture on the left,
+    # the text on the dark part.
+    var frames := HBoxContainer.new()
+    frames.size_flags_horizontal = Control.SIZE_SHRINK_END
+    frames.add_theme_constant_override("separation", 10)
+    corner.add_child(frames)
+    _day_frame = ArtUi.panel(ArtUi.frame("Day", Vector4(80, 20, 20, 20), 10))
+    _day_frame.get_theme_stylebox("panel").content_margin_left = 84
+    frames.add_child(_day_frame)
+    _day = _label(30, _day_frame)
     var clock_frame := ArtUi.panel(ArtUi.frame("Time", Vector4(80, 20, 20, 20), 10))
     clock_frame.get_theme_stylebox("panel").content_margin_left = 84
-    clock_frame.size_flags_horizontal = Control.SIZE_SHRINK_END
-    corner.add_child(clock_frame)
+    frames.add_child(clock_frame)
     _status = _label(30, clock_frame)
     _desync = _label(24, corner)
     _desync.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -113,6 +126,8 @@ func _ready() -> void:
     _recap.add_theme_color_override("default_color", ArtUi.INK)
     column.add_child(_recap)
     _next = _ink_label(28, column)
+    _splash = DaySplash.new()
+    add_child(_splash)
 
 
 func _process(delta: float) -> void:
@@ -123,7 +138,12 @@ func _process(delta: float) -> void:
     _mood.visible = not night.in_lobby
     if _logo.visible and _anyone_moving():
         _logo.visible = false
-    _set_text(_status, night_name(night.campaign_night) + clock(sim.clock_minutes()) \
+    _day_frame.visible = night.campaign_night > 0
+    if _day_frame.visible:
+        _set_text(_day, capitalized(Campaign.day_label(night.campaign_night)))
+    if _splash.visible and _anyone_moving():
+        _splash.dismiss()
+    _set_text(_status, clock(sim.clock_minutes()) \
             + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _mood.mood = float(sim.crowd.mood) / sim.rules.riot
     var warnings := PackedStringArray()
@@ -142,7 +162,7 @@ func _process(delta: float) -> void:
     _announce.visible = _announce.visible and not _banner.visible
     if _banner.visible:
         var goes_on := night.campaign_night > 0 and sim.outcome == &"won"
-        var next := "Entrée : nuit %d" % (night.campaign_night + 1) if goes_on else "Entrée : retour à la salle"
+        var next := "Entrée : %s" % Campaign.day_label(night.campaign_night + 1) if goes_on else "Entrée : retour à la salle"
         if night.role == Night.Role.HOST and not goes_on:
             next = "Entrée : tout le monde en salle"
         elif night.role == Night.Role.CLIENT:

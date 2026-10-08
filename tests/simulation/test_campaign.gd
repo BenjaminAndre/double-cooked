@@ -149,3 +149,10 @@ func test_a_menu_with_nothing_in_it_never_opens() -> void:
     assert_eq(scenario.simulation.action_for(player), &"")
     scenario.at(0, 0, INTERACT).run_until(1)
     assert_eq(player.menu, SimLevel.NONE)
+
+
+func test_each_night_is_a_day_of_the_week() -> void:
+    assert_eq(Campaign.day_label(1), "lundi")
+    assert_eq(Campaign.day_label(7), "dimanche")
+    assert_eq(Campaign.day_label(8), "lundi, semaine 2")
+    assert_eq(Campaign.day_label(16), "mardi, semaine 3")
