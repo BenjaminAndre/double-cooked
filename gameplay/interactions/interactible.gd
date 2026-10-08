@@ -10,6 +10,9 @@ const LABEL_HEIGHT := 1.3
 const GAUGE_HEIGHT := 1.1
 const GAUGE_SIZE := Vector2(1.0, 0.12)
 const GAUGE_ALPHA := 0.75
+## Drawn after the other see-through things (UnlitArt.GLASS_PRIORITY, the fire), the progress
+## line after its bands.
+const GAUGE_PRIORITY := UnlitArt.GLASS_PRIORITY + 2
 const UNDERCOOKED := Color(1.0, 0.85, 0.2)
 const READY := Color(0.35, 0.72, 0.25)
 const TOO_LATE := Color(1.0, 0.25, 0.2)
@@ -96,10 +99,11 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     if _was_frying and not frying and not station.burning and basket_model:
         _lift_basket()
     _was_frying = frying
-    # CUISSON 1: the cooked fries show while a batch waits to be taken.
+    # CUISSON 1: as many cooked fries as portions left in a batch waiting to be taken.
     var batch_waiting := station.basket != null and not station.frying and not station.burning
-    for fries: Node3D in cooked_models:
-        fries.visible = batch_waiting
+    var left := station.basket.portions if batch_waiting else 0
+    for index in cooked_models.size():
+        cooked_models[index].visible = index < left
     _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
     # The siren: about to catch fire, past the ready zone.
@@ -245,6 +249,13 @@ func _show_gauge(window: Vector2i, fire: int, cook: int) -> void:
         for color in [UNDERCOOKED, READY, TOO_LATE]:
             _gauge_parts.append(_quad(Color(color, GAUGE_ALPHA)))
         _gauge_parts.append(_quad(Color.WHITE))
+        # Over everything, like the hearts and bubbles: the highlight box and the models
+        # around would otherwise wash it out or hide it.
+        for index in _gauge_parts.size():
+            var material: StandardMaterial3D = _gauge_parts[index].mesh.material
+            material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+            material.no_depth_test = true
+            material.render_priority = GAUGE_PRIORITY + (1 if index == 3 else 0)
         var camera := get_viewport().get_camera_3d()
         if camera:
             _gauge.global_basis = camera.global_basis

@@ -133,6 +133,17 @@ func _initialize() -> void:
             fry.call("Anchor2", Fryer.FIRST_FRY_MIN + 60)
             fry.call("Anchor4", Fryer.SECOND_FRY_MIN / 2)
             fry.call("Anchor5", Fryer.SECOND_FRY_MAX + 120)
+        "portions":
+            # A batch on CUISSON 1 with 3 portions left; a player highlighting a frying CUISSON 2.
+            var sim := night.simulation
+            var batch := sim.stations[sim.level.node_stations[sim.level.find("Anchor2")]]
+            batch.basket = SimItem.new(Fryer.FRIES_BLANCHED)
+            batch.basket.portions = 3
+            var second := sim.stations[sim.level.node_stations[sim.level.find("Anchor4")]]
+            second.basket = SimItem.new(Fryer.FRIES_BLANCHED)
+            second.frying = true
+            second.cook = Fryer.SECOND_FRY_MIN
+            sim.players[0].node = sim.level.find("Anchor4")
         "menu":
             # The SAUCES menu open on andalouse, and a line of three-line orders.
             var sim := night.simulation
