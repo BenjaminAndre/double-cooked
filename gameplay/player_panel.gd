@@ -17,6 +17,8 @@ const DISABLED_ALPHA := 0.3
 
 ## Inside a MenuBubble: the hints need no frame of their own.
 var art_style := false
+## Smaller key and verb, e.g. inside a fryer's bubble.
+var compact := false
 
 var _menu_row: GridContainer
 var _hints: PanelContainer
@@ -123,9 +125,9 @@ func show_hints(rows: Array) -> void:
         # No key cap for a hint that only explains, like why a door stays shut.
         if row[0] != "":
             var key := ArtUi.panel(ArtUi.key_cap())
-            key.add_child(_label(row[0], KEY_FONT))
+            key.add_child(_label(row[0], KEY_FONT - (4 if compact else 0)))
             line.add_child(key)
-        var verb := _label(row[1], HINT_FONT)
+        var verb := _label(row[1], HINT_FONT - (4 if compact else 0))
         verb.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
         line.add_child(verb)
         _hint_rows.add_child(line)

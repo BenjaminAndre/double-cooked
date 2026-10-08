@@ -4,7 +4,9 @@ extends Control
 ## cream bubble with what is in the oil and the artist's cooking bar, yellow while undercooked,
 ## green when ready, red up to the fire, with a cursor for the progress. In its top-right
 ## corner, the siren blinks in the last second of the green, then the warning in the red. A
-## batch waiting on CUISSON 1 shows its portions left instead of the bar.
+## batch waiting on CUISSON 1 shows its portions left instead of the bar. The key hint of a player
+## standing at the fryer goes at the bottom (show_hints), rather than over their head, where the
+## bubble would hide it.
 
 const PICTURE_SIZE := 30
 const BAR_SIZE := Vector2(76, 9)
@@ -15,6 +17,10 @@ const KNOB_SIZE := Vector2(6, 15)
 const READY_FROM := 0.268
 const READY_UNTIL := 0.744
 const ALERT_SIZE := 24
+## Between two bubbles pushed apart, in pixels.
+const GAP := 4.0
+## Room inside the frame: its border is thick, and its tail takes the bottom.
+const PADDING := Vector4(12, 8, 12, 20)
 const BLINK_MS := 250
 ## How far above the station the bubble's tail points, in metres.
 const HEIGHT := 1.1
@@ -31,13 +37,19 @@ var _bar: Control
 var _knob: TextureRect
 var _alert: TextureRect
 var _alert_kind := Alert.NONE
+var _hints: PlayerPanel
 var _kind := &""
 
 
 func _init() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     visible = false
-    _panel = ArtUi.panel(ArtUi.bubble_down())
+    var style := ArtUi.bubble_down().duplicate() as StyleBoxTexture
+    style.content_margin_left = PADDING.x
+    style.content_margin_top = PADDING.y
+    style.content_margin_right = PADDING.z
+    style.content_margin_bottom = PADDING.w
+    _panel = ArtUi.panel(style)
     add_child(_panel)
     var column := VBoxContainer.new()
     column.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -68,6 +80,10 @@ func _init() -> void:
     _knob.stretch_mode = TextureRect.STRETCH_SCALE
     _knob.size = KNOB_SIZE
     _bar.add_child(_knob)
+    _hints = PlayerPanel.new()
+    _hints.art_style = true
+    _hints.compact = true
+    column.add_child(_hints)
     _alert = TextureRect.new()
     _alert.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     _alert.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -98,6 +114,11 @@ func hide_bubble() -> void:
     visible = false
 
 
+## rows: [key name, verb] pairs of the player standing at the fryer, [] for none.
+func show_hints(rows: Array) -> void:
+    _hints.show_hints(rows)
+
+
 ## Where the cursor is on the bar, from 0 to 1, for cook ticks into a window ending in a fire.
 static func progress(cook: int, window: Vector2i, fire: int) -> float:
     if cook <= window.x:
@@ -114,6 +135,20 @@ static func alert_for(cook: int, window: Vector2i) -> Alert:
     if cook >= window.y - Simulation.TICK_RATE and cook >= window.x:
         return Alert.ALERT
     return Alert.NONE
+
+
+## Pushes the bubbles shown side by side apart, left to right, so none hides another. They
+## stay at their height; each keeps its place unless the one before it is in the way.
+static func separate(bubbles: Array) -> void:
+    var shown := bubbles.filter(func(bubble: CookingBubble) -> bool: return bubble.visible)
+    shown.sort_custom(func(a: CookingBubble, b: CookingBubble) -> bool: return a.position.x < b.position.x)
+    for index in range(1, shown.size()):
+        var before: CookingBubble = shown[index - 1]
+        var bubble: CookingBubble = shown[index]
+        var mine := Rect2(bubble.position, bubble._panel.size)
+        var theirs := Rect2(before.position, before._panel.size)
+        if mine.intersects(theirs):
+            bubble.position.x = theirs.end.x + GAP
 
 
 ## Puts the bubble's tail over this point of the world, kept on screen.

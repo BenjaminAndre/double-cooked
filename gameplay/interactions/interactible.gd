@@ -110,6 +110,22 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
 
 
+## This fryer's bubble, null until it first shows.
+func bubble() -> CookingBubble:
+    return _bubble
+
+
+## Whether this fryer shows its bubble, where a player standing at it reads their key hint.
+func has_bubble() -> bool:
+    return _bubble != null and _bubble.visible
+
+
+## The key hint of the player standing at this fryer, in its bubble; [] for none.
+func show_bubble_hints(rows: Array) -> void:
+    if _bubble:
+        _bubble.show_hints(rows)
+
+
 func _cooking_bubble() -> CookingBubble:
     if not _bubble:
         var layer := CanvasLayer.new()

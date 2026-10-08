@@ -731,6 +731,8 @@ func _show(p_alpha: float) -> void:
     # Each player at this keyboard sees the station they stand at highlighted, and what their
     # interact key would do there.
     var highlighted := {}
+    # Station -> the hints of the player standing at it, shown in its bubble (a fryer's).
+    var bubble_hints := {}
     for local_index in _local_slots.size():
         var slot := _local_slots[local_index]
         if slot >= simulation.players.size():
@@ -760,6 +762,11 @@ func _show(p_alpha: float) -> void:
         var eat := simulation.eat_action(player) if simulation.outcome == &"" else &""
         if eat != &"":
             hints.append([_input.eat_key_name(local_index), ItemNames.action(eat)])
+        # At a fryer showing its bubble, the hints go in it: over the head, the bubble hides them.
+        var at := simulation.level.node_stations[player.node] if not player.is_moving() else SimLevel.NONE
+        if at != SimLevel.NONE and _station_views[at].has_bubble():
+            bubble_hints[at] = hints
+            hints = []
         _views[slot].show_hint(hints)
         var options: Array = []
         var disabled: Array = []
@@ -800,9 +807,16 @@ func _show(p_alpha: float) -> void:
         open_menus[player.menu] = true
     for index in _station_views.size():
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
+        _station_views[index].show_bubble_hints(bubble_hints.get(index, []))
         # The floor squares show where everyone stands, where the room has them.
         _station_views[index].set_highlighted(highlighted.has(index) and not _room.squares)
         _station_views[index].set_menu_open(open_menus.has(index))
+    # Neighbouring fryers' bubbles never hide one another.
+    var bubbles := []
+    for view in _station_views:
+        if view.bubble():
+            bubbles.append(view.bubble())
+    CookingBubble.separate(bubbles)
 
 
 func _no_commands() -> Array:

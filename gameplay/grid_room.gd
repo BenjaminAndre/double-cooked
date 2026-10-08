@@ -74,6 +74,8 @@ const ART_MODELS := {
 }
 ## Where the fryers' names float in the artist's kitchen.
 const ART_LABEL_HEIGHT := 1.1
+## A quarter of a cell: from its middle to the middle of its half.
+const SHELF_QUARTER := 0.25
 
 @export var layout := PackedStringArray()
 @export var names := PackedStringArray()
@@ -310,6 +312,7 @@ func _use_art(stations: Node3D) -> void:
                 var fryer := art.get_node_or_null("DoubleCooked_DeepFryer")
                 if fryer:
                     station.cooked_models = _sorted(fryer.find_children("DoubleCooked_FriesCooked*", "", true, false))
+                    _share_shelf(station, fryer.find_child("DoubleCooked_FriesRaw", true, false), station.cooked_models)
             &"cuisson_viande":
                 var fryer := art.get_node_or_null("DoubleCooked_DeepFryer")
                 if fryer:
@@ -318,6 +321,28 @@ func _use_art(stations: Node3D) -> void:
                     if station.basket_model and player and not player.get_animation_list().is_empty():
                         station.basket_model.set_meta(StationModels.EJECT, StationModels.eject_frames(
                                 player.get_animation(player.get_animation_list()[0]), station.basket_model.name))
+
+
+## The batch's portions wait on CUISSON 1 (GDD §7.1), but the artist drew them over CUISSON 2.
+## They share CUISSON 1's shelf with the raw fries: the raw pile, squashed to half its length, on
+## the half away from CUISSON 2, the portions on the other half.
+func _share_shelf(station: Node3D, raw: Node3D, cooked: Array) -> void:
+    if not raw or cooked.is_empty():
+        return
+    var cell := _world(station).z
+    var middle := 0.0
+    for portion: Node3D in cooked:
+        middle += _world(portion).z / cooked.size()
+    # Towards CUISSON 2: where the artist put the portions.
+    var towards := signf(middle - cell)
+    for portion: Node3D in cooked:
+        var where := _world_transform(portion)
+        where.origin.z += cell + towards * SHELF_QUARTER - middle
+        _set_world_transform(portion, where)
+    var pile := _world_transform(raw)
+    pile.basis = Basis.from_scale(Vector3(1, 1, 0.5)) * pile.basis
+    pile.origin.z = cell - towards * SHELF_QUARTER
+    _set_world_transform(raw, pile)
 
 
 ## The node nearest to the station on the floor, null if there is none.
@@ -337,6 +362,20 @@ static func _flat_distance(a: Vector3, b: Vector3) -> float:
 static func _sorted(nodes: Array) -> Array:
     nodes.sort_custom(func(a: Node, b: Node) -> bool: return String(a.name) < String(b.name))
     return nodes
+
+
+## Like global_transform, before the room is in the tree.
+static func _world_transform(node: Node) -> Transform3D:
+    var transform := Transform3D.IDENTITY
+    var current: Node = node
+    while current is Node3D:
+        transform = (current as Node3D).transform * transform
+        current = current.get_parent()
+    return transform
+
+
+static func _set_world_transform(node: Node3D, transform: Transform3D) -> void:
+    node.transform = _world_transform(node.get_parent()).affine_inverse() * transform
 
 
 ## Like global_position, before the room is in the tree (Night reads it in its own _ready).
