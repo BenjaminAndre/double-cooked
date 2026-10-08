@@ -47,6 +47,8 @@ func test_the_fridge_breakdown_stops_the_beers_coming_back() -> void:
 
 func test_the_diables_rouges_bring_a_rush_in_a_hurry() -> void:
     var rules := _rules([[0.125, NightEvents.DIABLES_ROUGES]])
+    # Plain fries: no bread customer waiting longer.
+    rules.menu = [&"frites", Menu.NATURE] as Array[StringName]
     var scenario := Scenario.new(level, [fridge], 1, rules)
     var sim := scenario.run_until(501)
     assert_eq(sim.crowd.line.size(), 1, "the first at once")

@@ -56,10 +56,15 @@ var boss_came := false
 var rush := 0
 var rush_next := 0
 var _next_id := 0
+## The night's seed, for each customer's own random stream (stream), and how many arrivals
+## have been drawn.
+var seed := 0
+var _arrivals := 0
 
 
-func _init(p_rules: SimRules) -> void:
+func _init(p_rules: SimRules, p_seed := 0) -> void:
     rules = p_rules
+    seed = p_seed
     next_arrival = rules.first_arrival
 
 
@@ -76,15 +81,15 @@ func front() -> Customer:
 func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
     # The door closes at 04:00.
     if not boss_came and rules.boss_orders > 0 and tick >= rules.boss_tick() and tick < rules.night_ticks:
-        _boss_arrives(rng, events)
+        _boss_arrives(events)
     if tick >= next_arrival and tick < rules.night_ticks:
         if line.size() < rules.max_line:
-            line.append(_new_customer(rng))
+            line.append(_new_customer())
             events.append({"type": &"arrival"})
-        next_arrival = tick + _arrival_delay(tick, player_count, rng)
+        next_arrival = tick + _arrival_delay(tick, player_count)
     # A rush comes on top of the usual arrivals, even into a full line.
     if rush > 0 and tick >= rush_next:
-        var hurried := _new_customer(rng)
+        var hurried := _new_customer()
         hurried.patience = roundi(hurried.patience * rules.rush_patience)
         hurried.full_patience = hurried.patience
         line.append(hurried)
@@ -184,8 +189,9 @@ func _serve_group(leader: Customer, key: StringName, by: int, events: Array[Dict
 
 ## The colleagues' leader joins the line (NightEvents.COLLEGUES), with an order for the whole
 ## group: beers, then dishes from tonight's menu.
-func add_group(rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
-    var leader := _new_customer(rng)
+func add_group(events: Array[Dictionary]) -> void:
+    var leader := _new_customer()
+    var rng := stream("collegues")
     leader.group = true
     leader.order = &""
     var drink := Menu.BEER if Menu.BEER in rules.menu else Menu.COLA
@@ -212,7 +218,7 @@ func fingerprint() -> Array:
     var customers := []
     for customer in line:
         customers.append(customer.fingerprint())
-    return [customers, mood, next_arrival, boss_came, _next_id, rush, rush_next]
+    return [customers, mood, next_arrival, boss_came, _next_id, _arrivals, rush, rush_next]
 
 
 ## The patience each of the boss's orders starts with.
@@ -221,8 +227,9 @@ func boss_patience() -> int:
 
 
 ## He cuts in at the counter: everyone goes back one place, even a customer being served.
-func _boss_arrives(rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
+func _boss_arrives(events: Array[Dictionary]) -> void:
     boss_came = true
+    var rng := stream("boss")
     var boss := Customer.new()
     boss.id = _next_id
     _next_id += 1
@@ -315,11 +322,11 @@ func _boss_next(boss: Customer, events: Array[Dictionary]) -> void:
     events.append({"type": &"boss_left", "served": served})
 
 
-func _new_customer(rng: RandomNumberGenerator) -> Customer:
+func _new_customer() -> Customer:
     var customer := Customer.new()
     customer.id = _next_id
     _next_id += 1
-    customer.order = Menu.random_order(rng, rules.order_categories, rules.menu)
+    customer.order = Menu.random_order(stream(customer.id), rules.order_categories, rules.menu)
     customer.patience = rules.patience
     if StringName(String(customer.order).get_slice(":", 0)) in Menu.BREAD_DISHES:
         customer.patience = roundi(rules.patience * rules.bread_patience)
@@ -327,11 +334,21 @@ func _new_customer(rng: RandomNumberGenerator) -> Customer:
     return customer
 
 
-func _arrival_delay(tick: int, player_count: int, rng: RandomNumberGenerator) -> int:
-    var delay := float(rng.randi_range(rules.arrival_min, rules.arrival_max))
+func _arrival_delay(tick: int, player_count: int) -> int:
+    var delay := float(stream(["arrival", _arrivals]).randi_range(rules.arrival_min, rules.arrival_max))
+    _arrivals += 1
     # One player: as is. Each extra player shortens the wait (2 players: x2/3, 4: x2/5).
     delay *= 2.0 / (player_count + 1)
     delay *= lerpf(rules.calm_arrival_factor, rules.mad_arrival_factor, rules.intensity(tick))
     # Each night of a campaign is a little busier than the last.
     delay /= 1.0 + rules.busier_per_night * maxi(rules.night_number - 1, 0)
     return maxi(1, roundi(delay))
+
+
+## A random stream of its own for this key (a customer's id, "boss", "collegues"...), from the
+## night's seed alone: whatever the crew did before, customer #17 orders the same on the same
+## seed, which is what makes a Nuit unique comparable (GDD §4.3).
+func stream(key: Variant) -> RandomNumberGenerator:
+    var keyed := RandomNumberGenerator.new()
+    keyed.seed = hash([seed, key])
+    return keyed

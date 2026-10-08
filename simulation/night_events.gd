@@ -34,11 +34,11 @@ func _init(p_rules: SimRules, p_crowd: SimCrowd) -> void:
 
 ## One tick: the next event starts once its time comes ({"type": &"night_event", "kind": ...}),
 ## and those under way run out. fire: whether a station is burning.
-func advance(tick: int, events: Array[Dictionary], fire: bool, rng: RandomNumberGenerator) -> void:
+func advance(tick: int, events: Array[Dictionary], fire: bool) -> void:
     if group_coming > 0:
         group_coming -= 1
         if group_coming == 0:
-            crowd.add_group(rng, events)
+            crowd.add_group(events)
     if inspection > 0:
         inspection_failed = inspection_failed or fire
         inspection -= 1

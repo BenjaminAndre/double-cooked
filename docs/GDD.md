@@ -105,6 +105,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **The first 3 customers in line show a ticket** (order + patience bar) under them; the rest of the line is visible, but their orders stay unknown. One ticket per stage of the fries (first fry, second fry, ready), so players can start the next basket in time. Tunable: `SimRules.visible_orders`.
 - **Everyone in the line loses patience**, slowly, and the customer at the front loses it much faster. A long line raises the mood on its own, even if nobody is served badly.
 - A customer whose patience runs out **walks out**, which raises the mood a lot.
+- **Each customer draws from their own random stream** (0.2.34): their order comes from the night's seed and their place in the night (the 17th customer), and so do the gaps between arrivals, the boss's and the colleagues' orders. On the same seed, a crew that goes faster meets the same customers, only sooner.
 - **Interacting at the CAISSE is serving** the front customer, with a dish or a drink (nothing raw, no extinguisher). The right order (dish **and** sauce), done right, sends them off happy and calms the room. Their dish badly done (burnt, soggy, undercooked, lukewarm) sends them off **angry**, which raises the mood. **A wrong dish is refused** (the artist's rule, 0.2.25): it stays in hand, their ticket flashes red and they lose 5 s of patience.
 - **A beer always pleases** (the one exception): if it wasn't their order, it buys back some patience and they keep waiting.
 

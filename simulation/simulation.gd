@@ -50,7 +50,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     level = p_level
     rng.seed = p_seed
     rules = p_rules if p_rules else SimRules.new()
-    crowd = SimCrowd.new(rules)
+    crowd = SimCrowd.new(rules, p_seed)
     night_events = NightEvents.new(rules, crowd)
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
@@ -139,7 +139,7 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        night_events.advance(tick, events, stations.any(func(station: SimStation) -> bool: return station.burning), rng)
+        night_events.advance(tick, events, stations.any(func(station: SimStation) -> bool: return station.burning))
         crowd.advance(tick, players.size(), rng, events)
         _customers_throw()
     _advance_projectiles()

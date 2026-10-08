@@ -32,13 +32,14 @@ func test_a_customer_arrives_with_one_order() -> void:
 func test_orders_cover_the_whole_menu() -> void:
     rules.arrival_min = 1
     rules.arrival_max = 1
-    rules.max_line = 300
+    rules.max_line = 1000
     rules.patience = NEVER
     var seen := {}
-    for customer in _scenario().run_until(250).crowd.line:
+    for customer in _scenario().run_until(900).crowd.line:
         seen[customer.order] = true
     for expected in [&"cola", &"biere", &"frites:nature", &"frites:mayo", &"frites:andalouse",
-            &"fricadelle:mayo", &"cervelas_froid:nature", &"cervelas_chaud:andalouse"]:
+            &"fricadelle:mayo", &"cervelas_froid:nature", &"cervelas_chaud:andalouse", &"burger_complet:ketchup",
+            &"mitraillette:mayo"]:
         assert_true(seen.has(expected), "%s shows up" % expected)
 
 
@@ -271,3 +272,25 @@ func _with_order(scenario: Scenario, order: StringName) -> Simulation:
     var sim := scenario.run_until(2)
     sim.crowd.front().order = order
     return sim
+
+
+## Every customer draws from their own stream (SimCrowd.stream): on the same seed, the 5th orders
+## the same whatever the pace before them (GDD §4.3).
+func test_a_customer_orders_the_same_whatever_came_before() -> void:
+    var fast := SimRules.new()
+    fast.first_arrival = 1
+    fast.line_pressure_every = NEVER
+    fast.night_ticks = NEVER
+    fast.boss_orders = 0
+    rules.arrival_min = 40
+    rules.arrival_max = 40
+    rules.max_line = 50
+    rules.patience = NEVER
+    fast.arrival_min = 3
+    fast.arrival_max = 3
+    fast.max_line = 50
+    fast.patience = NEVER
+    var slow_line := Scenario.new(level, [till], 9, rules).run_until(250).crowd.line
+    var fast_line := Scenario.new(level, [till], 9, fast).run_until(250).crowd.line
+    for index in 5:
+        assert_eq(fast_line[index].order, slow_line[index].order)

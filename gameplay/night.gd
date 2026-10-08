@@ -491,7 +491,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         if station != SimLevel.NONE and not Menu.station_in_use(level.station_kinds[station], rules.menu):
             _idle_nodes[node] = true
     room.camera.current = true
-    _replay = {"version": 2, "level": owner.scene_file_path if owner else "", "seed": seed_value,
+    _replay = {"version": 3, "level": owner.scene_file_path if owner else "", "seed": seed_value,
             "spawns": spawn_names, "looks": Array(looks), "lobby": in_lobby, "night": campaign_night,
             "room": String(room.name)}
     _log.clear()
