@@ -54,7 +54,17 @@ static func rules_for(night: int) -> SimRules:
     if night > 0:
         rules.night_number = night
         rules.menu = menu_for(night)
+        rules.night_events = events_for(night)
     return rules
+
+
+## The events of this night (SimRules.night_events): the artist's week, from Saturday's fridge
+## breakdown so far.
+static func events_for(night: int) -> Array:
+    match day(night):
+        "samedi":
+            return [[0.5, NightEvents.PANNE_FRIGO]]
+    return []
 
 
 ## What the menu gets new tonight, for the start of the night (nothing on the first).

@@ -39,6 +39,8 @@ var _day_frame: PanelContainer
 var _day: Label
 ## The start of a campaign night (DaySplash).
 var _splash: DaySplash
+## A night's event as it starts.
+var _event_banner: EventBanner
 var _next: Label
 ## The best campaign so far, under the logo in the lobby.
 var _record: RichTextLabel
@@ -128,6 +130,9 @@ func _ready() -> void:
     _next = _ink_label(28, column)
     _splash = DaySplash.new()
     add_child(_splash)
+    _event_banner = EventBanner.new()
+    add_child(_event_banner)
+    night.night_event_started.connect(_event_banner.show_event)
 
 
 func _process(delta: float) -> void:

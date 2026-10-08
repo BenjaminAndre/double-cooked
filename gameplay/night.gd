@@ -32,6 +32,8 @@ signal began
 signal notice(text: String)
 ## A big announcement, e.g. the boss walking in.
 signal announced(text: String)
+## One of tonight's events starts (NightEvents).
+signal night_event_started(kind: StringName)
 ## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
 signal phone_used(choice: StringName)
 
@@ -427,6 +429,8 @@ func _step() -> bool:
             _station_views[event.station].pulse()
         elif event.type == &"refused" and queue:
             queue.flash_refused()
+        elif event.type == &"night_event":
+            night_event_started.emit(event.kind)
         elif event.type == &"boss_arrived":
             announced.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:
@@ -833,6 +837,7 @@ func _show(p_alpha: float) -> void:
     for player in simulation.players:
         open_menus[player.menu] = true
     for index in _station_views.size():
+        _station_views[index].broken = simulation.night_events.fridge_down > 0
         _station_views[index].show_station(simulation.stations[index], simulation.rules)
         _station_views[index].show_bubble_hints(bubble_hints.get(index, []))
         # The floor squares show where everyone stands, where the room has them.

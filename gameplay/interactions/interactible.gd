@@ -53,6 +53,8 @@ var _flipbooks := {}
 var _oil: CPUParticles3D
 ## Whether the station has something to do tonight (Menu.station_in_use); greyed out if not.
 var _in_use := true
+## The FRIGO broken down by tonight's event (NightEvents), set by Night.
+var broken := false
 ## Material -> its darkened copy, shared like UnlitArt's.
 static var _greyed := {}
 const GREYED := Color(0.4, 0.4, 0.42)
@@ -84,7 +86,7 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     if station.burning:
         label = "FEU !"
     elif kind == &"frigo" and _in_use:
-        label = "bière ×%d" % station.beers
+        label = "bière ×%d" % station.beers + (" · en panne" if broken else "")
     _show_label(label, station.burning)
     if frying:
         var window := Fryer.window(station)

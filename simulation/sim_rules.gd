@@ -104,6 +104,13 @@ var can_mood := 0.5
 var can_every := 8 * SECOND
 
 
+## Tonight's events (NightEvents, GDD §6.4), in their order: [when, as a fraction of the night,
+## kind]. A campaign night has its day's (Campaign.events_for); a single night none so far.
+var night_events: Array = []
+## The fridge breakdown: no beer comes back to the FRIGO for this long.
+var fridge_breakdown := 25 * SECOND
+
+
 ## The boss (GDD §6.3): one per night, at boss_at through the night (02:00). He cuts to the
 ## front of the line and orders boss_orders dishes one after the other, each with
 ## boss_patience_factor times the usual patience. 0 orders: no boss.

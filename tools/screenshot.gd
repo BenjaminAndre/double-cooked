@@ -131,6 +131,9 @@ func _initialize() -> void:
             await create_timer(1.2).timeout
             for index in sim.crowd.line.size():
                 sim.crowd.line[index].order = [&"mitraillette:andalouse", &"burger_complet:ketchup", &"burger:nature"][index % 3]
+        "event":
+            # The fridge breaking down: its banner, and the FRIGO in its state.
+            night.simulation.rules.night_events = [[0.001, NightEvents.PANNE_FRIGO]]
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0

@@ -35,6 +35,8 @@ var events: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var rules: SimRules
 var crowd: SimCrowd
+## Tonight's events: the fridge breaking down, and so on (GDD §6.4).
+var night_events: NightEvents
 ## &"won" at closing time, &"lost" otherwise; &"" while the night goes on.
 var outcome := &""
 ## Why the night ended: &"closing", &"riot" or &"crew_down".
@@ -49,6 +51,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     rng.seed = p_seed
     rules = p_rules if p_rules else SimRules.new()
     crowd = SimCrowd.new(rules)
+    night_events = NightEvents.new(rules)
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
         players[slot].bmi = rules.start_bmi
@@ -124,7 +127,8 @@ func step(commands: Array) -> void:
         _advance(player)
     for station in stations:
         Fryer.advance(station)
-        if station.kind == &"frigo" and station.beers < rules.fridge_beers:
+        # Broken down, the FRIGO gets no beer back.
+        if station.kind == &"frigo" and station.beers < rules.fridge_beers and night_events.fridge_down == 0:
             station.restock += 1
             if station.restock >= rules.fridge_restock:
                 station.restock = 0
@@ -134,6 +138,7 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
+        night_events.advance(tick, events)
         crowd.advance(tick, players.size(), rng, events)
         _customers_throw()
     _advance_projectiles()
@@ -159,6 +164,7 @@ func state_hash() -> int:
     for projectile in projectiles:
         state.append(projectile.fingerprint())
     state.append(crowd.fingerprint())
+    state.append(night_events.fingerprint())
     state.append(outcome)
     state.append(stats)
     return hash(state)

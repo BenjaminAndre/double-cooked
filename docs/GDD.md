@@ -119,6 +119,10 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 - **While he waits** he throws a can at a random player every few seconds, for no reason.
 - **He leaves after his third order.** All three served right cheers the room up a lot. The recap shows how many of his orders were served.
 
+### 6.4 Night events (the artist's, 0.2.29 onwards)
+- Besides the boss, a night can have **events**: each comes at its time, is announced at the top of the screen with the artist's picture, and changes the rules for a while (`NightEvents`). In a campaign they follow the artist's week; a single night has none for now.
+- **Panne de frigo** (samedi, mid-night): the FRIGO breaks down, no beer comes back for 25 s ("en panne" over it). Cola has to do.
+
 ## 7. Cooking
 
 ### 7.1 Double cuisson (signature mechanic)
