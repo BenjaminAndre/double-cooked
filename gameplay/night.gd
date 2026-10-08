@@ -73,6 +73,11 @@ var campaign_night := 0
 ## The campaign just ended on a night further than any before, or the Nuit unique on a score
 ## higher than any before for this many players, on this browser.
 var new_record := false
+## A test tool was used since the crew left the lobby (GDD §9.3): the replay says so, and the
+## run sets no record.
+var debug_used := false
+## Host and offline: ticks per second, times this (a test tool); the guests follow.
+var speed := 1
 
 @onready var _link: NightLink = $Link
 
@@ -218,7 +223,7 @@ func _host_begin(lobby: bool, p_campaign_night := 0) -> void:
     _slot_ids = ids
     for peer in _peer_order:
         _link.begin_night.rpc_id(peer, count, _peer_slots[peer], seed_value, lobby, campaign_night, looks,
-                ids)
+                ids, debug_used)
 
 
 ## [colour, hat] of this slot in the current simulation, [-1, -1] if there is none.
@@ -274,6 +279,28 @@ func local_slots() -> PackedInt32Array:
     return _local_slots
 
 
+## Whether this peer may use the test tools (GDD §9.3): the host, or offline.
+func can_use_tools() -> bool:
+    return role != Role.CLIENT
+
+
+## A test tool (Simulation.DebugTool) with its argument, sent as a command like a key press.
+func use_tool(tool: Simulation.DebugTool, arg := 0) -> void:
+    if can_use_tools() and not in_lobby and not _local_slots.is_empty():
+        submit(0, Simulation.debug_command(tool, arg))
+
+
+## Test tool: the crew goes straight to this night of a campaign (its menu and pace).
+func jump_to_night(night_number: int) -> void:
+    if not can_use_tools():
+        return
+    debug_used = true
+    if role == Role.HOST:
+        host_online(night_number)
+    else:
+        play_local(_local_slots.size(), night_number)
+
+
 ## Host: a peer left. In the lobby, it starts over without them; in a night their player stays,
 ## idle, marked as gone for everyone, until they come back.
 func peer_left(peer_id: int) -> void:
@@ -313,6 +340,8 @@ func replay() -> Dictionary:
         data.joins = _joins.duplicate(true)
     if not desync_ticks.is_empty():
         data.desync_ticks = Array(desync_ticks)
+    if debug_used:
+        data.debug_used = true
     return data
 
 
@@ -363,7 +392,7 @@ func _process(delta: float) -> void:
 ## a new host is taking over.
 func _advance() -> void:
     var now := Time.get_ticks_usec()
-    _accumulator += (now - _last_usec) / 1_000_000.0
+    _accumulator += (now - _last_usec) / 1_000_000.0 * (speed if role != Role.CLIENT else 1)
     _last_usec = now
     if reconnecting:
         _accumulator = 0.0
@@ -433,6 +462,8 @@ func _step() -> bool:
             _station_views[event.station].pulse()
         elif event.type == &"refused" and queue:
             queue.flash_refused()
+        elif event.type == &"debug":
+            debug_used = true
         elif event.type == &"points":
             points_scored.emit(event.points)
         elif event.type == &"night_event":
@@ -468,6 +499,8 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     _save_replay()
     role = p_role
     in_lobby = lobby and lobby_room != null
+    if in_lobby:
+        debug_used = false
     for view in _views:
         view.queue_free()
     _views.clear()
@@ -533,15 +566,18 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
 
 
 func _on_command_received(peer_id: int, command: int) -> void:
-    # A player catching up may press keys before they are in the night: those are dropped.
-    if role == Role.HOST and _peer_slots.has(peer_id) and _peer_slots[peer_id] < _pending.size():
+    # A player catching up may press keys before they are in the night: those are dropped. So
+    # are test tools from a guest: they are the host's.
+    if role == Role.HOST and _peer_slots.has(peer_id) and _peer_slots[peer_id] < _pending.size() \
+            and command < Simulation.DEBUG:
         _pending[_peer_slots[peer_id]].append(command)
 
 
 func _on_night_began(player_count: int, slot: int, seed_value: int, lobby: bool, p_campaign_night: int,
-        looks: PackedInt32Array, ids: PackedStringArray) -> void:
+        looks: PackedInt32Array, ids: PackedStringArray, debug: bool) -> void:
     _begin(player_count, PackedInt32Array([slot]), seed_value, Role.CLIENT, lobby, looks, p_campaign_night)
     _slot_ids = ids
+    debug_used = debug
 
 
 func _on_tick_received(tick: int, check: int, commands: PackedInt32Array) -> void:
@@ -635,6 +671,7 @@ func _send_catch_up(peer: int, slot: int) -> void:
     start.log = _log
     start.joins = _joins
     start.tick = simulation.tick
+    start.debug = debug_used
     _link.catch_up.rpc_id(peer, start, slot, _slot_ids, PackedInt32Array(_left.keys()))
 
 
@@ -644,6 +681,7 @@ func _on_caught_up(start: Dictionary, slot: int, ids: PackedStringArray, left: P
     _begin(int(start.count), PackedInt32Array([slot]), int(start.seed), Role.CLIENT, false,
             PackedInt32Array(start.looks), int(start.get("night", 0)))
     _slot_ids = ids
+    debug_used = start.get("debug", false)
     for gone in left:
         _left[gone] = true
         if gone < _views.size():
@@ -945,7 +983,7 @@ func campaign_record() -> Dictionary:
 
 ## Keeps this campaign if it went further than the record. Returns whether it did.
 func _save_record() -> bool:
-    if looks_path == "" or campaign_night <= campaign_record().night:
+    if looks_path == "" or debug_used or campaign_night <= campaign_record().night:
         return false
     var config := ConfigFile.new()
     config.load(looks_path)
@@ -972,7 +1010,7 @@ func nuit_unique_best(players: int) -> int:
 func _save_best() -> bool:
     var players := simulation.players.size()
     var score := simulation.score()
-    if looks_path == "" or score <= nuit_unique_best(players):
+    if looks_path == "" or debug_used or score <= nuit_unique_best(players):
         return false
     var config := ConfigFile.new()
     config.load(looks_path)

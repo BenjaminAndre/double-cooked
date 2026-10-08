@@ -79,6 +79,28 @@ func test_a_client_that_drifts_from_the_host_shows_it_and_keeps_it_in_its_replay
     assert_eq(replay.desync_ticks[0] % Night.CHECK_EVERY, 0)
 
 
+func test_the_hosts_test_tools_keep_the_guest_in_sync_and_a_guests_are_dropped() -> void:
+    const Tool := Simulation.DebugTool
+    host_night.host_lobby()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    host_night.jump_to_night(4)
+    await wait_until(func() -> bool: return client_night.campaign_night == 4, 5.0)
+    assert_true(client_night.debug_used, "the guest knows the night was reached with a tool")
+    # A guest can't use them: the host drops the command.
+    client_night.submit(0, Simulation.debug_command(Tool.MOOD, SimCrowd.Level.EMEUTE))
+    host_night.use_tool(Tool.FILL_LINE)
+    host_night.use_tool(Tool.FIRE)
+    host_night.use_tool(Tool.CLOCK, Simulation.ClockJump.BOSS)
+    await wait_until(func() -> bool: return client_night.simulation.crowd.boss_came, 5.0)
+    host_night.set_process(false)
+    await wait_until(func() -> bool:
+            return client_night.simulation.tick == host_night.simulation.tick, 5.0)
+    assert_eq(client_night.simulation.state_hash(), host_night.simulation.state_hash())
+    assert_eq(host_night.simulation.crowd.level(), SimCrowd.Level.CALME)
+    assert_true(client_night.simulation.stations.any(func(s: SimStation) -> bool: return s.burning))
+    assert_eq(client_night.desyncs, 0)
+
+
 func test_a_client_says_when_the_host_goes_silent() -> void:
     host_night.host_online()
     await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)

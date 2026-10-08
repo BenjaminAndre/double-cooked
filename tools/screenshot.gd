@@ -169,6 +169,15 @@ func _initialize() -> void:
             sim.players[1].health = 0
             sim.players[1].down = true
             sim.players[0].item = SimItem.new(Simulation.EXTINGUISHER)
+        "tools":
+            # The F4 panel, on the crew row, after the speed was set to ×2.
+            var panel: DebugPanel = game.get_node("Hud").tools
+            night.play_local(2)
+            night.speed = 2
+            panel.toggle()
+            for row in 5:
+                panel.press(KEY_DOWN)
+            panel.press(KEY_RIGHT)
         "desync":
             # What a client sees once it drifted from the host, just after pressing F3.
             night.desyncs = 2

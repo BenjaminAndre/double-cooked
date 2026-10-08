@@ -5,7 +5,7 @@ extends Node
 
 signal command_received(peer_id: int, command: int)
 signal night_began(player_count: int, slot: int, seed_value: int, lobby: bool, campaign_night: int,
-        looks: PackedInt32Array, ids: PackedStringArray)
+        looks: PackedInt32Array, ids: PackedStringArray, debug: bool)
 signal tick_received(tick: int, check: int, commands: PackedInt32Array)
 signal player_left(slot: int)
 signal player_back(slot: int)
@@ -30,11 +30,12 @@ func hello(player_id: String, look: PackedInt32Array) -> void:
 
 ## Host to one client: a night (or the lobby) starts, and this is the client's slot.
 ## campaign_night: which night of a campaign (Campaign), 0 for a single night. looks:
-## colour, hat per slot; ids: each slot's player.
+## colour, hat per slot; ids: each slot's player; debug: whether a test tool was used on the
+## way here (Night.debug_used).
 @rpc("authority", "call_remote", "reliable")
 func begin_night(player_count: int, slot: int, seed_value: int, lobby: bool, campaign_night: int,
-        looks: PackedInt32Array, ids: PackedStringArray) -> void:
-    night_began.emit(player_count, slot, seed_value, lobby, campaign_night, looks, ids)
+        looks: PackedInt32Array, ids: PackedStringArray, debug: bool) -> void:
+    night_began.emit(player_count, slot, seed_value, lobby, campaign_night, looks, ids, debug)
 
 
 ## Host to one client joining (or rejoining) a night under way: how it started and every

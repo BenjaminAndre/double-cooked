@@ -49,6 +49,8 @@ var _event_banner: EventBanner
 var _next: Label
 ## The best campaign so far, under the logo in the lobby.
 var _record: RichTextLabel
+## The host's test tools (F4).
+var tools: DebugPanel
 
 
 func _ready() -> void:
@@ -145,6 +147,8 @@ func _ready() -> void:
     _event_banner = EventBanner.new()
     add_child(_event_banner)
     night.night_event_started.connect(_event_banner.show_event)
+    tools = DebugPanel.new(night)
+    add_child(tools)
 
 
 func _process(delta: float) -> void:
@@ -173,6 +177,8 @@ func _process(delta: float) -> void:
         warnings.append(silence_text(night.host_silence()))
     warnings.append(desync_text(night.desyncs))
     warnings.append(inspection_text(sim.night_events))
+    if night.speed != 1:
+        warnings.append("Vitesse ×%d" % night.speed)
     _set_text(_desync, "\n".join(warnings).strip_edges())
     _notice_left = maxf(_notice_left - delta, 0.0)
     _notice.visible = _notice_left > 0.0
@@ -208,6 +214,8 @@ func _process(delta: float) -> void:
                 recap_text += "\n[center]Record : %d points[/center]" % best
         if night.campaign_night > 0 and sim.outcome != &"won" and night.campaign_record().night > 0:
             recap_text += "\n[center]%s[/center]" % record_text(night.campaign_record(), night.new_record)
+        if night.debug_used:
+            recap_text += "\n[center]Outils de test utilisés : pas de record[/center]"
         if _recap.text != recap_text:
             _recap.text = recap_text
         _set_text(_next, next)

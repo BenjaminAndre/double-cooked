@@ -222,13 +222,17 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 
 ### 9.3 Test tools (F4, 0.2.37)
 
-Tools to test a night with real players, in the web build too. Each tool is a **command** in the stream (`Simulation.debug_command`), like a key press: guests stay in sync and replays play them again. Only in the kitchen.
+Tools to test a night with real players, in the web build too. **F4** opens them in a cream note on the left, for the host or offline only (a guest's F4 says they are the host's, and the host drops any tool command a guest sends). Up and down pick a row, left and right an option, Space uses it, F4 or Escape closes; the night goes on meanwhile. Each night tool is a **command** in the stream (`Simulation.debug_command`), like a key press: guests stay in sync and replays play them again.
+
+**A run that used a tool sets no record**, nor a Nuit unique best: its replay is marked `debug_used`, the summary says so, and the mark lasts until the crew is back in the lobby (a campaign stays marked from one night to the next).
 
 - **Mood**: calm, tense, hot (the middle of each band), or one walk-out away from the riot.
 - **Clock**, forward only: +30 min, 02:00 (the boss walks in) or closing. The night runs on its own clock (`Simulation.night_tick()`), so the replay's ticks are untouched.
 - **Customers**: the boss now (if he hasn't come yet), or a full line.
 - **Kitchen**: a full FRIGO, every fire out, or a fire at the station the host stands at (the first CUISSON 1 if that one can't burn).
-- **Crew**: heal everyone (on their feet, full hearts, fed if starving), or for one player: K.O., hungry (one walk from collapsing) or the heaviest stage.
+- **Crew**: heal everyone (on their feet, full hearts, fed if starving), or for one player (the "Joueur" row): K.O., hungry (one walk from collapsing) or the heaviest stage.
+- **Campaign**: go straight to one of its first 20 nights, with its menu and pace (also from the lobby). Online, the host takes everyone there.
+- **Speed** ×1, ×2 or ×4: the host steps that many more ticks a second and the guests follow; the HUD shows it. Faster isn't easier, so it doesn't mark the run.
 
 ## 10. First playable slice (v0.1.x) — implemented in 0.1.8
 
