@@ -220,6 +220,16 @@ The whole game runs as a **deterministic simulation**, separate from the Godot s
 - **Replays:** every peer records the seed and the command log of the night. F3 saves the night so far at any time (a download on the web, where `user://` is out of reach), and the end banner points at it. A bug report becomes a replay file, and the replay becomes a scenario test.
 - The actual network transport (Tube/WebRTC) is tested by hand with two local instances, since everything above it is covered by scenarios.
 
+### 9.3 Test tools (F4, 0.2.37)
+
+Tools to test a night with real players, in the web build too. Each tool is a **command** in the stream (`Simulation.debug_command`), like a key press: guests stay in sync and replays play them again. Only in the kitchen.
+
+- **Mood**: calm, tense, hot (the middle of each band), or one walk-out away from the riot.
+- **Clock**, forward only: +30 min, 02:00 (the boss walks in) or closing. The night runs on its own clock (`Simulation.night_tick()`), so the replay's ticks are untouched.
+- **Customers**: the boss now (if he hasn't come yet), or a full line.
+- **Kitchen**: a full FRIGO, every fire out, or a fire at the station the host stands at (the first CUISSON 1 if that one can't burn).
+- **Crew**: heal everyone (on their feet, full hearts, fed if starving), or for one player: K.O., hungry (one walk from collapsing) or the heaviest stage.
+
 ## 10. First playable slice (v0.1.x) — implemented in 0.1.8
 
 Goal: prove the core loop **with multiplayer**.

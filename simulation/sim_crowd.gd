@@ -229,6 +229,19 @@ func fingerprint() -> Array:
     return [customers, mood, next_arrival, boss_came, _next_id, _arrivals, rush, rush_next, score, pace]
 
 
+## Test tool (Simulation.DebugTool.BOSS): the boss walks in now, unless he came already.
+func boss_now(events: Array[Dictionary]) -> void:
+    if not boss_came and rules.boss_orders > 0:
+        _boss_arrives(events)
+
+
+## Test tool (Simulation.DebugTool.FILL_LINE): customers come in until the line is full.
+func fill_line(events: Array[Dictionary]) -> void:
+    while line.size() < rules.max_line:
+        line.append(_new_customer())
+        events.append({"type": &"arrival"})
+
+
 ## The patience each of the boss's orders starts with.
 func boss_patience() -> int:
     return rules.patience * rules.boss_patience_factor

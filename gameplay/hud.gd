@@ -164,7 +164,7 @@ func _process(delta: float) -> void:
     if _splash.visible and _anyone_moving():
         _splash.dismiss()
     _set_text(_status, clock(sim.clock_minutes()) \
-            + (" · fermé" if sim.tick >= sim.rules.night_ticks and sim.outcome == &"" else ""))
+            + (" · fermé" if sim.night_tick() >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _mood.mood = float(sim.crowd.mood) / sim.rules.riot
     var warnings := PackedStringArray()
     if night.reconnecting:

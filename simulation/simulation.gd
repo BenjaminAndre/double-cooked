@@ -16,6 +16,14 @@ enum Command { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, INTERACT, DEBUG_DAMAGE
 ## Commands from LOOK up choose a colour and a hat (see Looks.command), e.g. when a player's
 ## saved looks are applied as they enter the lobby.
 const LOOK := 100
+## Commands from DEBUG up are the host's test tools (F4, GDD §9.3), see debug_command(): they
+## go through the command stream like any key, so guests and replays follow them.
+const DEBUG := 1000
+const DEBUG_SPAN := 100
+## The test tools. MOOD's argument is a SimCrowd.Level; CLOCK's a ClockJump; KNOCK_OUT, HUNGRY
+## and FAT take a slot. New tools go at the end, so saved replays keep their meaning.
+enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT }
+enum ClockJump { HALF_HOUR, BOSS, CLOSING }
 
 const EXTINGUISHER := &"extincteur"
 ## Cans leave a hand at this height and are caught at that one.
@@ -43,6 +51,9 @@ var outcome := &""
 var outcome_reason := &""
 ## Counters for the end-of-night recap. Per-player lists are indexed by slot.
 var stats := {}
+## Ticks the night's clock was moved forward by (DebugTool.CLOCK): the night runs on
+## night_tick(), while tick keeps counting the steps.
+var clock_skip := 0
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
@@ -107,9 +118,20 @@ func apply_looks(looks: PackedInt32Array, first := 0) -> void:
                 break
 
 
+## The command for a test tool (DebugTool) with its argument.
+static func debug_command(tool: DebugTool, arg := 0) -> int:
+    return DEBUG + tool * DEBUG_SPAN + arg
+
+
+## Where the night's clock stands, in ticks since 18:00: the steps so far, plus the clock moved
+## forward by the test tools.
+func night_tick() -> int:
+    return tick + clock_skip
+
+
 ## Minutes since 18:00 on the night's clock.
 func clock_minutes() -> int:
-    return mini(tick, rules.night_ticks) * 600 / rules.night_ticks
+    return mini(night_tick(), rules.night_ticks) * 600 / rules.night_ticks
 
 
 ## Advances one tick. commands[slot] lists that player's commands for this tick, in press order.
@@ -139,8 +161,9 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        night_events.advance(tick, events, stations.any(func(station: SimStation) -> bool: return station.burning))
-        crowd.advance(tick, players.size(), rng, events)
+        night_events.advance(night_tick(), events,
+                stations.any(func(station: SimStation) -> bool: return station.burning))
+        crowd.advance(night_tick(), players.size(), rng, events)
         _customers_throw()
     _advance_projectiles()
     tick += 1
@@ -151,13 +174,13 @@ func step(commands: Array) -> void:
         _end(&"lost", &"crew_down")
     elif crowd.mood >= rules.riot:
         _end(&"lost", &"riot")
-    elif tick >= rules.night_ticks and crowd.line.is_empty():
+    elif night_tick() >= rules.night_ticks and crowd.line.is_empty():
         _end(&"won", &"closing")
 
 
 ## Fingerprint of the state, to check that two runs (or host and client) agree.
 func state_hash() -> int:
-    var state: Array = [tick, rng.state]
+    var state: Array = [tick, clock_skip, rng.state]
     for p in players:
         state.append(p.fingerprint())
     for station in stations:
@@ -172,6 +195,9 @@ func state_hash() -> int:
 
 
 func _apply(player: SimPlayer, command: int) -> void:
+    if command >= DEBUG:
+        _debug(player, ((command - DEBUG) / DEBUG_SPAN) as DebugTool, (command - DEBUG) % DEBUG_SPAN)
+        return
     if command >= LOOK:
         _set_look(player, (command - LOOK) / Looks.HATS.size(), (command - LOOK) % Looks.HATS.size())
         return
@@ -266,6 +292,72 @@ func _set_look(player: SimPlayer, color: int, hat: int) -> void:
     if hat >= 0 and hat < Looks.HATS.size():
         player.hat = hat
     events.append({"type": &"look", "slot": player.slot})
+
+
+## A test tool (F4, GDD §9.3) used by player, with its argument. Only in the kitchen.
+## {"type": &"debug", "tool": tool} lets the night know its replay used one.
+func _debug(player: SimPlayer, tool: DebugTool, arg: int) -> void:
+    if rules.lobby:
+        return
+    events.append({"type": &"debug", "tool": tool, "by": player.slot})
+    var target: SimPlayer = players[arg] if arg < players.size() else null
+    match tool:
+        DebugTool.MOOD:
+            # Calm, tense, hot (the middle of each band), or one walk-out away from the riot.
+            var moods := [0, rules.riot * 3 / 8, rules.riot * 5 / 8, rules.riot * 9 / 10]
+            crowd.mood = moods[clampi(arg, 0, moods.size() - 1)]
+        DebugTool.CLOCK:
+            # Forward only: half an hour (the night lasts ten), the boss's time, or closing.
+            var to := night_tick() + rules.night_ticks / 20
+            if arg == ClockJump.BOSS:
+                to = rules.boss_tick()
+            elif arg == ClockJump.CLOSING:
+                to = rules.night_ticks
+            clock_skip += maxi(to - night_tick(), 0)
+        DebugTool.BOSS:
+            crowd.boss_now(events)
+        DebugTool.FILL_LINE:
+            crowd.fill_line(events)
+        DebugTool.FRIDGE:
+            for station in stations:
+                if station.kind == &"frigo":
+                    station.beers = rules.fridge_beers
+                    station.restock = 0
+        DebugTool.FIRES_OUT:
+            for index in stations.size():
+                if stations[index].burning:
+                    stations[index].burning = false
+                    stations[index].burn_ticks = 0
+                    events.append({"type": &"fire_out", "station": index, "by": player.slot})
+        DebugTool.FIRE:
+            _debug_fire(player)
+        DebugTool.HEAL:
+            for healed in players:
+                healed.health = SimPlayer.MAX_HEALTH
+                healed.stun = 0
+                if healed.bmi <= rules.knockout_bmi:
+                    healed.bmi = rules.start_bmi
+                healed.down = false
+        DebugTool.KNOCK_OUT when target != null:
+            target.health = 0
+            _knock_out(target)
+        DebugTool.HUNGRY when target != null:
+            # One walk more and they collapse.
+            target.bmi = rules.knockout_bmi + 1
+            events.append({"type": &"thinner", "slot": target.slot})
+        DebugTool.FAT when target != null:
+            target.bmi = rules.start_bmi + rules.fat_stages[-1]
+            events.append({"type": &"fattened", "slot": target.slot})
+
+
+## A fire at the player's station if it can burn, otherwise at the first CUISSON 1.
+func _debug_fire(player: SimPlayer) -> void:
+    var index := level.node_stations[player.node]
+    if index == SimLevel.NONE or stations[index].burning or stations[index].kind in rules.fireproof:
+        index = stations.find_custom(func(station: SimStation) -> bool:
+            return station.kind == &"cuisson_1" and not station.burning)
+    if index >= 0:
+        _ignite(index, &"fire_started")
 
 
 ## Whether every player but this one stands on a PRÊT tile (GDD §4.1).
