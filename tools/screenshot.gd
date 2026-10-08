@@ -178,6 +178,18 @@ func _initialize() -> void:
             for row in 5:
                 panel.press(KEY_DOWN)
             panel.press(KEY_RIGHT)
+        "net_stats":
+            # A host's network stats for one guest, the F4 panel on the network row (faked: no
+            # network here, so the night stands still).
+            night.play_local(2)
+            night.set_process(false)
+            night.role = Night.Role.HOST
+            night._peer_slots = {2: 1}
+            night._pongs = {2: {"ms": 42, "behind": 3, "received": 1234}}
+            night.show_net_stats = true
+            var panel: DebugPanel = game.get_node("Hud").tools
+            panel.toggle()
+            panel.press(KEY_UP)
         "desync":
             # What a client sees once it drifted from the host, just after pressing F3.
             night.desyncs = 2

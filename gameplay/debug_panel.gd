@@ -93,7 +93,8 @@ func press(keycode: Key) -> void:
 
 
 ## The rows for where the crew is: {"id", "label", "options": texts, "active": index on or -1}.
-## In the lobby only what takes the crew somewhere; the night's tools in the kitchen.
+## In the lobby only what takes the crew somewhere; the night's tools in the kitchen; the
+## network's for an online host.
 func rows() -> Array[Dictionary]:
     var result: Array[Dictionary] = []
     if not night.in_lobby:
@@ -114,6 +115,9 @@ func rows() -> Array[Dictionary]:
     for times: int in SPEEDS:
         speeds.append("×%d" % times)
     result.append({"id": &"speed", "label": "Vitesse", "options": speeds, "active": SPEEDS.find(night.speed)})
+    if night.role == Night.Role.HOST:
+        result.append({"id": &"network", "label": "Réseau", "options": ["désynchro", "stats"],
+                "active": 1 if night.show_net_stats else -1})
     return result
 
 
@@ -137,6 +141,10 @@ func _use(id: StringName, index: int, text: String) -> void:
             return
         &"speed":
             night.speed = SPEEDS[index]
+        &"network" when index == 0:
+            night.force_desync()
+        &"network":
+            night.show_net_stats = not night.show_net_stats
         _:
             return
     night.notice.emit("Test : %s" % text)

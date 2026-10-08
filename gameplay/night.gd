@@ -78,6 +78,8 @@ var new_record := false
 var debug_used := false
 ## Host and offline: ticks per second, times this (a test tool); the guests follow.
 var speed := 1
+## Host: whether the HUD shows each guest's network stats (a test tool, see net_stats()).
+var show_net_stats := false
 
 @onready var _link: NightLink = $Link
 
@@ -126,6 +128,10 @@ var _idle_nodes := {}
 var _web_page: WebPage
 ## campaign_record(), read once from looks_path.
 var _record := {}
+## Host: peer id -> its last answer to a ping, {"ms", "tick", "received"} (see net_stats()).
+var _pongs := {}
+## Host: seconds until the next ping, while the stats show.
+var _ping_left := 0.0
 
 
 func _ready() -> void:
@@ -140,6 +146,8 @@ func _ready() -> void:
     _link.caught_up.connect(_on_caught_up)
     _link.player_joined.connect(_on_player_joined)
     _link.night_full.connect(func() -> void: notice.emit("Partie pleine : prochaine nuit"))
+    _link.ping_received.connect(_on_ping)
+    _link.pong_received.connect(_on_pong)
     player_id = _load_player_id()
     _web_page = WebPage.new()
     _web_page.hidden_beat.connect(_on_hidden_beat)
@@ -301,10 +309,57 @@ func jump_to_night(night_number: int) -> void:
         play_local(_local_slots.size(), night_number)
 
 
+## Test tool, host only: the host's night drifts from its guests' (a point of mood only it
+## has), so their desync warning shows at the next fingerprint check.
+func force_desync() -> void:
+    if role != Role.HOST:
+        return
+    debug_used = true
+    simulation.crowd.mood += 1
+
+
+## Host: each guest's network, by slot, as last measured: {"slot", "ms": the ping's round trip,
+## "behind": ticks between the host and the guest when it answered, "received": the last tick
+## it had from the host}. Measured once a second while show_net_stats is on.
+func net_stats() -> Array[Dictionary]:
+    var stats: Array[Dictionary] = []
+    for peer: int in _peer_slots:
+        if _pongs.has(peer):
+            var stat: Dictionary = _pongs[peer].duplicate()
+            stat.slot = _peer_slots[peer]
+            stats.append(stat)
+    stats.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.slot < b.slot)
+    return stats
+
+
+func _ping_guests(delta: float) -> void:
+    _ping_left -= delta
+    if _ping_left > 0.0:
+        return
+    _ping_left = 1.0
+    for peer: int in _peer_slots:
+        _link.ping.rpc_id(peer, Time.get_ticks_usec())
+
+
+func _on_ping(sent_usec: int) -> void:
+    if role == Role.CLIENT:
+        var received := simulation.tick - 1
+        for tick: int in _received:
+            received = maxi(received, tick)
+        _link.pong.rpc_id(1, sent_usec, simulation.tick, received)
+
+
+func _on_pong(peer_id: int, sent_usec: int, tick: int, received: int) -> void:
+    if role == Role.HOST:
+        _pongs[peer_id] = {"ms": (Time.get_ticks_usec() - sent_usec) / 1000, "behind": simulation.tick - tick,
+                "received": received}
+
+
 ## Host: a peer left. In the lobby, it starts over without them; in a night their player stays,
 ## idle, marked as gone for everyone, until they come back.
 func peer_left(peer_id: int) -> void:
     _hellos.erase(peer_id)
+    _pongs.erase(peer_id)
     if role != Role.HOST or not _peer_slots.has(peer_id):
         return
     var slot: int = _peer_slots[peer_id]
@@ -384,6 +439,8 @@ func _process(delta: float) -> void:
         _reconnect_left -= delta
         if _reconnect_left <= 0.0:
             _give_up_waiting()
+    if role == Role.HOST and show_net_stats:
+        _ping_guests(delta)
     _advance()
     _show(_accumulator / TICK_TIME)
 

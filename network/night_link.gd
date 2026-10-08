@@ -13,6 +13,8 @@ signal hello_received(peer_id: int, player_id: String, look: PackedInt32Array)
 signal caught_up(start: Dictionary, slot: int, ids: PackedStringArray, left: PackedInt32Array)
 signal player_joined(tick: int, node: int, color: int, hat: int, player_id: String)
 signal night_full
+signal ping_received(sent_usec: int)
+signal pong_received(peer_id: int, sent_usec: int, tick: int, received: int)
 
 
 ## Client to host: one key press.
@@ -74,3 +76,16 @@ func mark_left(slot: int) -> void:
 @rpc("authority", "call_remote", "reliable")
 func mark_back(slot: int) -> void:
     player_back.emit(slot)
+
+
+## Host to one client, for the network stats (test tools, GDD §9.3): sent_usec is the host's
+## clock, sent back as is.
+@rpc("authority", "call_remote", "reliable")
+func ping(sent_usec: int) -> void:
+    ping_received.emit(sent_usec)
+
+
+## Client to host, answering ping: the tick it stepped to, and the last one it received.
+@rpc("any_peer", "call_remote", "reliable")
+func pong(sent_usec: int, tick: int, received: int) -> void:
+    pong_received.emit(multiplayer.get_remote_sender_id(), sent_usec, tick, received)

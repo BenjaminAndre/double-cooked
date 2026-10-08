@@ -101,6 +101,35 @@ func test_the_hosts_test_tools_keep_the_guest_in_sync_and_a_guests_are_dropped()
     assert_eq(client_night.desyncs, 0)
 
 
+func test_the_host_can_force_a_desync_to_test_the_warning() -> void:
+    host_night.host_online()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    host_night.force_desync()
+    await wait_until(func() -> bool: return client_night.desyncs > 0, 5.0)
+    assert_eq(host_night.desyncs, 0)
+    assert_true(host_night.debug_used)
+    client_night.force_desync()
+    assert_true(client_night.can_use_tools() == false and not client_night.debug_used, "the host's only")
+
+
+func test_the_host_sees_each_guests_latency_and_ticks() -> void:
+    host_night.host_online()
+    await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
+    assert_true(host_night.net_stats().is_empty(), "nothing measured until asked")
+    host_night.show_net_stats = true
+    # The first ping may leave before the guest has any tick: wait for one in the night.
+    await wait_until(func() -> bool:
+            return not host_night.net_stats().is_empty() and host_night.net_stats()[0].received > 0, 5.0)
+    var stat: Dictionary = host_night.net_stats()[0]
+    assert_eq(stat.slot, 1)
+    assert_gte(stat.ms, 0)
+    assert_gte(stat.behind, 0)
+    assert_gt(stat.received, 0)
+    var text := Hud.net_stats_text(host_night.simulation, host_night.net_stats())
+    assert_string_contains(text, "ms")
+    assert_string_contains(text, Looks.player_name(host_night.simulation.players[1].color))
+
+
 func test_a_client_says_when_the_host_goes_silent() -> void:
     host_night.host_online()
     await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)

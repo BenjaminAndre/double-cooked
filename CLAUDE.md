@@ -38,6 +38,7 @@ The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PL
   - `LevelReader` turns the `Anchor` graph into a `SimLevel`;
   - stations are `Interactible` nodes identified by `kind`, and their effects live in `Simulation`.
   - the art (docs/ART_PLAN.md): `PaperFigure` (characters), `StationModels`, `UnlitArt`, `Backdrop` (the room behind everything, its front walls in depth), `ArtUi` / `ItemIcons` (frames and pictures), `MenuBubble`, `MoodBar`;
+  - `DebugPanel` (F4, built by the `Hud`) holds the host's test tools (GDD §9.3). Night tools are `Simulation.debug_command()` values in the command stream, so guests and replays follow them;
   - `GridRoom` builds a room (Anchors, stations, floor, camera) in code from a grid layout; the lobby and the kitchen are both. The kitchen stands in the artist's scene (`GridRoom.art`, built from their Unity export by `tools/scene_export.gd` into `art/scenes/`), whose camera and models it uses. `Night` switches between the rooms (`SimRules.lobby`).
 - `network/` handles online play:
   - `NightLink` holds the RPCs. The host relays each tick's commands to the clients, who re-simulate, plus a fingerprint every second.

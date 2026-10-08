@@ -19,6 +19,8 @@ var _mood: MoodBar
 ## Red warning once this client has drifted from the host.
 var _desync: Label
 var _notice: Label
+## The host's network stats (a test tool), under the warnings.
+var _net: Label
 var _notice_left := 0.0
 ## A big announcement in the dialogue frame, e.g. the boss walking in.
 var _announce: PanelContainer
@@ -83,6 +85,8 @@ func _ready() -> void:
     _desync.add_theme_color_override("font_color", Color(1, 0.3, 0.25))
     _notice = _label(20, corner)
     _notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    _net = _label(18, corner)
+    _net.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     _mood = MoodBar.new()
     _mood.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
     _mood.grow_horizontal = Control.GROW_DIRECTION_BEGIN
@@ -180,6 +184,9 @@ func _process(delta: float) -> void:
     if night.speed != 1:
         warnings.append("Vitesse ×%d" % night.speed)
     _set_text(_desync, "\n".join(warnings).strip_edges())
+    _net.visible = night.show_net_stats and night.role == Night.Role.HOST
+    if _net.visible:
+        _set_text(_net, net_stats_text(sim, night.net_stats()))
     _notice_left = maxf(_notice_left - delta, 0.0)
     _notice.visible = _notice_left > 0.0
     _announce_left = maxf(_announce_left - delta, 0.0)
@@ -294,6 +301,17 @@ static func inspection_text(night_events: NightEvents) -> String:
     if night_events.inspection_failed:
         return "Contrôle AFSCA : raté, il y a eu le feu"
     return "Contrôle AFSCA · %d s" % ceili(night_events.inspection / float(Simulation.TICK_RATE))
+
+
+## The host's view of each guest's network (Night.net_stats(), a test tool).
+static func net_stats_text(sim: Simulation, stats: Array[Dictionary]) -> String:
+    var lines := PackedStringArray(["Réseau · tick %d" % sim.tick])
+    if stats.is_empty():
+        lines.append("en attente des invités...")
+    for stat in stats:
+        var who := Looks.player_name(sim.players[stat.slot].color) if stat.slot < sim.players.size() else "?"
+        lines.append("%s : %d ms · %d ticks de retard · dernier reçu %d" % [who, stat.ms, stat.behind, stat.received])
+    return "\n".join(lines)
 
 
 ## Empty unless the host has been silent for a while during a night.

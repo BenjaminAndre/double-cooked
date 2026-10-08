@@ -233,6 +233,7 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 - **Crew**: heal everyone (on their feet, full hearts, fed if starving), or for one player (the "Joueur" row): K.O., hungry (one walk from collapsing) or the heaviest stage.
 - **Campaign**: go straight to one of its first 20 nights, with its menu and pace (also from the lobby). Online, the host takes everyone there.
 - **Speed** ×1, ×2 or ×4: the host steps that many more ticks a second and the guests follow; the HUD shows it. Faster isn't easier, so it doesn't mark the run.
+- **Network** (online host only): a forced **desync** (a point of mood only the host has), to check that the guests' red warning shows; and the **network stats** under the clock: for each guest, the round trip of a ping sent every second, how many ticks behind the host it was, and the last tick it had received.
 
 ## 10. First playable slice (v0.1.x) — implemented in 0.1.8
 
