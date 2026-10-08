@@ -1,38 +1,37 @@
 class_name ItemIcons
 extends RefCounted
-## The artist's picture for each item, order and sauce (docs/ART_PLAN.md). Failed states have
-## no drawing yet: they show the right one, washed out (soggy, lukewarm, cold) or darkened
-## (burnt, overcooked), until the artist draws them.
+## The artist's picture for each item, order and sauce (docs/ART_PLAN.md), burnt ones included.
+## The other failed states have no drawing: they show the right one washed out (soggy,
+## lukewarm, cold, undercooked).
 
 const PATH := "res://art/textures/Item_%s.png"
 const WASHED := Color(0.75, 0.8, 0.85)
-const BURNT := Color(0.35, 0.25, 0.2)
 
 ## Item kind -> [picture, tint].
 const ITEMS := {
     Fryer.FRIES_RAW: ["Frites_Raw", Color.WHITE],
     Fryer.FRIES_COLD: ["Frites_FirstCooked", WASHED],
-    Fryer.FRIES_OVERCOOKED: ["Frites_FirstCooked", BURNT],
+    Fryer.FRIES_OVERCOOKED: ["Frites_Burned", Color.WHITE],
     Fryer.FRIES_BLANCHED: ["Frites_FirstCooked", Color.WHITE],
     Fryer.FRIES_SOGGY: ["Frites_DoubleCooked", WASHED],
     Fryer.FRIES_GOOD: ["Frites_DoubleCooked", Color.WHITE],
-    Fryer.FRIES_BURNT: ["Frites_DoubleCooked", BURNT],
+    Fryer.FRIES_BURNT: ["Frites_Burned", Color.WHITE],
     Menu.CERVELAS: ["Cervelas_Raw", Color.WHITE],
     Menu.CERVELAS_WARM: ["Cervelas_Cooked", Color.WHITE],
     Menu.CERVELAS_LUKEWARM: ["Cervelas_Cooked", WASHED],
-    Menu.CERVELAS_BURNT: ["Cervelas_Cooked", BURNT],
+    Menu.CERVELAS_BURNT: ["Cervelas_Burned", Color.WHITE],
     Menu.FRICADELLE_RAW: ["Fricadelle_Raw", Color.WHITE],
     Menu.FRICADELLE: ["Fricadelle_Cooked", Color.WHITE],
     Menu.FRICADELLE_UNDERCOOKED: ["Fricadelle_Raw", WASHED],
-    Menu.FRICADELLE_BURNT: ["Fricadelle_Cooked", BURNT],
+    Menu.FRICADELLE_BURNT: ["Fricadelle_Burned", Color.WHITE],
     Menu.BOULETTE_RAW: ["Boulette_Raw", Color.WHITE],
     Menu.BOULETTE: ["Boulette_Cooked", Color.WHITE],
     Menu.BOULETTE_UNDERCOOKED: ["Boulette_Raw", WASHED],
-    Menu.BOULETTE_BURNT: ["Boulette_Cooked", BURNT],
+    Menu.BOULETTE_BURNT: ["Boulette_Burned", Color.WHITE],
     Menu.BROCHETTE_RAW: ["Brochette_Raw", Color.WHITE],
     Menu.BROCHETTE: ["Brochette_Cooked", Color.WHITE],
     Menu.BROCHETTE_UNDERCOOKED: ["Brochette_Raw", WASHED],
-    Menu.BROCHETTE_BURNT: ["Brochette_Cooked", BURNT],
+    Menu.BROCHETTE_BURNT: ["Brochette_Burned", Color.WHITE],
     Menu.COLA: ["Coca", Color.WHITE],
     Menu.BEER: ["Jupiler", Color.WHITE],
     Simulation.EXTINGUISHER: ["Extincteur", Color.WHITE],

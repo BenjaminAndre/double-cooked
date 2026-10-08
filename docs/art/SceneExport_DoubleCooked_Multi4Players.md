@@ -1,0 +1,758 @@
+# Export de la scène Unity : DoubleCooked_Multi4Players
+
+Info : valeurs lues automatiquement depuis Unity (monde = position/rotation absolue dans la scène).
+Conversion Godot : Unity est en repère gauche (Z vers l'avant), Godot en repère droit (-Z vers l'avant).
+Les lignes "Godot" sont la position avec Z inversé et le quaternion miroir (x,y,z,w) = (-x,-y,z,w).
+Attention : une rotation de -90 sur X est souvent un artefact d'import FBX et peut ne plus être nécessaire selon l'import Godot (glTF/FBX). À vérifier visuellement.
+
+## Scene settings
+- Caméra : Main Camera01
+  - Position monde Unity : (-9.3, 11.98, 5.11)
+  - Position monde Godot : (-9.3, 11.98, -5.11)
+  - Rotation monde Unity (euler) : (42.682, 121.334, 0)
+  - Rotation Godot (quaternion) : (-0.178, -0.812, -0.317, 0.456)
+  - Field of view (vertical) : 25
+  - Near/Far : 0.3 / 50
+  - Clear flags : SolidColor, couleur de fond : #DCF6FF
+
+## Lights
+- Aucune lumière dans la scène.
+
+## Mesh settings
+- DoubleCooked_Room03  (chemin : [ENV03_Multi4Players]/DoubleCooked_Room03, actif, renderer activé)
+  - Position monde Unity : (0, 0, 0)
+  - Position monde Godot : (0, 0, 0)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0, 0, 0), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Room03 (3192 vertices), asset : Assets/Models/DoubleCooked_Room03.fbx
+  - Bounds monde : centre (-0.487, 0.55, 0.982), taille (10.027, 1.439, 11.027)
+  - Matériau : GroundAtlas | shader : Unlit/Texture | texture : GroundAtlas_BC | renderQueue : 2000
+- DoubleCooked_Fridge01  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01, actif, renderer activé)
+  - Position monde Unity : (4.076, 0, 0.907)
+  - Position monde Godot : (4.076, 0, -0.907)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (4.076, 0, 0.907), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge (774 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (4.076, 0.635, 0.907), taille (0.542, 1.269, 0.672)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers01  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Beers01, actif, renderer activé)
+  - Position monde Unity : (3.934, 1.081, 0.778)
+  - Position monde Godot : (3.934, 1.081, -0.778)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.142, 0.129, 1.081), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers01 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.934, 1.081, 0.778), taille (0.099, 0.139, 0.274)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers02  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Beers02, actif, renderer activé)
+  - Position monde Unity : (3.94, 0.837, 0.766)
+  - Position monde Godot : (3.94, 0.837, -0.766)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.136, 0.141, 0.837), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers02 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.94, 0.837, 0.766), taille (0.126, 0.139, 0.248)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers03  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Beers03, actif, renderer activé)
+  - Position monde Unity : (3.948, 0.592, 0.774)
+  - Position monde Godot : (3.948, 0.592, -0.774)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.128, 0.133, 0.592), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers03 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.948, 0.592, 0.774), taille (0.101, 0.139, 0.281)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers04  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Beers04, INACTIF au départ, renderer activé)
+  - Position monde Unity : (3.946, 0.347, 0.769)
+  - Position monde Godot : (3.946, 0.347, -0.769)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.13, 0.138, 0.347), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers04 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.946, 0.347, 0.769), taille (0.125, 0.139, 0.26)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers05  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Beers05, INACTIF au départ, renderer activé)
+  - Position monde Unity : (3.899, 0.112, 0.778)
+  - Position monde Godot : (3.899, 0.112, -0.778)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.177, 0.129, 0.112), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers05 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.899, 0.112, 0.778), taille (0.132, 0.139, 0.258)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Door  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Door, actif, renderer activé)
+  - Position monde Unity : (3.805, 0.635, 1.243)
+  - Position monde Godot : (3.805, 0.635, -1.243)
+  - Rotation monde Unity (euler) : (270, 93.263, 0)
+  - Rotation Godot (quaternion) : (0.486, -0.514, 0.514, 0.486)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.271, -0.336, 0.635), rot (0, 0, 93.263), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Door (48 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.472, 0.635, 1.295), taille (0.675, 1.269, 0.104)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Door_Glass  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge01/DoubleCooked_Fridge_Door/DoubleCooked_Fridge_Door_Glass, actif, renderer activé)
+  - Position monde Unity : (3.472, 0.635, 1.295)
+  - Position monde Godot : (3.472, 0.635, -1.295)
+  - Rotation monde Unity (euler) : (270, 93.263, 0)
+  - Rotation Godot (quaternion) : (0.486, -0.514, 0.514, 0.486)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.033, 0.336, 0), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Door_Glass (8 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.472, 0.635, 1.295), taille (0.587, 1.184, 0.062)
+  - Matériau : Glass | shader : Unlit/Transparent | texture : Glass_Opacity | renderQueue : 3000
+- DoubleCooked_Fridge02  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02, actif, renderer activé)
+  - Position monde Unity : (4.076, 0, 1.832)
+  - Position monde Godot : (4.076, 0, -1.832)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (4.076, 0, 1.832), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge (774 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (4.076, 0.635, 1.832), taille (0.542, 1.269, 0.672)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers01  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Beers01, actif, renderer activé)
+  - Position monde Unity : (3.934, 1.081, 1.703)
+  - Position monde Godot : (3.934, 1.081, -1.703)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.142, 0.129, 1.081), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers01 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.934, 1.081, 1.703), taille (0.099, 0.139, 0.274)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers02  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Beers02, actif, renderer activé)
+  - Position monde Unity : (3.94, 0.837, 1.691)
+  - Position monde Godot : (3.94, 0.837, -1.691)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.136, 0.141, 0.837), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers02 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.94, 0.837, 1.691), taille (0.126, 0.139, 0.248)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers03  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Beers03, INACTIF au départ, renderer activé)
+  - Position monde Unity : (3.948, 0.592, 1.699)
+  - Position monde Godot : (3.948, 0.592, -1.699)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.128, 0.133, 0.592), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers03 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.948, 0.592, 1.699), taille (0.101, 0.139, 0.281)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers04  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Beers04, INACTIF au départ, renderer activé)
+  - Position monde Unity : (3.946, 0.347, 1.694)
+  - Position monde Godot : (3.946, 0.347, -1.694)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.13, 0.138, 0.347), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers04 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.946, 0.347, 1.694), taille (0.125, 0.139, 0.26)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Beers05  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Beers05, INACTIF au départ, renderer activé)
+  - Position monde Unity : (3.899, 0.112, 1.703)
+  - Position monde Godot : (3.899, 0.112, -1.703)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.177, 0.129, 0.112), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Beers05 (126 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.899, 0.112, 1.703), taille (0.132, 0.139, 0.258)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Door  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Door, actif, renderer activé)
+  - Position monde Unity : (3.805, 0.635, 2.168)
+  - Position monde Godot : (3.805, 0.635, -2.168)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.271, -0.336, 0.635), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Door (48 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.772, 0.635, 1.832), taille (0.065, 1.269, 0.672)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Fridge_Door_Glass  (chemin : [ENV03_Multi4Players]/DoubleCooked_Fridge02/DoubleCooked_Fridge_Door/DoubleCooked_Fridge_Door_Glass, actif, renderer activé)
+  - Position monde Unity : (3.772, 0.635, 1.832)
+  - Position monde Godot : (3.772, 0.635, -1.832)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.033, 0.336, 0), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Fridge_Door_Glass (8 vertices), asset : Assets/Models/DoubleCooked_Fridge.fbx
+  - Bounds monde : centre (3.772, 0.635, 1.832), taille (0.028, 1.184, 0.586)
+  - Matériau : Glass | shader : Unlit/Transparent | texture : Glass_Opacity | renderQueue : 3000
+- DoubleCooked_DeepFryer  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer, actif, renderer activé)
+  - Position monde Unity : (3.845, 0, -1.03)
+  - Position monde Godot : (3.845, 0, 1.03)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (3.845, 0, -1.03), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_DeepFryer (674 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (3.845, 0.507, -1.536), taille (0.772, 1.014, 4.014)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_DeepFryer_Basket01  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_DeepFryer_Basket01, actif, renderer activé)
+  - Position monde Unity : (3.609, 0.468, -3.017)
+  - Position monde Godot : (3.609, 0.468, 3.017)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.236, 1.987, 0.468), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_DeepFryer_Basket01 (256 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (3.766, 0.418, -3.021), taille (0.451, 0.113, 0.188)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_DeepFryer_Basket02  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_DeepFryer_Basket02, actif, renderer activé)
+  - Position monde Unity : (3.609, 0.468, -2.028)
+  - Position monde Godot : (3.609, 0.468, 2.028)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.236, 0.998, 0.468), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_DeepFryer_Basket02 (256 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (3.766, 0.418, -2.032), taille (0.451, 0.113, 0.188)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FriesCooked01  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_FriesCooked01, actif, renderer activé)
+  - Position monde Unity : (4.076, 0.793, -0.88)
+  - Position monde Godot : (4.076, 0.793, 0.88)
+  - Rotation monde Unity (euler) : (270, 14.86, 0)
+  - Rotation Godot (quaternion) : (0.701, -0.091, 0.091, 0.701)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.231, -0.15, 0.793), rot (0, 0, 14.86), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FriesCooked01 (312 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (4.075, 0.82, -0.876), taille (0.189, 0.062, 0.182)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FriesCooked02  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_FriesCooked02, actif, renderer activé)
+  - Position monde Unity : (3.949, 0.793, -0.935)
+  - Position monde Godot : (3.949, 0.793, 0.935)
+  - Rotation monde Unity (euler) : (270, 350.81, 0)
+  - Rotation Godot (quaternion) : (0.705, 0.057, -0.057, 0.705)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.104, -0.095, 0.793), rot (0, 0, 350.81), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FriesCooked02 (312 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (3.946, 0.82, -0.931), taille (0.178, 0.062, 0.17)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FriesCooked03  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_FriesCooked03, actif, renderer activé)
+  - Position monde Unity : (4.039, 0.793, -1.029)
+  - Position monde Godot : (4.039, 0.793, 1.029)
+  - Rotation monde Unity (euler) : (270, 286.048, 0)
+  - Rotation Godot (quaternion) : (0.565, 0.425, -0.425, 0.565)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.194, -0.001, 0.793), rot (0, 0, 286.048), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FriesCooked03 (312 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (4.034, 0.82, -1.031), taille (0.184, 0.062, 0.191)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FriesCooked04  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_FriesCooked04, actif, renderer activé)
+  - Position monde Unity : (3.933, 0.793, -1.112)
+  - Position monde Godot : (3.933, 0.793, 1.112)
+  - Rotation monde Unity (euler) : (270.02, 89.763, 0)
+  - Rotation Godot (quaternion) : (0.501, -0.499, 0.499, 0.501)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.088, 0.082, 0.793), rot (0, 0, 89.763), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FriesCooked04 (312 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (3.938, 0.82, -1.109), taille (0.148, 0.062, 0.157)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FriesCooked05  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_FriesCooked05, actif, renderer activé)
+  - Position monde Unity : (4.046, 0.793, -1.217)
+  - Position monde Godot : (4.046, 0.793, 1.217)
+  - Rotation monde Unity (euler) : (270, 167.333, 0)
+  - Rotation Godot (quaternion) : (0.078, -0.703, 0.703, 0.078)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.201, 0.187, 0.793), rot (0, 0, 167.333), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FriesCooked05 (312 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (4.05, 0.82, -1.221), taille (0.185, 0.062, 0.178)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FriesRaw  (chemin : [ENV03_Multi4Players]/DoubleCooked_DeepFryer/DoubleCooked_FriesRaw, actif, renderer activé)
+  - Position monde Unity : (4.051, 0.793, -0.037)
+  - Position monde Godot : (4.051, 0.793, 0.037)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.206, -0.993, 0.793), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FriesRaw (4056 vertices), asset : Assets/Models/DoubleCooked_DeepFryer.fbx
+  - Bounds monde : centre (4.017, 0.82, -0.031), taille (0.336, 0.062, 0.847)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Trash  (chemin : [ENV03_Multi4Players]/DoubleCooked_Trash, actif, renderer activé)
+  - Position monde Unity : (3.845, 0, -3.977)
+  - Position monde Godot : (3.845, 0, 3.977)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (3.845, 0, -3.977), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Trash (295 vertices), asset : Assets/Models/DoubleCooked_Trash.fbx
+  - Bounds monde : centre (3.845, 0.254, -3.977), taille (0.772, 0.508, 0.775)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Trash_Door  (chemin : [ENV03_Multi4Players]/DoubleCooked_Trash/DoubleCooked_Trash_Door, actif, renderer activé)
+  - Position monde Unity : (4.046, 0.459, -3.977)
+  - Position monde Godot : (4.046, 0.459, 3.977)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.201, 0, 0.459), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Trash_Door (24 vertices), asset : Assets/Models/DoubleCooked_Trash.fbx
+  - Bounds monde : centre (3.859, 0.459, -3.977), taille (0.376, 0.022, 0.405)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_FireCase  (chemin : [ENV03_Multi4Players]/DoubleCooked_FireCase, actif, renderer activé)
+  - Position monde Unity : (0.094, 0.746, -4.373)
+  - Position monde Godot : (0.094, 0.746, 4.373)
+  - Rotation monde Unity (euler) : (270, 90, 0)
+  - Rotation Godot (quaternion) : (0.5, -0.5, 0.5, 0.5)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.094, 0.746, -4.373), rot (270, 90, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_FireCase (24 vertices), asset : Assets/Models/DoubleCooked_FireCase.fbx
+  - Bounds monde : centre (0.094, 0.746, -4.264), taille (0.31, 0.615, 0.219)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Furniture01  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture01, actif, renderer activé)
+  - Position monde Unity : (0.22, 0, 1.864)
+  - Position monde Godot : (0.22, 0, -1.864)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.22, 0, 1.864), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Furniture (46 vertices), asset : Assets/Models/DoubleCooked_Furniture.fbx
+  - Bounds monde : centre (0.22, 0.229, 1.864), taille (0.772, 0.459, 1)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_BreadBag  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture01/DoubleCooked_BreadBag, actif, renderer activé)
+  - Position monde Unity : (0.22, 0.462, 1.864)
+  - Position monde Godot : (0.22, 0.462, -1.864)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0, 0, 0.462), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_BreadBag (1131 vertices), asset : Assets/Models/DoubleCooked_BreadBag.fbx
+  - Bounds monde : centre (0.189, 0.666, 1.878), taille (0.562, 0.407, 0.865)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Furniture02  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture02, actif, renderer activé)
+  - Position monde Unity : (0.22, 0, -0.017)
+  - Position monde Godot : (0.22, 0, 0.017)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 0.92, 1)
+  - Local : pos (0.22, 0, -0.017), rot (270, 0, 0), scale (1, 0.92, 1)
+  - Mesh : DoubleCooked_Furniture (46 vertices), asset : Assets/Models/DoubleCooked_Furniture.fbx
+  - Bounds monde : centre (0.22, 0.229, -0.017), taille (0.772, 0.459, 0.92)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_CashRegister  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture02/DoubleCooked_CashRegister, actif, renderer activé)
+  - Position monde Unity : (0.165, 0.456, -0.185)
+  - Position monde Godot : (0.165, 0.456, 0.185)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.055, 0.183, 0.456), rot (0, 0, 0), scale (1, 1.086, 1)
+  - Mesh : DoubleCooked_CashRegister (96 vertices), asset : Assets/Models/DoubleCooked_CashRegister.fbx
+  - Bounds monde : centre (0.165, 0.664, -0.185), taille (0.402, 0.416, 0.491)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_PaperBag  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture02/DoubleCooked_PaperBag, actif, renderer activé)
+  - Position monde Unity : (0.229, 0.457, 0.313)
+  - Position monde Godot : (0.229, 0.457, -0.313)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.009, -0.358, 0.457), rot (0, 0, 0), scale (1, 1.086, 1)
+  - Mesh : DoubleCooked_PaperBag (274 vertices), asset : Assets/Models/DoubleCooked_PaperBag.fbx
+  - Bounds monde : centre (0.229, 0.612, 0.313), taille (0.265, 0.309, 0.151)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Furniture03  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture03, actif, renderer activé)
+  - Position monde Unity : (0.22, 0, 0.904)
+  - Position monde Godot : (0.22, 0, -0.904)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 0.92, 1)
+  - Local : pos (0.22, 0, 0.904), rot (270, 0, 0), scale (1, 0.92, 1)
+  - Mesh : DoubleCooked_Furniture (46 vertices), asset : Assets/Models/DoubleCooked_Furniture.fbx
+  - Bounds monde : centre (0.22, 0.229, 0.904), taille (0.772, 0.459, 0.92)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_CashRegister  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture03/DoubleCooked_CashRegister, actif, renderer activé)
+  - Position monde Unity : (0.165, 0.456, 0.735)
+  - Position monde Godot : (0.165, 0.456, -0.735)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (-0.055, 0.183, 0.456), rot (0, 0, 0), scale (1, 1.086, 1)
+  - Mesh : DoubleCooked_CashRegister (96 vertices), asset : Assets/Models/DoubleCooked_CashRegister.fbx
+  - Bounds monde : centre (0.165, 0.664, 0.735), taille (0.402, 0.416, 0.491)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_PaperBag  (chemin : [ENV03_Multi4Players]/DoubleCooked_Furniture03/DoubleCooked_PaperBag, actif, renderer activé)
+  - Position monde Unity : (0.229, 0.457, 1.233)
+  - Position monde Godot : (0.229, 0.457, -1.233)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.009, -0.358, 0.457), rot (0, 0, 0), scale (1, 1.086, 1)
+  - Mesh : DoubleCooked_PaperBag (274 vertices), asset : Assets/Models/DoubleCooked_PaperBag.fbx
+  - Bounds monde : centre (0.229, 0.612, 1.233), taille (0.265, 0.309, 0.151)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Counter  (chemin : [ENV03_Multi4Players]/DoubleCooked_Counter, actif, renderer activé)
+  - Position monde Unity : (0.22, 0, -1.977)
+  - Position monde Godot : (0.22, 0, 1.977)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0.22, 0, -1.977), rot (270, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Counter (15285 vertices), asset : Assets/Models/DoubleCooked_Counter.fbx
+  - Bounds monde : centre (0.22, 0.477, -1.977), taille (0.772, 0.954, 3)
+  - Matériau : PropsAtlas | shader : Unlit/Transparent Cutout | texture : PropsAtlas_BC | renderQueue : 2450
+- DoubleCooked_Counter_Glass  (chemin : [ENV03_Multi4Players]/DoubleCooked_Counter/DoubleCooked_Counter_Glass, actif, renderer activé)
+  - Position monde Unity : (0.22, 0, -1.977)
+  - Position monde Godot : (0.22, 0, 1.977)
+  - Rotation monde Unity (euler) : (270, 0, 0)
+  - Rotation Godot (quaternion) : (0.707, 0, 0, 0.707)
+  - Échelle monde (lossy) : (1, 1, 1)
+  - Local : pos (0, 0, 0), rot (0, 0, 0), scale (1, 1, 1)
+  - Mesh : DoubleCooked_Counter_Glass (82 vertices), asset : Assets/Models/DoubleCooked_Counter.fbx
+  - Bounds monde : centre (0.18, 0.697, -1.977), taille (0.699, 0.483, 2.961)
+  - Matériau : Glass | shader : Unlit/Transparent | texture : Glass_Opacity | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, 0)
+  - Position monde Godot : (1.998, 0, 0)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, 0), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, 0), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, 1.998)
+  - Position monde Godot : (1.998, 0, -1.998)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, 1.998), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, 1.998), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, 0)
+  - Position monde Godot : (0.999, 0, 0)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, 0), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, 0), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, 1.998)
+  - Position monde Godot : (0.999, 0, -1.998)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, 1.998), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, 1.998), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, 1)
+  - Position monde Godot : (1.998, 0, -1)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, 1), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, 1), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, 1)
+  - Position monde Godot : (0.999, 0, -1)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, 1), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, 1), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, -1)
+  - Position monde Godot : (1.998, 0, 1)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, -1), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, -1), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case_Selected  (chemin : [ENV03_Multi4Players]/[CASES]/Case_Selected, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, -1)
+  - Position monde Godot : (0.999, 0, 1)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, -1), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, -1), taille (0.7, 0.108, 0.7)
+  - Matériau : Case_Selected | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, -2)
+  - Position monde Godot : (1.998, 0, 2)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, -2), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, -2), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, -2)
+  - Position monde Godot : (0.999, 0, 2)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, -2), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, -2), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, -3)
+  - Position monde Godot : (1.998, 0, 3)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, -3), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, -3), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case_Selected  (chemin : [ENV03_Multi4Players]/[CASES]/Case_Selected, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, -3)
+  - Position monde Godot : (0.999, 0, 3)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, -3), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, -3), taille (0.7, 0.108, 0.7)
+  - Matériau : Case_Selected | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (1.998, 0, -4)
+  - Position monde Godot : (1.998, 0, 4)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (1.998, 0, -4), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (1.998, 0, -4), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (0.999, 0, -4)
+  - Position monde Godot : (0.999, 0, 4)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (0.999, 0, -4), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (0.999, 0, -4), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, -4)
+  - Position monde Godot : (2.998, 0, 4)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, -4), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, -4), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case_Selected  (chemin : [ENV03_Multi4Players]/[CASES]/Case_Selected, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, -3)
+  - Position monde Godot : (2.998, 0, 3)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, -3), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, -3), taille (0.7, 0.108, 0.7)
+  - Matériau : Case_Selected | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, -2)
+  - Position monde Godot : (2.998, 0, 2)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, -2), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, -2), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, -1)
+  - Position monde Godot : (2.998, 0, 1)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, -1), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, -1), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, 0)
+  - Position monde Godot : (2.998, 0, 0)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, 0), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, 0), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case  (chemin : [ENV03_Multi4Players]/[CASES]/Case, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, 1.998)
+  - Position monde Godot : (2.998, 0, -1.998)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, 1.998), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, 1.998), taille (0.7, 0.108, 0.7)
+  - Matériau : Case | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+- Case_Selected  (chemin : [ENV03_Multi4Players]/[CASES]/Case_Selected, actif, renderer activé)
+  - Position monde Unity : (2.998, 0, 1)
+  - Position monde Godot : (2.998, 0, -1)
+  - Rotation monde Unity (euler) : (0, 0, 0)
+  - Rotation Godot (quaternion) : (0, 0, 0, 1)
+  - Échelle monde (lossy) : (0.7, 0.108, 0.7)
+  - Local : pos (2.998, 0, 1), rot (0, 0, 0), scale (0.7, 0.108, 0.7)
+  - Mesh : Cube (24 vertices), asset : Library/unity default resources
+  - Bounds monde : centre (2.998, 0, 1), taille (0.7, 0.108, 0.7)
+  - Matériau : Case_Selected | shader : Universal Render Pipeline/Unlit | texture : aucune | renderQueue : 3000
+
+## Particle System
+- [ENV03_Multi4Players]/[VFX]/FryingOilParticles (actif)
+  - Position monde Unity : (3.818, 0.389, -2.028) | Godot : (3.818, 0.389, 2.028)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 5, loop True, lifetime 3, speed 0.05, size 0.2, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 10
+  - Shape : Rectangle, scale (0.3, 0.2, 0.2), position (0, 0, 0), rotation (0, 0, 0)
+  - Texture sheet : grille 5x5, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Rotation over lifetime (Z, rad/s dans l'API) : 1.571
+  - Size over lifetime : aléatoire entre 0.5 et 1
+  - Color over lifetime : couleurs[0:#FFFFFF 1:#FFFFFF ] alpha[0:0 0.179:1 0.821:1 1:0 ]
+  - Renderer : mode Billboard, matériau FryingOil | shader Particles/Standard Unlit | texture FryingOilSheet | renderQueue 3000, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FryingOilParticles (2) (actif)
+  - Position monde Unity : (3.842, 0.389, -1.037) | Godot : (3.842, 0.389, 1.037)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 5, loop True, lifetime 3, speed 0.05, size 0.2, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 10
+  - Shape : Rectangle, scale (0.3, 0.2, 0.2), position (0, 0, 0), rotation (0, 0, 0)
+  - Texture sheet : grille 5x5, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Rotation over lifetime (Z, rad/s dans l'API) : 1.571
+  - Size over lifetime : aléatoire entre 0.5 et 1
+  - Color over lifetime : couleurs[0:#FFFFFF 1:#FFFFFF ] alpha[0:0 0.179:1 0.821:1 1:0 ]
+  - Renderer : mode Billboard, matériau FryingOil | shader Particles/Standard Unlit | texture FryingOilSheet | renderQueue 3000, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FryingOilParticles (3) (actif)
+  - Position monde Unity : (3.849, 0.389, -0.078) | Godot : (3.849, 0.389, 0.078)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 5, loop True, lifetime 3, speed 0.05, size 0.2, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 10
+  - Shape : Rectangle, scale (0.3, 0.2, 0.2), position (0, 0, 0), rotation (0, 0, 0)
+  - Texture sheet : grille 5x5, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Rotation over lifetime (Z, rad/s dans l'API) : 1.571
+  - Size over lifetime : aléatoire entre 0.5 et 1
+  - Color over lifetime : couleurs[0:#FFFFFF 1:#FFFFFF ] alpha[0:0 0.179:1 0.821:1 1:0 ]
+  - Renderer : mode Billboard, matériau FryingOil | shader Particles/Standard Unlit | texture FryingOilSheet | renderQueue 3000, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FryingOilParticles (1) (actif)
+  - Position monde Unity : (3.816, 0.389, -3.026) | Godot : (3.816, 0.389, 3.026)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 5, loop True, lifetime 3, speed 0.05, size 0.2, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 10
+  - Shape : Rectangle, scale (0.3, 0.2, 0.2), position (0, 0, 0), rotation (0, 0, 0)
+  - Texture sheet : grille 5x5, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Rotation over lifetime (Z, rad/s dans l'API) : 1.571
+  - Size over lifetime : aléatoire entre 0.5 et 1
+  - Color over lifetime : couleurs[0:#FFFFFF 1:#FFFFFF ] alpha[0:0 0.179:1 0.821:1 1:0 ]
+  - Renderer : mode Billboard, matériau FryingOil | shader Particles/Standard Unlit | texture FryingOilSheet | renderQueue 3000, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (actif)
+  - Position monde Unity : (3.682, 0.86, -1.008) | Godot : (3.682, 0.86, 1.008)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (1) (actif)
+  - Position monde Unity : (3.695, 0.86, 0.877) | Godot : (3.695, 0.86, -0.877)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (4) (actif)
+  - Position monde Unity : (3.695, 0.86, 1.887) | Godot : (3.695, 0.86, -1.887)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (2) (actif)
+  - Position monde Unity : (3.682, 0.86, -0.06) | Godot : (3.682, 0.86, 0.06)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (3) (actif)
+  - Position monde Unity : (3.682, 0.86, -2.013) | Godot : (3.682, 0.86, 2.013)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (04) (actif)
+  - Position monde Unity : (0.119, 0.86, 0.982) | Godot : (0.119, 0.86, -0.982)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (05) (actif)
+  - Position monde Unity : (0.119, 0.86, 1.935) | Godot : (0.119, 0.86, -1.935)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (5) (actif)
+  - Position monde Unity : (3.682, 0.86, -3) | Godot : (3.682, 0.86, 3)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (6) (actif)
+  - Position monde Unity : (3.714, 0.86, -3.972) | Godot : (3.714, 0.86, 3.972)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (7) (actif)
+  - Position monde Unity : (0.154, 0.86, -2.985) | Godot : (0.154, 0.86, 2.985)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (8) (actif)
+  - Position monde Unity : (0.132, 0.86, -2.012) | Godot : (0.132, 0.86, 2.012)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (9) (actif)
+  - Position monde Unity : (0.145, 0.86, -1.034) | Godot : (0.145, 0.86, 1.034)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0
+- [ENV03_Multi4Players]/[VFX]/FireParticles (10) (actif)
+  - Position monde Unity : (0.104, 0.86, -0.08) | Godot : (0.104, 0.86, 0.08)
+  - Rotation monde Unity : (270, 0, 0)
+  - Main : durée 1, loop True, lifetime 1, speed 0, size 1, couleur #FFFFFFFF, simulationSpace Local, maxParticles 1000, playOnAwake True
+  - Emission : rateOverTime 1
+  - Texture sheet : grille 5x3, mode WholeSheet, cycles 1, frameOverTime courbe [(0:0) (1:1)] x1, startFrame 0
+  - Renderer : mode Billboard, matériau Fire | shader Particles/Standard Unlit | texture FireSheet | renderQueue 3001, sortingOrder 0

@@ -115,13 +115,21 @@ The art comes before the rest of the roadmap. Steps 1–4 are 0.1.32–0.1.35; s
 - Done in 0.2.7: the baskets' "eject food" move from the fryer's animation (the fridge and bin doors already played theirs).
 - Still to do: the oil and fire particles with the readme's settings; thrown items as the artist's meshes (Jupiler, Coca, folded can).
 
+## Third delivery (2026-10-08)
+
+`D:OffhoursRessources_double-cooked`: a readme (`docs/art/Readme_SettingsV3.txt`), the three scenes as exports with exact positions (`docs/art/SceneExport_*.md`, 2, 3 and 4 players, with pictures), the artist's own GDD (`docs/art/DoubleCooked_GDD_artist.pdf`), every model and texture again, and new ones: burnt food, the colleagues and beer drinkers outside, a drunk Santa, events, the mitraillette, baguette, salad and tomato, score pop-ups. What was taken from their GDD is decided with the project owner, step by step, in our GDD.
+
+- Done in 0.2.11: the walls on the camera's side hide what is behind them.
+- Done in 0.2.12: their cooking bubbles over the fryers (ConceptBoard02).
+- Done in 0.2.13: the new pictures and characters; the burnt pictures replace the darkened tints.
+- Next: the kitchen as their 2-player scene, with the structural models (room, 4-well fryer, counter, fridge, bin) and the new atlas and food models, which go together; then the lobby in `Room01`, the art polish, the 3- and 4-player rooms.
+
 ## To ask the artist
 
-- **Items for the failed states:**
-  - soggy, burnt and cold fries;
-  - lukewarm and burnt cervelas;
-  - undercooked and burnt fricadelle;
-  - burnt versions of the new meats.
+- **Items for the failed states** (burnt ones delivered on 2026-10-08):
+  - soggy and cold fries;
+  - lukewarm cervelas;
+  - undercooked fricadelle, boulette and brochette.
 - **Characters:**
   - the four players without their cap (the "none" hat at CASQUETTE);
   - the beer helmet as a sprite;
