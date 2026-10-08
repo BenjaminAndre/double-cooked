@@ -8,6 +8,8 @@ const PICTURE_SIZE := 110
 ## Event kind -> [picture, title, what it means].
 const EVENTS := {
     NightEvents.PANNE_FRIGO: ["Event_PanneFrigo", "Panne de frigo !", "Plus de bière qui revient un moment"],
+    NightEvents.DIABLES_ROUGES: ["Event_MiTempsDiablesRouges", "Mi-temps des Diables Rouges !",
+            "Une foule pressée débarque"],
 }
 
 var _picture: TextureRect

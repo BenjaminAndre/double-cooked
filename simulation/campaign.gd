@@ -58,10 +58,12 @@ static func rules_for(night: int) -> SimRules:
     return rules
 
 
-## The events of this night (SimRules.night_events): the artist's week, from Saturday's fridge
-## breakdown so far.
+## The events of this night (SimRules.night_events): the artist's week, so far Wednesday's
+## half-time of the Diables Rouges (21:00) and Saturday's fridge breakdown.
 static func events_for(night: int) -> Array:
     match day(night):
+        "mercredi":
+            return [[0.3, NightEvents.DIABLES_ROUGES]]
         "samedi":
             return [[0.5, NightEvents.PANNE_FRIGO]]
     return []

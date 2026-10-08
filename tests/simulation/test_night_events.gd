@@ -43,3 +43,15 @@ func test_the_fridge_breakdown_stops_the_beers_coming_back() -> void:
     assert_eq(sim.stations[0].beers, beers, "none came back while broken")
     scenario.run_until(500 + rules.fridge_breakdown + 20)
     assert_gt(sim.stations[0].beers, beers, "working again")
+
+
+func test_the_diables_rouges_bring_a_rush_in_a_hurry() -> void:
+    var rules := _rules([[0.125, NightEvents.DIABLES_ROUGES]])
+    var scenario := Scenario.new(level, [fridge], 1, rules)
+    var sim := scenario.run_until(501)
+    assert_eq(sim.crowd.line.size(), 1, "the first at once")
+    scenario.run_until(501 + rules.rush_every * (rules.rush_customers - 1))
+    assert_eq(sim.crowd.line.size(), rules.rush_customers, "all of them, one after the other")
+    var first := sim.crowd.line[0]
+    assert_eq(first.full_patience, roundi(roundi(rules.patience) * rules.rush_patience), "in a hurry")
+    assert_eq(Campaign.events_for(3), [[0.3, NightEvents.DIABLES_ROUGES]], "mercredi")

@@ -51,7 +51,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     rng.seed = p_seed
     rules = p_rules if p_rules else SimRules.new()
     crowd = SimCrowd.new(rules)
-    night_events = NightEvents.new(rules)
+    night_events = NightEvents.new(rules, crowd)
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
         players[slot].bmi = rules.start_bmi

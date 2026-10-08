@@ -121,6 +121,7 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 
 ### 6.4 Night events (the artist's, 0.2.29 onwards)
 - Besides the boss, a night can have **events**: each comes at its time, is announced at the top of the screen with the artist's picture, and changes the rules for a while (`NightEvents`). In a campaign they follow the artist's week; a single night has none for now.
+- **Mi-temps des Diables Rouges** (mercredi, 21:00): a rush of 6 customers in 20 s, on top of the usual ones and even into a full line, each with 20% less patience.
 - **Panne de frigo** (samedi, mid-night): the FRIGO breaks down, no beer comes back for 25 s ("en panne" over it). Cola has to do.
 
 ## 7. Cooking

@@ -49,6 +49,9 @@ var mood := 0
 var next_arrival: int
 ## Whether tonight's boss has walked in.
 var boss_came := false
+## Customers of a rush (NightEvents.DIABLES_ROUGES) still to come, and the tick of the next.
+var rush := 0
+var rush_next := 0
 var _next_id := 0
 
 
@@ -76,6 +79,15 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
             line.append(_new_customer(rng))
             events.append({"type": &"arrival"})
         next_arrival = tick + _arrival_delay(tick, player_count, rng)
+    # A rush comes on top of the usual arrivals, even into a full line.
+    if rush > 0 and tick >= rush_next:
+        var hurried := _new_customer(rng)
+        hurried.patience = roundi(hurried.patience * rules.rush_patience)
+        hurried.full_patience = hurried.patience
+        line.append(hurried)
+        events.append({"type": &"arrival"})
+        rush -= 1
+        rush_next = tick + rules.rush_every
     for index in range(line.size() - 1, -1, -1):
         var customer := line[index]
         if customer.boss:
@@ -156,7 +168,7 @@ func fingerprint() -> Array:
     var customers := []
     for customer in line:
         customers.append(customer.fingerprint())
-    return [customers, mood, next_arrival, boss_came, _next_id]
+    return [customers, mood, next_arrival, boss_came, _next_id, rush, rush_next]
 
 
 ## The patience each of the boss's orders starts with.

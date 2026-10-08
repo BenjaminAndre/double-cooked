@@ -109,6 +109,11 @@ var can_every := 8 * SECOND
 var night_events: Array = []
 ## The fridge breakdown: no beer comes back to the FRIGO for this long.
 var fridge_breakdown := 25 * SECOND
+## The Diables Rouges' half-time: this many customers, one every rush_every ticks, each with this
+## fraction of the usual patience (in a hurry, the artist's -20%).
+var rush_customers := 6
+var rush_every := 20 * SECOND / 6
+var rush_patience := 0.8
 
 
 ## The boss (GDD §6.3): one per night, at boss_at through the night (02:00). He cuts to the
