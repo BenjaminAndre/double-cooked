@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bolij82abbnan"]
+[gd_scene load_steps=16 format=3 uid="uid://bolij82abbnan"]
 
 [ext_resource type="Script" path="res://gameplay/night.gd" id="6_night"]
 [ext_resource type="Script" path="res://network/night_link.gd" id="7_link"]
@@ -10,7 +10,11 @@
 [ext_resource type="Script" path="res://gameplay/unlit_art.gd" id="14_unlit"]
 [ext_resource type="PackedScene" path="res://art/scenes/Kitchen2Players.tscn" id="15_kitchen_art"]
 [ext_resource type="PackedScene" path="res://art/scenes/Lobby.tscn" id="17_lobby_art"]
+[ext_resource type="Shader" path="res://gameplay/post_process.gdshader" id="18_post"]
 [ext_resource type="Script" path="res://gameplay/backdrop.gd" id="16_backdrop"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_post"]
+shader = ExtResource("18_post")
 
 [sub_resource type="Environment" id="Environment_sky"]
 background_mode = 3
@@ -89,6 +93,18 @@ inside_places = 4
 door = Vector3(0.75, 0, -1)
 entrance = Vector3(1.5, 0, -5)
 exit = Vector3(1.5, 0, 5)
+
+[node name="PostProcess" type="CanvasLayer" parent="."]
+layer = 0
+
+[node name="Screen" type="ColorRect" parent="PostProcess"]
+material = SubResource("ShaderMaterial_post")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="Hud" type="CanvasLayer" parent="." node_paths=PackedStringArray("night")]
 layer = 4
