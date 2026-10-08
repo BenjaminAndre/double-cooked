@@ -37,7 +37,7 @@ The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PL
   - `Night` owns the simulation, turns keys into commands (`LocalInput`) and calls `Player.show_state()`;
   - `LevelReader` turns the `Anchor` graph into a `SimLevel`;
   - stations are `Interactible` nodes identified by `kind`, and their effects live in `Simulation`.
-  - the art (docs/ART_PLAN.md): `PaperFigure` (characters), `StationModels`, `UnlitArt`, `Backdrop` (the room behind everything), `ArtUi` / `ItemIcons` (frames and pictures), `MenuBubble`, `MoodBar`;
+  - the art (docs/ART_PLAN.md): `PaperFigure` (characters), `StationModels`, `UnlitArt`, `Backdrop` (the room behind everything, its front walls in depth), `ArtUi` / `ItemIcons` (frames and pictures), `MenuBubble`, `MoodBar`;
   - `GridRoom` builds a room (Anchors, stations, floor, camera) in code from a grid layout; the lobby is one. `Night` switches between it and the kitchen (`SimRules.lobby`).
 - `network/` handles online play:
   - `NightLink` holds the RPCs. The host relays each tick's commands to the clients, who re-simulate, plus a fingerprint every second.

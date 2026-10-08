@@ -88,6 +88,12 @@ func _initialize() -> void:
             sim.stats.merge({"served": 14, "angry": 3, "served_by": [9, 5], "missed_by": [1, 2],
                     "beers_by": [0, 2], "bumps": [5, 2], "knockouts": [0, 2], "revives": [2, 0]}, true)
             sim.crowd.mood = sim.rules.riot
+        "behind_wall":
+            # A line of customers just behind the front wall: it must hide their legs.
+            night.queue.global_position = Vector3(0.55, 0, -0.9)
+            night.simulation.rules.arrival_min = 15
+            night.simulation.rules.arrival_max = 15
+            night.simulation.crowd.next_arrival = 1
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0
