@@ -149,16 +149,30 @@ func test_the_mood_doesnt_move_on_its_own() -> void:
     assert_eq(_scenario().run_until(999).crowd.mood, 0, "only what happens in the fritkot moves it")
 
 
-func test_a_second_unordered_beer_is_one_too_many() -> void:
+func test_a_third_unordered_beer_puts_the_customer_to_sleep() -> void:
     var scenario := _scenario()
     var sim := _with_order(scenario, &"frites:mayo")
+    for tick in [2, 3]:
+        sim.players[0].item = _item(Menu.BEER, &"")
+        scenario.at(tick, 0, INTERACT).at(tick, 0, Simulation.Command.RELEASE).run_until(tick + 1)
+    assert_eq(sim.stats.beers, 2, "two are welcome")
+    var customer := sim.crowd.front()
+    var patience := customer.patience
     sim.players[0].item = _item(Menu.BEER, &"")
-    scenario.at(2, 0, INTERACT).at(2, 0, Simulation.Command.RELEASE).run_until(3)
-    assert_eq(sim.crowd.line.size(), 1, "the first one is welcome")
-    sim.players[0].item = _item(Menu.BEER, &"")
-    scenario.at(3, 0, INTERACT).at(3, 0, Simulation.Command.RELEASE).run_until(4)
-    assert_true(sim.crowd.line.is_empty(), "the second sends them off")
-    assert_eq(sim.stats.angry, 1)
+    scenario.at(4, 0, INTERACT).at(4, 0, Simulation.Command.RELEASE).run_until(5)
+    assert_eq(customer.asleep, rules.beer_sleep - 1, "the third: asleep, from that tick")
+    assert_eq(sim.crowd.line.size(), 1, "but still there")
+    scenario.run_until(5 + rules.beer_sleep / 2)
+    assert_eq(customer.patience, patience, "no patience lost asleep")
+    # Nothing can be served while they sleep.
+    sim.players[0].item = _item(Fryer.FRIES_GOOD, Menu.MAYO)
+    assert_eq(sim.action_for(sim.players[0]), &"asleep")
+    scenario.at(sim.tick, 0, INTERACT).run_until(sim.tick + 1)
+    assert_not_null(sim.players[0].item, "not taken")
+    scenario.run_until(6 + rules.beer_sleep)
+    assert_eq(customer.asleep, 0, "awake again")
+    scenario.at(sim.tick, 0, INTERACT).run_until(sim.tick + 1)
+    assert_true(sim.crowd.line.is_empty(), "served at last")
 
 
 func test_more_players_bring_customers_faster() -> void:

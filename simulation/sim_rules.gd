@@ -41,8 +41,11 @@ var order_categories := PackedFloat32Array([0.45, 0.35, 0.2])
 var patience := 4 * 45 * SECOND
 var front_drain := 4
 var back_drain := 1
-## A beer that wasn't ordered gives back this much patience (a quarter).
-var beer_patience := 45 * SECOND
+## A beer that wasn't ordered gives back this much patience (15 s at the front of the line, the
+## artist's figure), at most beer_gifts times; one more puts the customer to sleep beer_sleep ticks.
+var beer_patience := 15 * 4 * SECOND
+var beer_gifts := 2
+var beer_sleep := 10 * SECOND
 
 ## The mood meter goes from 0 (calme) to riot, which ends the night.
 var riot := 1000

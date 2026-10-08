@@ -538,6 +538,9 @@ func _station_action(player: SimPlayer) -> StringName:
             return &"trash" if held else &""
         &"caisse":
             var front := crowd.front()
+            if front and front.asleep > 0 and not front.boss:
+                # Only explains why nothing happens.
+                return &"asleep"
             return &"serve" if held and front else &""
         &"extincteur":
             if not held:

@@ -15,8 +15,11 @@ class Customer:
     ## What they want, see Menu.order_key. For the boss, his current order.
     var order: StringName
     var patience: int
-    ## Already given an unordered beer: another one sends them off angry.
-    var gifted := false
+    ## Unordered beers given so far (GDD §6.2): the first SimRules.beer_gifts buy patience, one
+    ## more puts them to sleep.
+    var gifts := 0
+    ## Ticks left asleep: no patience lost, and they can't be served.
+    var asleep := 0
     var boss := false
     ## The boss's orders, and what became of each (Result).
     var orders: Array[StringName] = []
@@ -34,7 +37,7 @@ class Customer:
         return Array(results).find(Result.WAITING)
 
     func fingerprint() -> Array:
-        return [id, order, patience, gifted, boss, orders, results, drink, drink_patience,
+        return [id, order, patience, gifts, asleep, boss, orders, results, drink, drink_patience,
                 drink_again, next_can]
 
 var rules: SimRules
@@ -76,6 +79,9 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         if customer.boss:
             _advance_boss(customer, rng, events)
             continue
+        if customer.asleep > 0:
+            customer.asleep -= 1
+            continue
         customer.patience -= rules.front_drain if index == 0 else rules.back_drain
         if customer.patience <= 0:
             line.remove_at(index)
@@ -95,6 +101,8 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     if customer.boss:
         _serve_boss(customer, item, by, events)
         return true
+    if customer.asleep > 0:
+        return false
     if item.kind == Menu.BEER:
         give_beer(0, by, events)
         return true
@@ -108,8 +116,8 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
 
 
 ## A beer for the customer at index, handed over or caught. If they ordered one, they're
-## served. The first unordered beer buys back some patience; a second one is too much and
-## they leave angry, at whoever gave it. The boss only takes it as his drink.
+## served. The first unordered ones (SimRules.beer_gifts) buy back some patience; one more puts
+## them to sleep for a while (the artist's rule). The boss only takes it as his drink.
 func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     var customer := line[index]
     if customer.boss:
@@ -118,13 +126,14 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
         line.remove_at(index)
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by})
-    elif customer.gifted:
-        line.remove_at(index)
-        _leave_angry(index, by, events)
-    else:
-        customer.gifted = true
+    elif customer.gifts < rules.beer_gifts:
+        customer.gifts += 1
         customer.patience = mini(customer.patience + rules.beer_patience, rules.patience)
         events.append({"type": &"beer_gift", "index": index, "by": by})
+    else:
+        customer.gifts += 1
+        customer.asleep = rules.beer_sleep
+        events.append({"type": &"asleep", "index": index, "by": by})
 
 
 func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:

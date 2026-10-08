@@ -11,6 +11,9 @@ extends Node3D
 const CUSTOMERS := "res://art/textures/Character%02d.png"
 const CUSTOMER_KINDS := 5
 const BOSS_PICTURE := preload("res://art/textures/DrunkCharacter01.png")
+## Over a customer put to sleep by one beer too many (GDD §6.2): the artist's Zzz, bobbing.
+const ASLEEP := preload("res://art/textures/EtatZzzz.png")
+const ASLEEP_HEIGHT := 1.75
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
 ## How fast they walk round to the door, in metres per second.
@@ -69,6 +72,7 @@ func _process(delta: float) -> void:
             _figures[customer.id] = _new_figure(customer)
         var figure: Node3D = _figures[customer.id]
         _walk(figure, place(index), index < inside_places, delta)
+        _show_asleep(figure, customer.asleep > 0)
     for id in _figures.keys():
         if not present.has(id):
             _leaving.append(_figures[id])
@@ -79,6 +83,22 @@ func _process(delta: float) -> void:
             _leaving.erase(figure)
             figure.queue_free()
     _show_tickets(crowd)
+
+
+func _show_asleep(figure: Node3D, asleep: bool) -> void:
+    var zzz := figure.get_node_or_null("Zzz") as Sprite3D
+    if asleep and not zzz:
+        zzz = Sprite3D.new()
+        zzz.name = "Zzz"
+        zzz.texture = ASLEEP
+        zzz.pixel_size = 0.5 / ASLEEP.get_width()
+        zzz.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        zzz.no_depth_test = true
+        zzz.position.y = ASLEEP_HEIGHT
+        figure.add_child(zzz)
+    if zzz:
+        zzz.visible = asleep
+        zzz.position.y = ASLEEP_HEIGHT + sin(Time.get_ticks_msec() * 0.004) * 0.05
 
 
 ## Where the customer at this place in line stands, relative to this node.

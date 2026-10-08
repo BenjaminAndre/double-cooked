@@ -104,6 +104,16 @@ func _initialize() -> void:
             night.simulation.rules.arrival_min = 15
             night.simulation.rules.arrival_max = 15
             night.simulation.crowd.next_arrival = 1
+        "asleep":
+            # The customer at the till asleep after a third beer, the line waiting behind.
+            var sim := night.simulation
+            sim.rules.arrival_min = 15
+            sim.rules.arrival_max = 15
+            sim.crowd.next_arrival = 1
+            await create_timer(1.0).timeout
+            sim.crowd.front().asleep = 1000
+            sim.players[0].node = sim.level.find("Caisse")
+            sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0
