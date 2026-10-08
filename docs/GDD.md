@@ -26,7 +26,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 ## 4. Session: one night
 
 - One game is one night, 18:00 to 04:00 in just under 6 minutes of real time. **At 04:00 the door closes**: nobody comes in any more, and the night only ends once every customer still inside has been dealt with.
-- The pace follows the clock (revised after the fourth playtest): calm until 20:00, then a steady build-up of customers until the peak at closing time. Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors.
+- The pace follows the clock (revised after the fourth playtest): calm until 20:00, then a steady build-up of customers until the peak at closing time. Tunables: `SimRules.calm_until`, `mad_from` and the calm / mad factors. A customer every 8 to 15 s for one player before those factors (raised by half on 2026-10-08: the first night felt empty).
 - A single night (**nuit libre** at the PORTE) has the whole menu. Progression comes from the campaign (§4.2).
 - **End of night:** a win or loss ("closed at 04:00" or "crew down at 01:37"), **up to three stars** on the artist's notebook (one for holding until closing, one for a room still in the green, under half the riot, one for serving every order of the boss; a lost night has none), plus a short recap of fun stats: orders served, fires, bumps per player, who was knocked out most. Bragging material, with no points or economy behind it.
 
@@ -40,8 +40,8 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - Like the rounds of a zombie game: **nights one after the other, endless, until the crew falls**. A held night leads to the next one (Entrée, the host's online); a riot or the whole crew K.O. **loses the campaign** and everyone goes back to the lobby. No purchases between nights yet.
 - **The score is the night reached.** The best one is the team's record, kept on this browser (`user://looks.cfg`) with the colours of that crew, and shown under the logo in the lobby.
 - **Each night is busier**: arrival delays are divided by 1 + 0.05 × (night − 1) (`SimRules.busier_per_night`). The calm-to-mad curve inside a night is unchanged.
-- **The menu grows** (`Campaign.UNLOCKS`): night 1 plain fries; 2 mayo and andalouse; 3 cold cervelas; 4 fricadelle; 5 cola and beer; 6 warm cervelas; 7 ketchup; 8 boulette; 9 brochette. Customers only order from it, and the night's announcement says what is new.
-- **Station menus only offer tonight's items**, and a station with nothing to do is **greyed out and inert** (today PAIN, FRIGO before night 5, VIANDES before night 3, SAUCES on night 1). A knocked-out player can still crawl to the FRIGO for a beer.
+- **The menu grows** (`Campaign.UNLOCKS`): night 1 plain fries and beer (a knocked-out player always has a beer to crawl to: without it, the first night could softlock); 2 mayo, andalouse and cola; 3 cold cervelas; 4 fricadelle; 5 warm cervelas; 6 ketchup; 7 boulette; 8 brochette. Customers only order from it, and the night's announcement says what is new.
+- **Station menus only offer tonight's items**, and a station with nothing to do is **greyed out and inert** (today PAIN, VIANDES before night 3, SAUCES on night 1). A menu with nothing in it never opens.
 - **The summary** shows the night reached and, per player (by colour): served, missed, beers given, bumps, K.O., revives; at the end of a campaign, the record.
 - Later (§12): barricades against the cans, special nights every N nights, an easter egg.
 

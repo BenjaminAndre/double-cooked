@@ -26,10 +26,10 @@ func before_each() -> void:
 
 
 func test_the_menu_grows_night_after_night() -> void:
-    assert_eq(Campaign.menu_for(1), [&"frites", Menu.NATURE] as Array[StringName])
+    assert_eq(Campaign.menu_for(1), [&"frites", Menu.NATURE, Menu.BEER] as Array[StringName])
+    assert_false(Menu.COLA in Campaign.menu_for(1))
     assert_true(Menu.MAYO in Campaign.menu_for(2))
-    assert_false(Menu.COLA in Campaign.menu_for(4))
-    assert_true(Menu.COLA in Campaign.menu_for(5))
+    assert_true(Menu.COLA in Campaign.menu_for(2))
     assert_eq(Campaign.new_on(1), [] as Array[StringName], "nothing is new on the first night")
     assert_eq(Campaign.new_on(3), [&"cervelas_froid"] as Array[StringName])
     var everything := Campaign.menu_for(Campaign.UNLOCKS.size() + 5)
@@ -43,12 +43,16 @@ func test_a_single_night_has_the_whole_menu_at_the_base_pace() -> void:
     assert_eq(rules.menu, Menu.FULL_MENU)
 
 
-func test_the_first_night_only_orders_plain_fries() -> void:
+func test_the_first_night_only_orders_plain_fries_and_beer() -> void:
     var rules := _busy(Campaign.rules_for(1))
     var sim := Scenario.new(level, [till], 3, rules).run_until(200)
     assert_gt(sim.crowd.line.size(), 50)
+    var seen := {}
     for customer in sim.crowd.line:
-        assert_eq(customer.order, &"frites:nature")
+        seen[customer.order] = true
+    assert_eq(seen.size(), 2)
+    assert_true(seen.has(&"frites:nature"))
+    assert_true(seen.has(Menu.BEER))
 
 
 func test_each_night_brings_customers_faster() -> void:
@@ -71,19 +75,19 @@ func test_stations_only_offer_what_tonight_needs() -> void:
     assert_eq(Menu.options(&"viandes", Campaign.menu_for(3)), [Menu.CERVELAS])
     assert_eq(Menu.options(&"viandes", Campaign.menu_for(4)), [Menu.CERVELAS, Menu.FRICADELLE_RAW])
     assert_eq(Menu.options(&"sauces", Campaign.menu_for(2)), [Menu.MAYO, Menu.ANDALOUSE])
-    assert_false(Menu.station_in_use(&"frigo", Campaign.menu_for(4)))
-    assert_true(Menu.station_in_use(&"frigo", Campaign.menu_for(5)))
+    assert_eq(Menu.options(&"frigo", Campaign.menu_for(1)), [Menu.BEER], "a beer to crawl to from the start")
+    assert_eq(Menu.options(&"frigo", Campaign.menu_for(2)), [Menu.COLA, Menu.BEER])
     assert_false(Menu.station_in_use(&"pain"), "no bread recipe yet")
     assert_true(Menu.station_in_use(&"caisse", Campaign.menu_for(1)))
 
 
 func test_a_station_with_nothing_to_do_tonight_is_inert() -> void:
     var rules := Campaign.rules_for(1)
-    var sim := Scenario.new(level, [fridge, meats, bread], 1, rules).simulation
+    var sim := Scenario.new(level, [meats, bread], 1, rules).simulation
     for player in sim.players:
         assert_eq(sim.action_for(player), &"", "nothing at %s on the first night" % sim.stations[
                 sim.level.node_stations[player.node]].kind)
-    sim = Scenario.new(level, [fridge, meats], 1, Campaign.rules_for(5)).simulation
+    sim = Scenario.new(level, [fridge, meats], 1, Campaign.rules_for(3)).simulation
     assert_eq(sim.action_for(sim.players[0]), &"fridge")
     assert_eq(sim.action_for(sim.players[1]), &"meat")
 
@@ -124,3 +128,24 @@ func _busy(rules: SimRules) -> SimRules:
     rules.patience = NEVER
     rules.boss_orders = 0
     return rules
+
+
+func test_a_knocked_out_player_can_drink_a_beer_from_the_first_night() -> void:
+    var scenario := Scenario.new(level, [fridge], 1, Campaign.rules_for(1))
+    var player := scenario.simulation.players[0]
+    player.health = 0
+    player.down = true
+    scenario.at(0, 0, INTERACT).at(1, 0, INTERACT).run_until(2)
+    assert_eq(player.item.kind, Menu.BEER, "the FRIGO's only option tonight")
+
+
+func test_a_menu_with_nothing_in_it_never_opens() -> void:
+    var rules := Campaign.rules_for(1)
+    rules.menu.erase(Menu.BEER)
+    var scenario := Scenario.new(level, [fridge], 1, rules)
+    var player := scenario.simulation.players[0]
+    player.health = 0
+    player.down = true
+    assert_eq(scenario.simulation.action_for(player), &"")
+    scenario.at(0, 0, INTERACT).run_until(1)
+    assert_eq(player.menu, SimLevel.NONE)

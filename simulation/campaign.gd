@@ -1,16 +1,16 @@
 class_name Campaign
 extends RefCounted
 ## The campaign (GDD §4.2): nights one after the other until the crew falls, like the rounds of
-## a zombie game. Each night is a little busier than the last, and the menu grows: fries alone
-## on the first, then sauces, cold cervelas, fricadelle, drinks, and so on.
+## a zombie game. Each night is a little busier than the last, and the menu grows: fries and
+## beer on the first (a knocked-out player always has a beer to crawl to), then sauces and
+## cola, cold cervelas, fricadelle, and so on.
 
 ## What each night adds to the menu (Menu.FULL_MENU), from the first.
 const UNLOCKS: Array = [
-    [&"frites", Menu.NATURE],
-    [Menu.MAYO, Menu.ANDALOUSE],
+    [&"frites", Menu.NATURE, Menu.BEER],
+    [Menu.MAYO, Menu.ANDALOUSE, Menu.COLA],
     [&"cervelas_froid"],
     [&"fricadelle"],
-    [Menu.COLA, Menu.BEER],
     [&"cervelas_chaud"],
     [Menu.KETCHUP],
     [&"boulette"],

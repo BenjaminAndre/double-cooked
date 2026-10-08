@@ -550,6 +550,9 @@ func _station_action(player: SimPlayer) -> StringName:
 ## FRIGO and VIANDES an empty hand.
 func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
     var held := player.item
+    # A menu with nothing in it tonight never opens.
+    if Menu.options(station.kind, rules.menu).is_empty():
+        return &""
     match station.kind:
         &"sauces":
             return &"sauce" if Menu.takes_sauce(held) else &""

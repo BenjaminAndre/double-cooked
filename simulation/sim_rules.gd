@@ -22,9 +22,10 @@ var menu: Array[StringName] = Menu.FULL_MENU.duplicate()
 var calm_until := 0.2
 var mad_from := 1.0
 
-## Time between two customers, for one player; more players make it shorter.
-var arrival_min := 12 * SECOND
-var arrival_max := 22 * SECOND
+## Time between two customers, for one player; more players make it shorter. (Two thirds of
+## the first values, 12 to 22 s: 50% more customers after a playtest found the nights empty.)
+var arrival_min := 8 * SECOND
+var arrival_max := 15 * SECOND
 ## The arrival delay is multiplied by this at intensity 0, down to mad_arrival_factor at 1.
 var calm_arrival_factor := 1.5
 var mad_arrival_factor := 0.45
