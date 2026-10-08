@@ -129,7 +129,8 @@ func step(commands: Array) -> void:
         Fryer.advance(station)
         # Broken down, the FRIGO gets no beer back.
         if station.kind == &"frigo" and station.beers < rules.fridge_beers and night_events.fridge_down == 0:
-            station.restock += 1
+            # Twice as fast while the colleagues are on their way.
+            station.restock += 2 if night_events.group_coming > 0 else 1
             if station.restock >= rules.fridge_restock:
                 station.restock = 0
                 station.beers += 1
@@ -138,7 +139,7 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        night_events.advance(tick, events, stations.any(func(station: SimStation) -> bool: return station.burning))
+        night_events.advance(tick, events, stations.any(func(station: SimStation) -> bool: return station.burning), rng)
         crowd.advance(tick, players.size(), rng, events)
         _customers_throw()
     _advance_projectiles()

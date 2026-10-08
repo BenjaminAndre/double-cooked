@@ -123,6 +123,7 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 - Besides the boss, a night can have **events**: each comes at its time, is announced at the top of the screen with the artist's picture, and changes the rules for a while (`NightEvents`). In a campaign they follow the artist's week; a single night has none for now.
 - **Mi-temps des Diables Rouges** (mercredi, 21:00): a rush of 6 customers in 20 s, on top of the usual ones and even into a full line, each with 20% less patience.
 - **Contrôle AFSCA** (jeudi, 22:00): the inspector watches the kitchen for 20 s (a countdown under the clock). No fire meanwhile, and the room calms down (−150); a fire, and it sours by a quarter of a riot. Without floor items in our game, "clean" means no fire.
+- **Les collègues** (vendredi, 19:00): announced 20 s ahead, while the FRIGO restocks twice as fast. Their leader queues like anyone and orders for the whole group, **5 or 6 beers** and 4 dishes, served one line at a time **in any order** (a thrown beer counts), with 100 s of patience at the front; his colleagues drink outside meanwhile. All served, the room cheers up (−300); walked out, it sours by a quarter of a riot.
 - **Panne de frigo** (samedi, mid-night): the FRIGO breaks down, no beer comes back for 25 s ("en panne" over it). Cola has to do.
 
 ## 7. Cooking

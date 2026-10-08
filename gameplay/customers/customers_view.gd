@@ -11,6 +11,11 @@ extends Node3D
 const CUSTOMERS := "res://art/textures/Character%02d.png"
 const CUSTOMER_KINDS := 5
 const BOSS_PICTURE := preload("res://art/textures/DrunkCharacter01.png")
+## The colleagues (NightEvents.COLLEGUES): their leader queues, the others wait outside with a
+## can, around COLLEAGUES_AT (relative to this node).
+const LEADER := "res://art/textures/EventCharacter01.png"
+const COLLEAGUE := "res://art/textures/EventCharacter%02d.png"
+const COLLEAGUES_AT := Vector3(2.5, 0, -3.4)
 ## Over a customer put to sleep by one beer too many (GDD §6.2): the artist's Zzz, bobbing.
 const ASLEEP := preload("res://art/textures/EtatZzzz.png")
 const ASLEEP_HEIGHT := 1.75
@@ -54,6 +59,8 @@ var _tickets: Array[PanelContainer] = []
 ## The boss's drink, on a ticket of its own.
 var _drink_ticket: PanelContainer
 var _layer: CanvasLayer
+## The colleagues waiting outside, while their leader is in line.
+var _colleagues: Array[Node3D] = []
 
 
 func _ready() -> void:
@@ -84,6 +91,7 @@ func _process(delta: float) -> void:
         if figure.position.is_equal_approx(exit):
             _leaving.erase(figure)
             figure.queue_free()
+    _show_colleagues(crowd.line.any(func(customer: SimCrowd.Customer) -> bool: return customer.group))
     _show_tickets(crowd)
 
 
@@ -142,6 +150,41 @@ func flash_refused() -> void:
     ticket.create_tween().tween_property(ticket, "modulate", Color.WHITE, 0.5)
 
 
+## What is left of the group's order: [the pictures of each kind of line, then for each picture
+## how many of that line it starts (0 for its sauce)].
+func _group_lines(leader: SimCrowd.Customer) -> Array:
+    var keys := []
+    var times := []
+    for key in leader.orders:
+        var at := keys.find(key)
+        if at < 0:
+            keys.append(key)
+            times.append(1)
+        else:
+            times[at] += 1
+    var kinds: Array[StringName] = []
+    var counts := []
+    for index in keys.size():
+        var pictures := ItemIcons.order(keys[index])
+        for part in pictures.size():
+            kinds.append(pictures[part])
+            counts.append(times[index] if part == 0 else 0)
+    return [kinds, counts]
+
+
+## The leader's colleagues, standing outside with their cans while he is in line.
+func _show_colleagues(shown: bool) -> void:
+    if shown and _colleagues.is_empty():
+        for index in 5:
+            var colleague := PaperFigure.new(load(COLLEAGUE % (index + 2)))
+            colleague.position = COLLEAGUES_AT + Vector3((index % 2) * 0.5, 0, -index * 0.45)
+            colleague.set_mirrored(index % 2 == 1)
+            add_child(colleague)
+            _colleagues.append(colleague)
+    for colleague in _colleagues:
+        colleague.visible = shown
+
+
 ## Forgets every figure, e.g. when a new night starts.
 func clear() -> void:
     for figure in _figures.values() + _leaving:
@@ -176,8 +219,12 @@ func _show_tickets(crowd: SimCrowd) -> void:
         var figure: Node3D = _figures[customer.id]
         var icon_size := FRONT_ICON if index == 0 else BACK_ICON
         var full := crowd.boss_patience() if customer.boss else maxi(customer.full_patience, crowd.rules.patience)
-        _fill(ticket, ItemIcons.order(customer.order), icon_size, float(customer.patience) / full,
-                customer.boss)
+        # The group's leader shows what is left of their order, one picture a line, ×n.
+        if customer.group:
+            var lines := _group_lines(customer)
+            _fill(ticket, lines[0], BACK_ICON, float(customer.patience) / full, false, lines[1])
+        else:
+            _fill(ticket, ItemIcons.order(customer.order), icon_size, float(customer.patience) / full, customer.boss)
         _show_dots(ticket, customer)
         var anchor := camera.unproject_position(figure.global_position)
         var left := maxf(maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP), TICKET_GAP)
@@ -200,16 +247,25 @@ func _show_tickets(crowd: SimCrowd) -> void:
 ## The order as the artist's pictures (dish, then sauce), rebuilt only when it changes: each
 ## change relayouts the ticket. The boss's tickets are tinted red.
 func _fill(ticket: PanelContainer, kinds: Array[StringName], icon_size: int, patience: float,
-        boss: bool) -> void:
+        boss: bool, counts: Array = []) -> void:
     var column := ticket.get_child(0)
     var icons: HBoxContainer = column.get_child(0)
-    var shown := [kinds, icon_size]
+    var shown := [kinds, icon_size, counts]
     if ticket.get_meta(&"order", []) != shown:
         ticket.set_meta(&"order", shown)
         for child in icons.get_children():
             child.free()
-        for kind in kinds:
-            var side: float = icon_size if kind == kinds[0] else icon_size * SAUCE_SCALE
+        for index in kinds.size():
+            var kind := kinds[index]
+            # The dish, then its sauce, smaller; several lines (counts) each start with "n×".
+            var main: bool = index == 0 if counts.is_empty() else counts[index] > 0
+            if not counts.is_empty() and counts[index] > 1:
+                var count := Label.new()
+                count.text = "%d×" % counts[index]
+                count.add_theme_color_override("font_color", ArtUi.INK)
+                count.add_theme_font_size_override("font_size", 18)
+                icons.add_child(count)
+            var side: float = icon_size if main else icon_size * SAUCE_SCALE
             icons.add_child(ArtUi.picture(ItemIcons.picture(kind), side, ItemIcons.tint(kind)))
         ticket.reset_size()
     if ticket.get_meta(&"boss", false) != boss:
@@ -264,8 +320,11 @@ func _new_ticket() -> PanelContainer:
 
 
 func _new_figure(customer: SimCrowd.Customer) -> Node3D:
-    var picture: Texture2D = BOSS_PICTURE if customer.boss \
-            else load(CUSTOMERS % (customer.id % CUSTOMER_KINDS + 1))
+    var picture: Texture2D = load(CUSTOMERS % (customer.id % CUSTOMER_KINDS + 1))
+    if customer.boss:
+        picture = BOSS_PICTURE
+    elif customer.group:
+        picture = load(LEADER)
     var figure := PaperFigure.new(picture)
     figure.position = entrance
     add_child(figure)

@@ -119,6 +119,15 @@ var rush_patience := 0.8
 var inspection_ticks := 20 * SECOND
 var mood_inspection_passed := -150
 var mood_inspection_failed := 250
+## The colleagues: announced group_warning ticks ahead (the FRIGO restocks twice as fast
+## meanwhile), their leader orders group_beers beers (at least, at most) and group_dishes dishes,
+## waits group_patience, and the room cheers up or sours as they leave.
+var group_warning := 20 * SECOND
+var group_beers := Vector2i(5, 6)
+var group_dishes := 4
+var group_patience := 100 * 4 * SECOND
+var mood_group_served := -300
+var mood_group_failed := 250
 
 
 ## The boss (GDD §6.3): one per night, at boss_at through the night (02:00). He cuts to the

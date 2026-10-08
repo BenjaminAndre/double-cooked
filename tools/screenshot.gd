@@ -134,6 +134,14 @@ func _initialize() -> void:
         "event":
             # The fridge breaking down: its banner, and the FRIGO in its state.
             night.simulation.rules.night_events = [[0.001, NightEvents.PANNE_FRIGO]]
+        "colleagues":
+            # The colleagues' leader in line with the whole order, the others outside.
+            var sim := night.simulation
+            sim.rules.group_warning = 1
+            sim.rules.night_events = [[0.0, NightEvents.COLLEGUES]]
+            sim.rules.arrival_min = 15
+            sim.rules.arrival_max = 15
+            sim.crowd.next_arrival = 1
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0

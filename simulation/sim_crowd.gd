@@ -23,6 +23,9 @@ class Customer:
     ## Ticks left asleep: no patience lost, and they can't be served.
     var asleep := 0
     var boss := false
+    ## The colleagues' leader (NightEvents.COLLEGUES): orders, still to serve, for the whole group,
+    ## served in any order. Their order is &"".
+    var group := false
     ## The boss's orders, and what became of each (Result).
     var orders: Array[StringName] = []
     var results := PackedInt32Array()
@@ -39,7 +42,7 @@ class Customer:
         return Array(results).find(Result.WAITING)
 
     func fingerprint() -> Array:
-        return [id, order, patience, full_patience, gifts, asleep, boss, orders, results, drink, drink_patience,
+        return [id, order, patience, full_patience, gifts, asleep, boss, group, orders, results, drink, drink_patience,
                 drink_again, next_can]
 
 var rules: SimRules
@@ -99,8 +102,10 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         customer.patience -= rules.front_drain if index == 0 else rules.back_drain
         if customer.patience <= 0:
             line.remove_at(index)
-            change_mood(rules.mood_walk_out)
+            change_mood(rules.mood_group_failed if customer.group else rules.mood_walk_out)
             events.append({"type": &"walk_out", "index": index, "by": -1})
+            if customer.group:
+                events.append({"type": &"group_left", "served": false})
     if tick > 0 and tick % rules.line_pressure_every == 0:
         change_mood(maxi(line.size() - 1, 0))
 
@@ -118,6 +123,8 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
         return true
     if customer.asleep > 0:
         return false
+    if customer.group:
+        return _serve_group(customer, Menu.order_key(item) if Menu.done_right(item) else &"", by, events)
     if item.kind == Menu.BEER:
         give_beer(0, by, events)
         return true
@@ -141,6 +148,8 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     var customer := line[index]
     if customer.boss:
         _boss_drink(customer, Menu.BEER, events)
+    elif customer.group and Menu.BEER in customer.orders:
+        _serve_group(customer, Menu.BEER, by, events)
     elif customer.order == Menu.BEER:
         line.remove_at(index)
         change_mood(rules.mood_served)
@@ -153,6 +162,41 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
         customer.gifts += 1
         customer.asleep = rules.beer_sleep
         events.append({"type": &"asleep", "index": index, "by": by})
+
+
+## One line of the group's order (key, done right; &"" for a wrong or badly done one, refused).
+## Once they all are, the group leaves cheering. Returns whether the item was handed over.
+func _serve_group(leader: Customer, key: StringName, by: int, events: Array[Dictionary]) -> bool:
+    var at := leader.orders.find(key)
+    if at < 0:
+        leader.patience -= rules.wrong_delivery
+        events.append({"type": &"refused", "by": by})
+        return false
+    leader.orders.remove_at(at)
+    events.append({"type": &"group_line", "by": by})
+    if leader.orders.is_empty():
+        line.erase(leader)
+        change_mood(rules.mood_group_served)
+        events.append({"type": &"served", "by": by})
+        events.append({"type": &"group_left", "served": true})
+    return true
+
+
+## The colleagues' leader joins the line (NightEvents.COLLEGUES), with an order for the whole
+## group: beers, then dishes from tonight's menu.
+func add_group(rng: RandomNumberGenerator, events: Array[Dictionary]) -> void:
+    var leader := _new_customer(rng)
+    leader.group = true
+    leader.order = &""
+    var drink := Menu.BEER if Menu.BEER in rules.menu else Menu.COLA
+    for beer in rng.randi_range(rules.group_beers.x, rules.group_beers.y):
+        leader.orders.append(drink)
+    for dish in rules.group_dishes:
+        leader.orders.append(Menu.random_order(rng, rules.order_categories, rules.menu, true))
+    leader.patience = rules.group_patience
+    leader.full_patience = leader.patience
+    line.append(leader)
+    events.append({"type": &"arrival"})
 
 
 func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:
