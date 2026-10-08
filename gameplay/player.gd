@@ -184,8 +184,7 @@ func _beer_helmet() -> Node3D:
     var straw_material := StandardMaterial3D.new()
     straw_material.albedo_color = Color(0.95, 0.95, 0.95)
     for side in [-1.0, 1.0]:
-        var can := BeerCan.new()
-        can.scale = Vector3.ONE * 0.55
+        var can := CanModels.beer(0.76)
         can.position = Vector3(side * 0.24, 0.05, 0)
         helmet.add_child(can)
         # From the top of the can, down in front of the face.

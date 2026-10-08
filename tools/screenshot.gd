@@ -183,9 +183,9 @@ func _initialize() -> void:
                     sim.level.queue_position(2) + Vector3.UP * 0.6, sim.tick - 30, 90)
             sim.projectiles.append_array([can, beer])
         "can":
-            # A close-up of the can model, in front of its own camera.
+            # A close-up of the cans, in front of their own camera.
             for turn in 3:
-                var can := BeerCan.new()
+                var can := CanModels.folded(CanModels.FLIGHT_SCALE) if turn == 2 else CanModels.beer(CanModels.FLIGHT_SCALE)
                 can.position = Vector3(1000 + (turn - 1) * 0.2, 0, 0)
                 can.rotation.y = turn * 2.1
                 viewport.add_child(can)

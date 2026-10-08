@@ -31,7 +31,7 @@ func _process(_delta: float) -> void:
             _shown.erase(projectile)
     for projectile in sim.projectiles:
         if not _shown.has(projectile):
-            _shown[projectile] = [_new_can(), _new_warning(projectile) if projectile.kind == SimProjectile.CAN else null]
+            _shown[projectile] = [_new_can(projectile), _new_warning(projectile) if projectile.kind == SimProjectile.CAN else null]
         var can: Node3D = _shown[projectile][0]
         can.position = projectile.position_at(now)
         can.rotation.x = now * 0.4
@@ -68,8 +68,10 @@ func _show_cursors(sim: Simulation) -> void:
             _cursors[index].position = aims[index] + Vector3.UP * bob
 
 
-func _new_can() -> Node3D:
-    var can := BeerCan.new()
+## A beer flies as a Jupiler, what customers throw as a folded can.
+func _new_can(projectile: SimProjectile) -> Node3D:
+    var can := CanModels.beer(CanModels.FLIGHT_SCALE) if projectile.kind == SimProjectile.BEER \
+            else CanModels.folded(CanModels.FLIGHT_SCALE)
     add_child(can)
     return can
 
