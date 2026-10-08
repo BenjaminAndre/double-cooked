@@ -15,6 +15,8 @@ class Customer:
     ## What they want, see Menu.order_key. For the boss, his current order.
     var order: StringName
     var patience: int
+    ## Their patience when they came in: what a full ticket bar shows, and the most beers give back.
+    var full_patience := 0
     ## Unordered beers given so far (GDD §6.2): the first SimRules.beer_gifts buy patience, one
     ## more puts them to sleep.
     var gifts := 0
@@ -37,7 +39,7 @@ class Customer:
         return Array(results).find(Result.WAITING)
 
     func fingerprint() -> Array:
-        return [id, order, patience, gifts, asleep, boss, orders, results, drink, drink_patience,
+        return [id, order, patience, full_patience, gifts, asleep, boss, orders, results, drink, drink_patience,
                 drink_again, next_can]
 
 var rules: SimRules
@@ -133,7 +135,7 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
         events.append({"type": &"served", "by": by})
     elif customer.gifts < rules.beer_gifts:
         customer.gifts += 1
-        customer.patience = mini(customer.patience + rules.beer_patience, rules.patience)
+        customer.patience = mini(customer.patience + rules.beer_patience, maxi(customer.full_patience, rules.patience))
         events.append({"type": &"beer_gift", "index": index, "by": by})
     else:
         customer.gifts += 1
@@ -261,8 +263,11 @@ func _new_customer(rng: RandomNumberGenerator) -> Customer:
     var customer := Customer.new()
     customer.id = _next_id
     _next_id += 1
-    customer.patience = rules.patience
     customer.order = Menu.random_order(rng, rules.order_categories, rules.menu)
+    customer.patience = rules.patience
+    if StringName(String(customer.order).get_slice(":", 0)) in Menu.BREAD_DISHES:
+        customer.patience = roundi(rules.patience * rules.bread_patience)
+    customer.full_patience = customer.patience
     return customer
 
 

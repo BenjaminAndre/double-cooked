@@ -16,6 +16,7 @@ var _hearts: HBoxContainer
 var _status: Label
 var _bubble: PanelContainer
 var _item: TextureRect
+var _extras: HBoxContainer
 var _sauce: TextureRect
 var _count: Label
 var _shown_item := []
@@ -39,12 +40,16 @@ func _init() -> void:
     row.alignment = BoxContainer.ALIGNMENT_CENTER
     row.add_theme_constant_override("separation", 2)
     _item = ArtUi.picture(null, ITEM_SIZE)
+    # What is in a bread so far (ItemIcons.held), smaller.
+    _extras = HBoxContainer.new()
+    _extras.add_theme_constant_override("separation", 0)
     _sauce = ArtUi.picture(null, SAUCE_SIZE)
     _count = Label.new()
     _count.add_theme_font_size_override("font_size", FONT)
     _count.add_theme_color_override("font_color", ArtUi.INK)
     _count.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     row.add_child(_item)
+    row.add_child(_extras)
     row.add_child(_sauce)
     row.add_child(_count)
     _bubble.add_child(row)
@@ -62,17 +67,22 @@ func show_player(item: SimItem, health: int, status: String, status_color := Col
         _status.text = status
         _status.reset_size()
     _status.add_theme_color_override("font_color", status_color)
-    var shown := [item.kind, item.sauce, item.portions] if item else []
+    var shown := item.fingerprint() if item else []
     if shown == _shown_item:
         return
     _shown_item = shown
     _bubble.visible = item != null
     if not item:
         return
-    var picture := ItemIcons.picture(item.kind)
+    var kinds := ItemIcons.held(item)
+    var picture := ItemIcons.picture(kinds[0])
     _item.visible = picture != null
     _item.texture = picture
-    _item.modulate = ItemIcons.tint(item.kind)
+    _item.modulate = ItemIcons.tint(kinds[0])
+    for child in _extras.get_children():
+        child.free()
+    for kind in kinds.slice(1):
+        _extras.add_child(ArtUi.picture(ItemIcons.picture(kind), SAUCE_SIZE, ItemIcons.tint(kind)))
     var sauce := ItemIcons.picture(item.sauce) if item.sauce != &"" else null
     _sauce.visible = sauce != null
     _sauce.texture = sauce

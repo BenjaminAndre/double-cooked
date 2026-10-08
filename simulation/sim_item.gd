@@ -6,8 +6,13 @@ extends RefCounted
 var kind: StringName
 ## How many portions this is: a whole CUISSON 1 batch, or 1.
 var portions := 1
-## Menu.MAYO or Menu.ANDALOUSE, &"" for none.
+## Menu.MAYO, Menu.ANDALOUSE or Menu.KETCHUP, &"" for none.
 var sauce := &""
+## A bread's contents (Recipes): its meat, its portion of fries (a baguette), and whether it has
+## salad and tomato (a bun).
+var filling: SimItem
+var fries: SimItem
+var veg := false
 
 
 func _init(p_kind: StringName) -> void:
@@ -15,4 +20,5 @@ func _init(p_kind: StringName) -> void:
 
 
 func fingerprint() -> Array:
-    return [kind, portions, sauce]
+    return [kind, portions, sauce, filling.fingerprint() if filling else null,
+            fries.fingerprint() if fries else null, veg]

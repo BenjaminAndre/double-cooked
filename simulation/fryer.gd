@@ -76,6 +76,32 @@ static func use_second(station: SimStation, player: SimPlayer) -> void:
         _lift_into_hand(station, player, outcomes[2])
 
 
+## Whether the bread in hand can take what fries here (Recipes): only in time, and only what
+## goes in it.
+static func can_fill(station: SimStation, bread: SimItem) -> bool:
+    if not Recipes.is_bread(bread) or not station.basket or not station.frying \
+            or not Menu.SECOND_FRY.has(station.basket.kind):
+        return false
+    if station.cook < SECOND_FRY_MIN or station.cook > SECOND_FRY_MAX:
+        return false
+    var done: StringName = Menu.SECOND_FRY[station.basket.kind][1]
+    if station.kind == &"cuisson_viande":
+        return Recipes.takes_meat(bread, done)
+    return done == FRIES_GOOD and Recipes.takes_fries(bread)
+
+
+## Takes what fries here, done, into the bread in hand (see can_fill).
+static func fill(station: SimStation, bread: SimItem) -> void:
+    var done := SimItem.new(Menu.SECOND_FRY[station.basket.kind][1])
+    if station.kind == &"cuisson_viande":
+        bread.filling = done
+    else:
+        bread.fries = done
+    station.basket = null
+    station.frying = false
+    station.cook = 0
+
+
 ## Whether this fryer (CUISSON 2 or CUISSON VIANDE) takes this item: fries for the one, meats
 ## for the other, never with a sauce.
 static func can_second_fry(item: SimItem, kind := &"cuisson_2") -> bool:

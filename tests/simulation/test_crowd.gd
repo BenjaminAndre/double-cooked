@@ -56,8 +56,8 @@ func test_the_front_customer_loses_patience_faster() -> void:
     rules.max_line = 2
     var line := _scenario().run_until(12).crowd.line
     # Arrivals on ticks 1 and 2; the first one has been at the front for 11 ticks.
-    assert_eq(line[0].patience, rules.patience - 11 * rules.front_drain)
-    assert_eq(line[1].patience, rules.patience - 10 * rules.back_drain)
+    assert_eq(line[0].patience, line[0].full_patience - 11 * rules.front_drain)
+    assert_eq(line[1].patience, line[1].full_patience - 10 * rules.back_drain)
 
 
 func test_a_customer_out_of_patience_walks_out_and_the_mood_rises() -> void:

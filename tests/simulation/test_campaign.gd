@@ -77,7 +77,7 @@ func test_stations_only_offer_what_tonight_needs() -> void:
     assert_eq(Menu.options(&"sauces", Campaign.menu_for(2)), [Menu.MAYO, Menu.ANDALOUSE])
     assert_eq(Menu.options(&"frigo", Campaign.menu_for(1)), [Menu.BEER], "a beer to crawl to from the start")
     assert_eq(Menu.options(&"frigo", Campaign.menu_for(2)), [Menu.COLA, Menu.BEER])
-    assert_false(Menu.station_in_use(&"pain"), "no bread recipe yet")
+    assert_false(Menu.station_in_use(&"pain", Campaign.menu_for(8)), "no bread before the second week")
     assert_true(Menu.station_in_use(&"caisse", Campaign.menu_for(1)))
 
 

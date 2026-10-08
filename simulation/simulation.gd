@@ -235,6 +235,11 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
                     player.item = SimItem.new(option)
                 &"viandes":
                     player.item = SimItem.new(option)
+                &"pain":
+                    # A bread, or the one chosen around what is held; one it doesn't go in: nothing.
+                    var bread := SimItem.new(option) if not player.item else Recipes.wrap(player.item, option)
+                    if bread:
+                        player.item = bread
         Command.CANCEL:
             player.menu = SimLevel.NONE
         _:
@@ -533,8 +538,10 @@ func _station_action(player: SimPlayer) -> StringName:
         &"cuisson_2", &"cuisson_viande":
             if not station.basket:
                 return &"fry" if Fryer.can_second_fry(held, station.kind) else &""
+            if Fryer.can_fill(station, held):
+                return &"fill"
             return &"lift" if not held else &""
-        &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
+        &"sauces", &"frigo", &"viandes", &"pain", &"peinture", &"casquette", &"telephone":
             return _menu_action(station, player)
         &"porte":
             # Only the host (slot 0) opens the door, once everyone else is ready.
@@ -570,7 +577,16 @@ func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
         &"frigo":
             return &"fridge" if not held else &""
         &"viandes":
+            if held and Recipes.takes_veg(held) and &"burger_complet" in rules.menu:
+                return &"veg"
             return &"meat" if not held else &""
+        &"pain":
+            # A bread; or, holding a good meat or fries, the bread around it (Recipes.wrap).
+            if not held:
+                return &"bread"
+            var options := Menu.options(&"pain", rules.menu)
+            var fits := options.any(func(bread: StringName) -> bool: return Recipes.wrap(held, bread) != null)
+            return &"wrap" if fits else &""
         &"peinture":
             return &"paint"
         &"casquette":
@@ -600,8 +616,13 @@ func _interact(player: SimPlayer) -> void:
         &"cuisson_1":
             Fryer.use_first(station, player)
         &"cuisson_2", &"cuisson_viande":
-            Fryer.use_second(station, player)
-        &"sauces", &"frigo", &"viandes", &"peinture", &"casquette", &"telephone":
+            if action == &"fill":
+                Fryer.fill(station, held)
+            else:
+                Fryer.use_second(station, player)
+        &"viandes" when action == &"veg":
+            held.veg = true
+        &"sauces", &"frigo", &"viandes", &"pain", &"peinture", &"casquette", &"telephone":
             player.menu = index
             player.menu_choice = 0
         &"porte":

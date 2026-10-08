@@ -41,6 +41,9 @@ var order_categories := PackedFloat32Array([0.45, 0.35, 0.2])
 var patience := 4 * 45 * SECOND
 var front_drain := 4
 var back_drain := 1
+## The breads (burger, burger complet, mitraillette) take longer: their customers wait this
+## much longer (the artist gives +4 s a step of an order).
+var bread_patience := 1.3
 ## A beer that wasn't ordered gives back this much patience (15 s at the front of the line, the
 ## artist's figure), at most beer_gifts times; one more puts the customer to sleep beer_sleep ticks.
 var beer_patience := 15 * 4 * SECOND

@@ -18,6 +18,9 @@ const UNLOCKS: Array = [
     [Menu.KETCHUP],
     [&"boulette"],
     [&"brochette"],
+    [&"burger"],
+    [&"burger_complet"],
+    [&"mitraillette"],
 ]
 
 

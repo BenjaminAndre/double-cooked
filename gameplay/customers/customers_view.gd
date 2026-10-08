@@ -175,7 +175,7 @@ func _show_tickets(crowd: SimCrowd) -> void:
         var customer := crowd.line[index]
         var figure: Node3D = _figures[customer.id]
         var icon_size := FRONT_ICON if index == 0 else BACK_ICON
-        var full := crowd.boss_patience() if customer.boss else crowd.rules.patience
+        var full := crowd.boss_patience() if customer.boss else maxi(customer.full_patience, crowd.rules.patience)
         _fill(ticket, ItemIcons.order(customer.order), icon_size, float(customer.patience) / full,
                 customer.boss)
         _show_dots(ticket, customer)

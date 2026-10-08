@@ -114,6 +114,23 @@ func _initialize() -> void:
             sim.crowd.front().asleep = 1000
             sim.players[0].node = sim.level.find("Caisse")
             sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
+        "breads":
+            # P1 at PAIN choosing a bread, P2 holding a burger complet; burger and mitraillette orders.
+            night.play_local(2)
+            var sim := night.simulation
+            sim.rules.arrival_min = 15
+            sim.rules.arrival_max = 15
+            sim.crowd.next_arrival = 1
+            sim.players[0].node = sim.level.find("Pain")
+            night.submit(0, Simulation.Command.INTERACT)
+            var burger := SimItem.new(Menu.BUN)
+            burger.filling = SimItem.new(Menu.STEAK)
+            burger.veg = true
+            burger.sauce = Menu.MAYO
+            sim.players[1].item = burger
+            await create_timer(1.2).timeout
+            for index in sim.crowd.line.size():
+                sim.crowd.line[index].order = [&"mitraillette:andalouse", &"burger_complet:ketchup", &"burger:nature"][index % 3]
         "won":
             night.simulation.rules.night_ticks = 20
             night.simulation.rules.boss_orders = 0

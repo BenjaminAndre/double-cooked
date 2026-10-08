@@ -6,6 +6,8 @@ extends RefCounted
 
 const PATH := "res://art/textures/Item_%s.png"
 const WASHED := Color(0.75, 0.8, 0.85)
+## The salad and tomato of a burger complet, drawn as an item of their own.
+const LEGUMES := &"legumes"
 
 ## Item kind -> [picture, tint].
 const ITEMS := {
@@ -32,6 +34,16 @@ const ITEMS := {
     Menu.BROCHETTE: ["Brochette_Cooked", Color.WHITE],
     Menu.BROCHETTE_UNDERCOOKED: ["Brochette_Raw", WASHED],
     Menu.BROCHETTE_BURNT: ["Brochette_Burned", Color.WHITE],
+    Menu.STEAK_RAW: ["ViandeBurger_Raw", Color.WHITE],
+    Menu.STEAK: ["ViandeBurger_Cooked", Color.WHITE],
+    Menu.STEAK_UNDERCOOKED: ["ViandeBurger_Raw", WASHED],
+    Menu.STEAK_BURNT: ["ViandeBurger_Burned", Color.WHITE],
+    Menu.BUN: ["PainBurger", Color.WHITE],
+    Menu.BAGUETTE: ["Baguette", Color.WHITE],
+    # The dishes in a bread, and the salad and tomato of a burger complet.
+    &"burger": ["Burger", Color.WHITE],
+    &"mitraillette": ["Mitraillette", Color.WHITE],
+    LEGUMES: ["SaladeTomate", Color.WHITE],
     Menu.COLA: ["Coca", Color.WHITE],
     Menu.BEER: ["Jupiler", Color.WHITE],
     Simulation.EXTINGUISHER: ["Extincteur", Color.WHITE],
@@ -47,6 +59,8 @@ const DISHES := {
     &"cervelas_chaud": Menu.CERVELAS_WARM,
     &"boulette": Menu.BOULETTE,
     &"brochette": Menu.BROCHETTE,
+    &"burger": &"burger",
+    &"mitraillette": &"mitraillette",
     Menu.COLA: Menu.COLA,
     Menu.BEER: Menu.BEER,
 }
@@ -65,6 +79,29 @@ static func tint(kind: StringName) -> Color:
 static func order(key: StringName) -> Array[StringName]:
     var parts := String(key).split(":")
     var kinds: Array[StringName] = [DISHES.get(StringName(parts[0]), StringName(parts[0]))]
+    if parts[0] == "burger_complet":
+        kinds = [&"burger", LEGUMES]
     if parts.size() > 1 and StringName(parts[1]) != Menu.NATURE:
         kinds.append(StringName(parts[1]))
+    return kinds
+
+
+## What a held item shows, the main picture first: a bread shows what it has become (a burger,
+## a mitraillette) or what is in it so far; anything else, itself.
+static func held(item: SimItem) -> Array[StringName]:
+    if not Recipes.is_bread(item):
+        return [item.kind]
+    var kinds: Array[StringName] = []
+    match Recipes.dish(item):
+        Recipes.BURGER, Recipes.BURGER_COMPLET:
+            kinds.append(&"burger")
+        Recipes.MITRAILLETTE:
+            kinds.append(&"mitraillette")
+        _:
+            kinds.append(item.kind)
+            for part: SimItem in [item.filling, item.fries]:
+                if part:
+                    kinds.append(part.kind)
+    if item.veg:
+        kinds.append(LEGUMES)
     return kinds
