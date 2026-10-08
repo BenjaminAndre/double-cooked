@@ -11,11 +11,19 @@ const TOO_LATE := Color(1.0, 0.25, 0.2)
 ## The artist's animated sheets.
 const OIL := {"texture": "res://art/textures/FryingOilSheet.png", "columns": 5, "rows": 5}
 const FIRE := {"texture": "res://art/textures/FireSheet.png", "columns": 5, "rows": 3}
-const FLIPBOOK_FPS := 20.0
-const OIL_HEIGHT := 0.45
-const OIL_SIZE := 0.45
+## The fire: one flame at a time, the whole sheet once a second, 1 m tall (their scene).
+const FIRE_FPS := 15.0
 const FIRE_HEIGHT := 0.86
-const FIRE_SIZE := 1.4
+const FIRE_SIZE := 1.0
+## The oil bubbling while something fries: their particles (lifetime, rate, speed, sizes, the
+## spin and the fade in and out), over the oil.
+const OIL_HEIGHT := 0.45
+const OIL_LIFETIME := 3.0
+const OIL_RATE := 10.0
+const OIL_SPEED := 0.05
+const OIL_SIZE := 0.2
+const OIL_SPIN := 90.0
+const OIL_AREA := Vector3(0.15, 0.0, 0.1)
 ## How high a basket rises when lifted.
 const BASKET_LIFT := 0.3
 
@@ -42,6 +50,7 @@ var _was_frying := false
 var _menu_open := false
 ## Sheet texture path -> its sprite.
 var _flipbooks := {}
+var _oil: CPUParticles3D
 ## Whether the station has something to do tonight (Menu.station_in_use); greyed out if not.
 var _in_use := true
 ## Material -> its darkened copy, shared like UnlitArt's.
@@ -97,7 +106,7 @@ func show_station(station: SimStation, rules: SimRules) -> void:
         cooked_models[index].visible = index < left
     for index in stock_models.size():
         stock_models[index].visible = index < station.beers
-    _show_flipbook(OIL, frying, OIL_HEIGHT, OIL_SIZE)
+    _show_oil(frying)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
 
 
@@ -162,8 +171,8 @@ func pulse() -> void:
         StationModels.play(models, Vector2(StationModels.DOOR_OPEN.x, StationModels.DOOR_CLOSE.y))
 
 
-## An animated sheet over the station (docs/art/Readme_Settings.txt): the oil bubbling while
-## something fries, the fire. Built on first use.
+## An animated sheet over the station (docs/art/Readme_SettingsV3.txt): the fire. Built on
+## first use.
 func _show_flipbook(sheet: Dictionary, on: bool, height: float, size: float) -> void:
     var sprite: Sprite3D = _flipbooks.get(sheet.texture)
     if not on:
@@ -184,7 +193,51 @@ func _show_flipbook(sheet: Dictionary, on: bool, height: float, size: float) -> 
         add_child(sprite)
         _flipbooks[sheet.texture] = sprite
     sprite.visible = true
-    sprite.frame = int(Time.get_ticks_msec() / 1000.0 * FLIPBOOK_FPS) % (sheet.columns * sheet.rows)
+    sprite.frame = int(Time.get_ticks_msec() / 1000.0 * FIRE_FPS) % (sheet.columns * sheet.rows)
+
+
+## The oil's bubbles (the artist's FryingOil particles), built on first use.
+func _show_oil(on: bool) -> void:
+    if not _oil:
+        if not on:
+            return
+        _oil = CPUParticles3D.new()
+        var quad := QuadMesh.new()
+        quad.size = Vector2.ONE * OIL_SIZE
+        var material := StandardMaterial3D.new()
+        material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+        material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+        material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+        material.vertex_color_use_as_albedo = true
+        material.albedo_texture = load(OIL.texture)
+        material.particles_anim_h_frames = OIL.columns
+        material.particles_anim_v_frames = OIL.rows
+        material.particles_anim_loop = false
+        quad.material = material
+        _oil.mesh = quad
+        _oil.amount = int(OIL_RATE * OIL_LIFETIME)
+        _oil.lifetime = OIL_LIFETIME
+        _oil.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+        _oil.emission_box_extents = OIL_AREA
+        _oil.direction = Vector3.UP
+        _oil.spread = 0.0
+        _oil.gravity = Vector3.ZERO
+        _oil.initial_velocity_min = OIL_SPEED
+        _oil.initial_velocity_max = OIL_SPEED
+        _oil.angular_velocity_min = OIL_SPIN
+        _oil.angular_velocity_max = OIL_SPIN
+        _oil.scale_amount_min = 0.5
+        _oil.scale_amount_max = 1.0
+        # The whole sheet once over a bubble's life.
+        _oil.anim_speed_min = 1.0
+        _oil.anim_speed_max = 1.0
+        var fade := Gradient.new()
+        fade.offsets = PackedFloat32Array([0.0, 0.18, 0.82, 1.0])
+        fade.colors = PackedColorArray([Color(1, 1, 1, 0), Color.WHITE, Color.WHITE, Color(1, 1, 1, 0)])
+        _oil.color_ramp = fade
+        _oil.position = Vector3(_flipbook_x(), OIL_HEIGHT, 0)
+        add_child(_oil)
+    _oil.emitting = on
 
 
 ## Over the middle of the station's cells, as its box is.
