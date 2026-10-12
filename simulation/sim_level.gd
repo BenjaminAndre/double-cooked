@@ -23,6 +23,8 @@ var station_names := PackedStringArray()
 var queue_front := Vector3.ZERO
 var queue_step := Vector3(-0.45, 0, 0)
 var queue_points := PackedVector3Array()
+## Where a car crashes in (NightEvents.CAR_CRASH): these nodes become rubble.
+var crash_nodes := PackedInt32Array()
 
 
 func add_station(kind: StringName, station_name: String = "") -> int:

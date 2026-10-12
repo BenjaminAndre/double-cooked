@@ -17,6 +17,8 @@ var burn_ticks := 0
 var beers := 0
 ## A CAISSE: whether its BB gun is under the counter (GDD §8).
 var gun := false
+## Wrecked by the car (GDD §6.4): it does nothing for the rest of the night.
+var destroyed := false
 var restock := 0
 
 
@@ -26,4 +28,4 @@ func _init(p_kind: StringName) -> void:
 
 func fingerprint() -> Array:
     return [kind, basket.fingerprint() if basket else null, frying, cook, burning, burn_ticks, beers,
-            restock, gun]
+            restock, gun, destroyed]

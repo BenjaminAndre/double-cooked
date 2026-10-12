@@ -16,6 +16,9 @@ const COLLEGUES := &"collegues"
 ## A surprise inspection (from the second week, GDD §6.4): announced only a few seconds ahead,
 ## and a dirty kitchen (a fire, grease on the floor) gets the shop closed.
 const AFSCA_SURPRISE := &"afsca_surprise"
+## A car crashes into the kitchen (GDD §6.4): announced a few seconds ahead, it wrecks a corner
+## for the rest of the night (Simulation._crash).
+const CAR_CRASH := &"voiture"
 
 var rules: SimRules
 var crowd: SimCrowd
@@ -33,6 +36,8 @@ var surprise_at := -1
 var inspector_coming := 0
 var surprise := false
 var closed := false
+## Ticks before the car hits, once announced.
+var car_coming := 0
 ## How many of tonight's events have started, in their order.
 var _started := 0
 
@@ -49,6 +54,10 @@ func _init(p_rules: SimRules, p_crowd: SimCrowd) -> void:
 ## One tick: the next event starts once its time comes ({"type": &"night_event", "kind": ...}),
 ## and those under way run out. dirty: whether a station is burning or grease is on the floor.
 func advance(tick: int, events: Array[Dictionary], dirty: bool) -> void:
+    if car_coming > 0:
+        car_coming -= 1
+        if car_coming == 0:
+            events.append({"type": &"car_crash"})
     if inspector_coming > 0:
         inspector_coming -= 1
         if inspector_coming == 0:
@@ -90,11 +99,13 @@ func _start(kind: StringName) -> void:
             _inspect(false)
         COLLEGUES:
             group_coming = rules.group_warning
+        CAR_CRASH:
+            car_coming = rules.car_warning
 
 
 func fingerprint() -> Array:
     return [fridge_down, inspection, inspection_failed, group_coming, _started, surprise_at, inspector_coming,
-            surprise, closed]
+            surprise, closed, car_coming]
 
 
 ## The surprise inspector is announced now (also a test tool), unless an inspection is on.
@@ -117,3 +128,10 @@ func inspector_shot() -> void:
     inspection = 0
     inspection_failed = false
     surprise = false
+
+
+## Test tool: the car is announced now.
+func car_now(events: Array[Dictionary]) -> void:
+    if car_coming == 0:
+        car_coming = rules.car_warning
+        events.append({"type": &"night_event", "kind": CAR_CRASH})

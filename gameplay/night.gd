@@ -154,6 +154,7 @@ func _ready() -> void:
     add_child(_web_page)
     if players_parent:
         players_parent.add_child(PigeonsView.new(self))
+        players_parent.add_child(CarView.new(self))
     play_lobby(1)
 
 
@@ -520,6 +521,8 @@ func _step() -> bool:
             _views[event.target].show_bump()
         elif event.type == &"slipped":
             _views[event.slot].show_bump()
+        elif event.type == &"car_crash":
+            announced.emit("La voiture a tout défoncé !")
         elif event.type == &"shot" and event.target == &"inspector":
             announced.emit("L'inspecteur s'enfuit !")
         elif event.type == &"shot" and event.target == &"mate":
@@ -593,6 +596,8 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         level.queue_step = queue.line_step
         for index in queue.place_count():
             level.queue_points.append(queue.global_transform * queue.place(index))
+    for cell in room.crash_cells:
+        level.crash_nodes.append(level.find(cell))
     _station_views = LevelReader.stations(root)
     var spawn_names := room.spawn_names().slice(0, player_count)
     var spawn_nodes := PackedInt32Array()
@@ -964,7 +969,7 @@ func _show(p_alpha: float) -> void:
     var taken := {}
     for player in simulation.players:
         taken[player.node] = true
-    _room.show_squares(taken, _idle_nodes, simulation.grease)
+    _room.show_squares(taken, _idle_nodes, simulation.grease, simulation.blocked)
     var open_menus := {}
     for player in simulation.players:
         open_menus[player.menu] = true

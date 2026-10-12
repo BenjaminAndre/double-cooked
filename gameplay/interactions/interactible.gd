@@ -80,7 +80,8 @@ func set_highlighted(on: bool) -> void:
 ## Shows a fire on any station, and over fryers a bubble: how far along what fries is, or the
 ## portions left of a batch waiting on CUISSON 1.
 func show_station(station: SimStation, rules: SimRules) -> void:
-    _show_in_use(Menu.station_in_use(kind, rules.menu))
+    # Wrecked by the car, or nothing to do tonight: greyed out.
+    _show_in_use(not station.destroyed and Menu.station_in_use(kind, rules.menu))
     var label := ""
     var frying := kind in FRYERS and station.basket != null and station.frying and not station.burning
     if station.burning:

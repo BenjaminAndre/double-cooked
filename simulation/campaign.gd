@@ -18,6 +18,11 @@ const ROTATION: Array[StringName] = [NightEvents.DIABLES_ROUGES, NightEvents.AFS
 const EXTRA_EVENT_AT := 0.65
 ## The chance of a surprise AFSCA inspection each night from the second week (GDD §6.4).
 const SURPRISE_INSPECTIONS := 0.5
+## A car crashes into the kitchen on this night of a campaign, then every CAR_EVERY nights,
+## CAR_AT through the night (GDD §6.4).
+const CAR_FIRST := 10
+const CAR_EVERY := 7
+const CAR_AT := 0.45
 ## Pigeons come from this night of a campaign, and to every Nuit unique, one every so often
 ## (seconds, GDD §8).
 const PIGEONS_FROM := 3
@@ -102,6 +107,9 @@ static func events_for(night: int) -> Array:
         if not events.is_empty() and events[0][1] == extra:
             extra = ROTATION[night % ROTATION.size()]
         events.append([EXTRA_EVENT_AT, extra])
+    if night >= CAR_FIRST and (night - CAR_FIRST) % CAR_EVERY == 0:
+        events.append([CAR_AT, NightEvents.CAR_CRASH])
+        events.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
     return events
 
 

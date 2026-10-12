@@ -49,6 +49,7 @@ front_offset = 0.78
 art = NodePath("../KitchenArt")
 squares = true
 queue_front = Vector3(0.25, 0, 0)
+crash_cells = PackedStringArray("ViandesA", "ViandesB")
 
 [node name="KitchenArt3" parent="Restaurant" instance=ExtResource("19_kitchen3_art")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
@@ -64,6 +65,7 @@ front_offset = 0.78
 art = NodePath("../KitchenArt3")
 squares = true
 queue_front = Vector3(0.75, 0, 0)
+crash_cells = PackedStringArray("ViandesA", "ViandesB", "Allee4", "Allee5")
 
 [node name="KitchenArt4" parent="Restaurant" instance=ExtResource("20_kitchen4_art")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 60)
@@ -80,6 +82,7 @@ art = NodePath("../KitchenArt4")
 squares = true
 queue_front = Vector3(0.75, 0, 0)
 second_register = Vector3(-0.25, 0, 0)
+crash_cells = PackedStringArray("ViandesA", "ViandesB", "Allee4", "Allee5")
 
 [node name="LobbyArt" parent="Restaurant" instance=ExtResource("17_lobby_art")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)

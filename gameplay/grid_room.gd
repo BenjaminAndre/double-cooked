@@ -63,6 +63,8 @@ const SQUARE_TAKEN := Color("FFF0D8", 120 / 255.0)
 const SQUARE_IDLE := Color(0.1, 0.1, 0.12, 0.35)
 ## A square with grease on it (GDD §8): amber, like oil.
 const SQUARE_GREASE := Color(0.95, 0.65, 0.1, 0.6)
+## Rubble left by the car: brown, a placeholder until the artist's wreck.
+const SQUARE_RUBBLE := Color(0.35, 0.22, 0.12, 0.9)
 ## A PRÊT cell's square, green.
 const SQUARE_READY := Color(0.3, 0.85, 0.35, 0.55)
 const SQUARE_SIZE := Vector3(0.7, 0.108, 0.7)
@@ -111,6 +113,8 @@ const SHELF_QUARTER := 0.25
 @export var queue_front := Vector3.INF
 ## With a second CAISSE, where its customer stands (like queue_front); INF with one.
 @export var second_register := Vector3.INF
+## Where a car crashes in (NightEvents.CAR_CRASH): the cells it turns to rubble, by name.
+@export var crash_cells := PackedStringArray()
 
 var camera: Camera3D
 var _anchors: Node3D
@@ -294,11 +298,13 @@ func _square(anchor: Anchor) -> MeshInstance3D:
 ## taken: nodes (anchor indices) a player stands on; idle: nodes at a station with nothing to
 ## do tonight. Only on change: a material swap, never a rebuild.
 ## greasy: nodes with grease on them (Simulation.grease), shown before anything else.
-func show_squares(taken: Dictionary, idle: Dictionary, greasy := {}) -> void:
+func show_squares(taken: Dictionary, idle: Dictionary, greasy := {}, rubble := {}) -> void:
     for index in _squares.size():
         var color := SQUARE_TAKEN if taken.has(index) else SQUARE_IDLE if idle.has(index) else _square_colors[index]
         if greasy.has(index):
             color = SQUARE_GREASE
+        if rubble.has(index):
+            color = SQUARE_RUBBLE
         var material := _square_material(color)
         if _squares[index].material_override != material:
             _squares[index].material_override = material

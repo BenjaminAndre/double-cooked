@@ -23,7 +23,7 @@ const DEBUG_SPAN := 100
 ## The test tools. MOOD's argument is a SimCrowd.Level; CLOCK's a ClockJump; KNOCK_OUT, HUNGRY
 ## and FAT take a slot. New tools go at the end, so saved replays keep their meaning.
 enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT, GREASE,
-        INSPECTION, PIGEON }
+        INSPECTION, PIGEON, CAR }
 enum ClockJump { HALF_HOUR, BOSS, CLOSING }
 
 const EXTINGUISHER := &"extincteur"
@@ -67,6 +67,8 @@ var grease := {}
 var pigeons: Array[SimPigeon] = []
 var next_pigeon := -1
 var _pigeons_seen := 0
+## Rubble left by the car (GDD §6.4): nodes nobody can walk onto any more.
+var blocked := {}
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
@@ -181,6 +183,8 @@ func step(commands: Array) -> void:
         night_events.advance(night_tick(), events, not grease.is_empty()
                 or pigeons.any(func(pigeon: SimPigeon) -> bool: return pigeon.landed())
                 or stations.any(func(station: SimStation) -> bool: return station.burning))
+        if events.any(func(event: Dictionary) -> bool: return event.type == &"car_crash"):
+            _crash()
         crowd.advance(night_tick(), players.size(), rng, events)
         _advance_pigeons()
         _customers_throw()
@@ -201,7 +205,7 @@ func step(commands: Array) -> void:
 
 ## Fingerprint of the state, to check that two runs (or host and client) agree.
 func state_hash() -> int:
-    var state: Array = [tick, clock_skip, rng.state, grease, next_pigeon, _pigeons_seen]
+    var state: Array = [tick, clock_skip, rng.state, grease, next_pigeon, _pigeons_seen, blocked, rules.menu]
     for p in players:
         state.append(p.fingerprint())
     for station in stations:
@@ -378,6 +382,8 @@ func _debug(player: SimPlayer, tool: DebugTool, arg: int) -> void:
             night_events.surprise_now(events)
         DebugTool.PIGEON:
             _pigeon_arrives()
+        DebugTool.CAR:
+            night_events.car_now(events)
 
 
 ## A fire at the player's station if it can burn, otherwise at the first CUISSON 1.
@@ -594,11 +600,12 @@ func _queue_move(player: SimPlayer, direction: int) -> void:
         # Crawling is slow, so no queue: one node at a time, chosen once the last one is reached.
         if not player.is_moving():
             var next := level.neighbour(player.node, direction)
-            player.path.assign([next] if next != SimLevel.NONE else [])
+            player.path.assign([next] if next != SimLevel.NONE and not blocked.has(next) else [])
         return
     var from: int = player.node if player.path.is_empty() else player.path.back()
     var to := level.neighbour(from, direction)
-    if to == SimLevel.NONE:
+    # Rubble (the car crash) is like a wall.
+    if to == SimLevel.NONE or blocked.has(to):
         return
     var index := player.path.find(to)
     if index != -1:
@@ -679,7 +686,7 @@ func _slip(player: SimPlayer, from: int) -> void:
     for direction in 4:
         if level.neighbour(from, direction) == player.node:
             next = level.neighbour(player.node, direction)
-    if next == SimLevel.NONE:
+    if next == SimLevel.NONE or blocked.has(next):
         player.stun = rules.slip_stun
         return
     player.path.append(next)
@@ -733,7 +740,7 @@ func eat_action(player: SimPlayer) -> StringName:
 
 func _station_action(player: SimPlayer) -> StringName:
     var index := level.node_stations[player.node]
-    if index == SimLevel.NONE:
+    if index == SimLevel.NONE or stations[index].destroyed:
         return &""
     if pigeon_at(index) and not player.down:
         # A pigeon squats the station: shoo it first.
@@ -963,7 +970,8 @@ func _spread_candidates(index: int) -> Array[int]:
                 continue
             var other := level.node_stations[neighbour]
             if other != SimLevel.NONE and other != index and not other in found \
-                    and not stations[other].burning and not stations[other].kind in rules.fireproof:
+                    and not stations[other].burning and not stations[other].kind in rules.fireproof \
+                    and not stations[other].destroyed:
                 found.append(other)
     found.sort()
     return found
@@ -1098,7 +1106,8 @@ func _pigeon_arrives() -> void:
         return
     var taken := pigeons.map(func(pigeon: SimPigeon) -> int: return pigeon.station)
     var free := range(stations.size()).filter(func(index: int) -> bool:
-        return not index in taken and not stations[index].burning and not stations[index].kind in rules.fireproof)
+        return not index in taken and not stations[index].burning and not stations[index].kind in rules.fireproof \
+                and not stations[index].destroyed)
     var fries := free.filter(func(index: int) -> bool: return _waiting_fries(stations[index]))
     var choices: Array = fries if not fries.is_empty() else free
     if choices.is_empty():
@@ -1205,3 +1214,62 @@ func _shoot(player: SimPlayer, target: Array) -> void:
             var mate := players[target[1]]
             _hurt(mate)
             mate.stun = maxi(mate.stun, rules.bump_stun)
+
+
+## The car crashes in (NightEvents.CAR_CRASH, GDD §6.4): its nodes (SimLevel.crash_nodes) become
+## rubble and their stations are wrecked for the night; whoever stands there is knocked out and
+## thrown aside. Without a VIANDES left, the meat and bread dishes come off the menu, and the
+## customers waiting for one flee, too scared to be angry.
+func _crash() -> void:
+    for node in level.crash_nodes:
+        blocked[node] = true
+        grease.erase(node)
+        var index := level.node_stations[node]
+        if index != SimLevel.NONE:
+            var station := stations[index]
+            station.destroyed = true
+            station.basket = null
+            station.frying = false
+            station.burning = false
+            var pigeon := pigeon_at(index)
+            if pigeon:
+                _pigeon_leaves(pigeon, &"fire")
+    for player in players:
+        if blocked.has(player.node) or blocked.has(player.occupied_node()):
+            player.health = 0
+            _knock_out(player)
+            player.path.clear()
+            player.progress = 0
+            player.edge_ticks = 0
+            player.node = _clear_of_rubble(player.node)
+    var meat_left := stations.any(func(station: SimStation) -> bool:
+        return station.kind == &"viandes" and not station.destroyed)
+    if not meat_left:
+        var gone := Menu.MEAT_DISHES + Menu.BREAD_DISHES
+        rules.menu = rules.menu.filter(func(dish: StringName) -> bool: return not dish in gone)
+        for index in range(crowd.line.size() - 1, -1, -1):
+            var customer := crowd.line[index]
+            if not customer.boss and not customer.group \
+                    and StringName(String(customer.order).get_slice(":", 0)) in gone:
+                crowd.line.remove_at(index)
+                events.append({"type": &"fled", "index": index})
+
+
+## The nearest node to this one that isn't rubble (itself if it isn't).
+func _clear_of_rubble(node: int) -> int:
+    if not blocked.has(node):
+        return node
+    var seen := {node: true}
+    var frontier := [node]
+    while not frontier.is_empty():
+        var next := []
+        for at: int in frontier:
+            for neighbour: int in level.links[at]:
+                if neighbour == SimLevel.NONE or seen.has(neighbour):
+                    continue
+                if not blocked.has(neighbour):
+                    return neighbour
+                seen[neighbour] = true
+                next.append(neighbour)
+        frontier = next
+    return node

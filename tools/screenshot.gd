@@ -206,6 +206,13 @@ func _initialize() -> void:
             sim.players[0].aim_ticks = 100
             sim._pigeon_arrives()
             sim.rules.pigeon_peck = 1 << 30
+        "car":
+            # Just after the car crashed into VIANDES (placeholders), one player knocked out.
+            night.play_local(2, Campaign.CAR_FIRST)
+            var sim := night.simulation
+            sim.players[1].node = sim.level.find("ViandesA")
+            sim.rules.car_warning = 2
+            sim.night_events.car_now(sim.events)
         "net_stats":
             # A host's network stats for one guest, the F4 panel on the network row (faked: no
             # network here, so the night stands still).
