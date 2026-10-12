@@ -518,7 +518,7 @@ func _step() -> bool:
         elif event.type == &"trashed":
             _station_views[event.station].pulse()
         elif event.type == &"refused" and queue:
-            queue.flash_refused()
+            queue.flash_refused(event.get("index", 0))
         elif event.type == &"debug":
             debug_used = true
         elif event.type == &"points":
@@ -568,10 +568,13 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     if queue and not in_lobby:
         if room.queue_front_position() != Vector3.INF:
             queue.global_position = room.queue_front_position()
+        # With two CAISSE, the second customer stands at the second one.
+        var second := room.second_register_position()
+        queue.second_register = queue.to_local(second) if second != Vector3.INF else Vector3.INF
         level.queue_front = queue.global_position
         level.queue_step = queue.line_step
-        for point in queue.line_points:
-            level.queue_points.append(queue.global_transform * point)
+        for index in queue.place_count():
+            level.queue_points.append(queue.global_transform * queue.place(index))
     _station_views = LevelReader.stations(root)
     var spawn_names := room.spawn_names().slice(0, player_count)
     var spawn_nodes := PackedInt32Array()

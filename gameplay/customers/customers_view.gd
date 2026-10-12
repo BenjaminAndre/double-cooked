@@ -56,6 +56,9 @@ const DOT_COLORS := [Color.BLACK, Color(0.3, 0.85, 0.35), Color(0.95, 0.2, 0.15)
 ## line along line_step. The first inside_places of them are inside, behind the front wall.
 @export var line_points := PackedVector3Array()
 @export var inside_places := 0
+## With two CAISSE, where the second customer stands, at the second one (relative to this node);
+## INF with one. The line then goes on from the first place (see place()).
+var second_register := Vector3.INF
 ## The doorway, for whoever crosses the front wall; INF: there is no wall to go round.
 @export var door := Vector3.INF
 ## Where customers come from and go to, relative to the front of the line.
@@ -92,7 +95,7 @@ func _process(delta: float) -> void:
         if not _figures.has(customer.id):
             _figures[customer.id] = _new_figure(customer)
         var figure: Node3D = _figures[customer.id]
-        _walk(figure, place(index), index < inside_places, delta)
+        _walk(figure, place(index), index < inside_places + place_count() - line_points.size(), delta)
         _show_asleep(figure, customer.asleep > 0)
     for id in _figures.keys():
         if not present.has(id):
@@ -124,8 +127,20 @@ func _show_asleep(figure: Node3D, asleep: bool) -> void:
         zzz.position.y = ASLEEP_HEIGHT + sin(Time.get_ticks_msec() * 0.004) * 0.05
 
 
-## Where the customer at this place in line stands, relative to this node.
+## Where the customer at this place in line stands, relative to this node. With two registers,
+## the second customer stands at the second one, and the third waits where the second would.
 func place(index: int) -> Vector3:
+    if second_register != Vector3.INF and index > 0:
+        return second_register if index == 1 else _line_place(index - 1)
+    return _line_place(index)
+
+
+## How many places place() sets apart before the line goes on by line_step.
+func place_count() -> int:
+    return line_points.size() + (1 if second_register != Vector3.INF else 0)
+
+
+func _line_place(index: int) -> Vector3:
     if line_points.is_empty():
         return line_step * index
     if index < line_points.size():
@@ -171,10 +186,11 @@ func pop_points(points: int) -> void:
 
 
 ## The customer at the front refused what they were handed: their ticket flashes red.
-func flash_refused() -> void:
-    if _tickets.is_empty() or not _tickets[0].visible:
+## index: the customer's place in line (one per register).
+func flash_refused(index := 0) -> void:
+    if index >= _tickets.size() or not _tickets[index].visible:
         return
-    var ticket := _tickets[0]
+    var ticket := _tickets[index]
     ticket.modulate = REFUSED
     ticket.create_tween().tween_property(ticket, "modulate", Color.WHITE, 0.5)
 
@@ -256,11 +272,18 @@ func _show_tickets(crowd: SimCrowd) -> void:
     var lowest := 0.0
     var placed: Array[PanelContainer] = []
     _drink_ticket.visible = false
+    # Left to right as the customers stand on screen: with two registers, the second customer
+    # stands left of the first.
+    var order: Array[int] = []
     for index in _tickets.size():
+        _tickets[index].visible = index < shown and camera != null
+        if _tickets[index].visible:
+            order.append(index)
+    var screen_x := func(index: int) -> float:
+        return camera.unproject_position(_figures[crowd.line[index].id].global_position).x
+    order.sort_custom(func(a: int, b: int) -> bool: return screen_x.call(a) < screen_x.call(b))
+    for index in order:
         var ticket := _tickets[index]
-        ticket.visible = index < shown and camera != null
-        if not ticket.visible:
-            continue
         var customer := crowd.line[index]
         var figure: Node3D = _figures[customer.id]
         var icon_size := FRONT_ICON if index == 0 else BACK_ICON

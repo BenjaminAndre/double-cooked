@@ -79,6 +79,7 @@ front_offset = 0.78
 art = NodePath("../KitchenArt4")
 squares = true
 queue_front = Vector3(0.75, 0, 0)
+second_register = Vector3(-0.25, 0, 0)
 
 [node name="LobbyArt" parent="Restaurant" instance=ExtResource("17_lobby_art")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)

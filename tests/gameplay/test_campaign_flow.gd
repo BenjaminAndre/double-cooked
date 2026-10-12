@@ -76,3 +76,16 @@ func test_the_nuit_unique_keeps_its_best_score_per_crew_size() -> void:
     assert_true(night.new_record)
     assert_eq(night.nuit_unique_best(1), 640)
     assert_eq(night.nuit_unique_best(2), 0, "a duo has its own")
+
+
+func test_the_four_player_kitchen_has_a_register_for_each_of_the_first_two_customers() -> void:
+    night._begin(4, PackedInt32Array([0]), 1, Night.Role.OFFLINE)
+    var sim := night.simulation
+    var level := sim.level
+    var first := level.node_stations[level.find("Caisse")]
+    var second := level.node_stations[level.find("Caisse2")]
+    assert_eq(sim.register_of(first), 0, "the CAISSE at the front of the line")
+    assert_eq(sim.register_of(second), 1)
+    assert_true(level.queue_position(1).distance_to(level.positions[level.find("Caisse2")])
+            < level.queue_position(0).distance_to(level.positions[level.find("Caisse2")]),
+            "the second customer stands at the second CAISSE")

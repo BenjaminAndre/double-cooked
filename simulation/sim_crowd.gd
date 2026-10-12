@@ -63,6 +63,8 @@ var _arrivals := 0
 ## The Nuit unique (SimRules.score_attack): the points scored so far, and the pace of arrivals.
 var score := 0
 var pace := 1.0
+## How many CAISSE serve the line (Simulation counts them): two serve the first two customers.
+var registers := 1
 
 
 func _init(p_rules: SimRules, p_seed := 0) -> void:
@@ -77,6 +79,12 @@ func level() -> Level:
 
 func front() -> Customer:
     return line[0] if not line.is_empty() else null
+
+
+## The customer standing at this register (0 the first in line, 1 the second, with two
+## CAISSE), null if nobody is. A lone customer can be served at either.
+func at_register(index: int) -> Customer:
+    return line[index] if index < line.size() else front()
 
 
 ## One tick of the room: arrivals, patience, walk-outs, and a long line souring the mood.
@@ -109,7 +117,7 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
             continue
         customer.patience -= rules.front_drain if index == 0 else rules.back_drain
         if customer.patience <= 0:
-            line.remove_at(index)
+            _leave_line(index)
             change_mood(rules.mood_group_failed if customer.group else rules.mood_walk_out)
             events.append({"type": &"walk_out", "index": index, "by": -1})
             _lost()
@@ -122,9 +130,11 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
 ## Serving is handing over what is held (GDD §6.2). The right order, done right, sends the
 ## customer off happy; done wrong (burnt, soggy...), angry, at the player who served (by). A
 ## wrong dish is refused and costs them patience. A beer is the exception (see give_beer).
+## index: the register (see at_register), so two CAISSE serve two customers at once.
 ## Returns whether the item was handed over.
-func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
-    var customer := front()
+func serve(item: SimItem, by: int, events: Array[Dictionary], index := 0) -> bool:
+    index = clampi(index, 0, maxi(line.size() - 1, 0))
+    var customer := at_register(index)
     if not customer or not item:
         return false
     if customer.boss:
@@ -135,19 +145,19 @@ func serve(item: SimItem, by: int, events: Array[Dictionary]) -> bool:
     if customer.group:
         return _serve_group(customer, Menu.order_key(item) if Menu.done_right(item) else &"", by, events)
     if item.kind == Menu.BEER:
-        give_beer(0, by, events)
+        give_beer(index, by, events)
         return true
     if Menu.order_key(item) != customer.order:
         customer.patience -= rules.wrong_delivery
-        events.append({"type": &"refused", "by": by})
+        events.append({"type": &"refused", "by": by, "index": index})
         return false
-    line.pop_front()
+    _leave_line(index)
     if Menu.done_right(item):
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by})
         _score(_speed_points(customer), events)
     else:
-        _leave_angry(0, by, events)
+        _leave_angry(index, by, events)
     return true
 
 
@@ -161,7 +171,7 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     elif customer.group and Menu.BEER in customer.orders:
         _serve_group(customer, Menu.BEER, by, events)
     elif customer.order == Menu.BEER:
-        line.remove_at(index)
+        _leave_line(index)
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by})
         _score(_speed_points(customer), events)
@@ -186,7 +196,7 @@ func _serve_group(leader: Customer, key: StringName, by: int, events: Array[Dict
     leader.orders.remove_at(at)
     events.append({"type": &"group_line", "by": by})
     if leader.orders.is_empty():
-        line.erase(leader)
+        _leave_line(line.find(leader))
         change_mood(rules.mood_group_served)
         events.append({"type": &"served", "by": by})
         _score(rules.points_group, events)
@@ -216,6 +226,16 @@ func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:
     _lost()
     change_mood(rules.mood_angry)
     events.append({"type": &"angry", "index": index, "by": by})
+
+
+## The customer at index leaves the line. With two registers, the one waiting at the second
+## stays there when the first frees up: the next in line takes the first.
+func _leave_line(index: int) -> void:
+    line.remove_at(index)
+    if registers > 1 and index == 0 and line.size() >= 2:
+        var waiting := line[0]
+        line[0] = line[1]
+        line[1] = waiting
 
 
 func change_mood(amount: int) -> void:
@@ -338,7 +358,7 @@ func _boss_next(boss: Customer, events: Array[Dictionary]) -> void:
         boss.order = boss.orders[index]
         boss.patience = boss_patience()
         return
-    line.erase(boss)
+    _leave_line(line.find(boss))
     var served := Array(boss.results).count(Result.SERVED)
     if served == boss.results.size():
         change_mood(rules.mood_boss_served)

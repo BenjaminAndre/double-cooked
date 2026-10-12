@@ -116,6 +116,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **Each customer draws from their own random stream** (0.2.34): their order comes from the night's seed and their place in the night (the 17th customer), and so do the gaps between arrivals, the boss's and the colleagues' orders. On the same seed, a crew that goes faster meets the same customers, only sooner.
 - **Interacting at the CAISSE is serving** the front customer, with a dish or a drink (nothing raw, no extinguisher). The right order (dish **and** sauce), done right, sends them off happy and calms the room. Their dish badly done (burnt, soggy, undercooked, lukewarm) sends them off **angry**, which raises the mood. **A wrong dish is refused** (the artist's rule, 0.2.25): it stays in hand, their ticket flashes red and they lose 5 s of patience.
 - **A beer always pleases** (the one exception): if it wasn't their order, it buys back some patience and they keep waiting.
+- **Two registers** (the 4-player kitchen, 0.2.40): the line splits at the counter, and **each CAISSE serves its own customer**, the first in line at the one by the line's front, the second at the other, so two customers are served at once. When the first leaves, the second stays at their register and the next in line takes the free one. A lone customer can be served at either.
 
 ### 6.3 The boss (after the first online playtest)
 A Dark Souls style boss customer: bigger, in red instead of blue, with his own rules. Tunables are the `boss_*` values in `SimRules`.

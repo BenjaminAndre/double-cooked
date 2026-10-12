@@ -63,6 +63,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     rules = p_rules if p_rules else SimRules.new()
     crowd = SimCrowd.new(rules, p_seed)
     night_events = NightEvents.new(rules, crowd)
+    crowd.registers = maxi(1, level.station_kinds.count(&"caisse"))
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
         players[slot].bmi = rules.start_bmi
@@ -360,6 +361,26 @@ func _debug_fire(player: SimPlayer) -> void:
         _ignite(index, &"fire_started")
 
 
+## Which register the CAISSE station at this index is (SimCrowd.at_register): the one closest
+## to the front of the line serves the first customer, the next one the second.
+func register_of(station_index: int) -> int:
+    var front := level.queue_position(0)
+    var distance := func(index: int) -> float:
+        var closest := INF
+        for node in level.positions.size():
+            if level.node_stations[node] == index:
+                closest = minf(closest, level.positions[node].distance_to(front))
+        return closest
+    var own: float = distance.call(station_index)
+    var rank := 0
+    for other in stations.size():
+        if other != station_index and stations[other].kind == &"caisse":
+            var theirs: float = distance.call(other)
+            if theirs < own or (theirs == own and other < station_index):
+                rank += 1
+    return rank
+
+
 ## Whether every player but this one stands on a PRÊT tile (GDD §4.1).
 func others_ready(player: SimPlayer) -> bool:
     return players.all(func(p: SimPlayer) -> bool:
@@ -650,7 +671,8 @@ func _station_action(player: SimPlayer) -> StringName:
         &"poubelle":
             return &"trash" if held else &""
         &"caisse":
-            var front := crowd.front()
+            # Each CAISSE serves its own customer: two serve the first two in line.
+            var front := crowd.at_register(register_of(index))
             if front and front.asleep > 0 and not front.boss:
                 # Only explains why nothing happens.
                 return &"asleep"
@@ -733,7 +755,7 @@ func _interact(player: SimPlayer) -> void:
             player.item = null
             events.append({"type": &"trashed", "station": index})
         &"caisse":
-            if crowd.serve(held, player.slot, events):
+            if crowd.serve(held, player.slot, events, register_of(index)):
                 player.item = null
         &"extincteur":
             if not held:

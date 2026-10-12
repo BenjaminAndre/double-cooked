@@ -107,6 +107,8 @@ const SHELF_QUARTER := 0.25
 ## Where the front of the customers' line stands, in the art scene's space (CustomersView keeps
 ## the line's shape from there); INF: no line in this room.
 @export var queue_front := Vector3.INF
+## With a second CAISSE, where its customer stands (like queue_front); INF with one.
+@export var second_register := Vector3.INF
 
 var camera: Camera3D
 var _anchors: Node3D
@@ -212,6 +214,13 @@ func queue_front_position() -> Vector3:
     if queue_front == Vector3.INF:
         return Vector3.INF
     return _world_transform(art) * queue_front if art else _world_transform(self) * queue_front
+
+
+## Where the second CAISSE's customer stands in the world, INF without one.
+func second_register_position() -> Vector3:
+    if second_register == Vector3.INF:
+        return Vector3.INF
+    return _world_transform(art) * second_register if art else _world_transform(self) * second_register
 
 
 ## Puts the camera where the camera_* settings say, e.g. again after changing them.
