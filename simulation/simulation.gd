@@ -22,10 +22,12 @@ const DEBUG := 1000
 const DEBUG_SPAN := 100
 ## The test tools. MOOD's argument is a SimCrowd.Level; CLOCK's a ClockJump; KNOCK_OUT, HUNGRY
 ## and FAT take a slot. New tools go at the end, so saved replays keep their meaning.
-enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT }
+enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT, GREASE }
 enum ClockJump { HALF_HOUR, BOSS, CLOSING }
 
 const EXTINGUISHER := &"extincteur"
+## The stations with hot oil: sliding into one burns (GDD §8).
+const FRYERS: Array[StringName] = [&"cuisson_1", &"cuisson_2", &"cuisson_viande"]
 ## Cans leave a hand at this height and are caught at that one.
 const THROW_HEIGHT := 1.0
 const CATCH_HEIGHT := 0.6
@@ -54,6 +56,8 @@ var stats := {}
 ## Ticks the night's clock was moved forward by (DebugTool.CLOCK): the night runs on
 ## night_tick(), while tick keeps counting the steps.
 var clock_skip := 0
+## Grease on the floor (GDD §8): node -> ticks before it dries.
+var grease := {}
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
@@ -158,6 +162,7 @@ func step(commands: Array) -> void:
                 station.restock = 0
                 station.beers += 1
     _advance_fires()
+    _dry_grease()
     for player in players:
         _check_menu(player)
         _check_aim(player)
@@ -181,7 +186,7 @@ func step(commands: Array) -> void:
 
 ## Fingerprint of the state, to check that two runs (or host and client) agree.
 func state_hash() -> int:
-    var state: Array = [tick, clock_skip, rng.state]
+    var state: Array = [tick, clock_skip, rng.state, grease]
     for p in players:
         state.append(p.fingerprint())
     for station in stations:
@@ -202,7 +207,7 @@ func _apply(player: SimPlayer, command: int) -> void:
     if command >= LOOK:
         _set_look(player, (command - LOOK) / Looks.HATS.size(), (command - LOOK) % Looks.HATS.size())
         return
-    if player.stun > 0 or player.spraying > 0:
+    if player.stun > 0 or player.spraying > 0 or player.sliding:
         return
     if player.aim >= 0 and _use_aim(player, command):
         return
@@ -349,6 +354,8 @@ func _debug(player: SimPlayer, tool: DebugTool, arg: int) -> void:
         DebugTool.FAT when target != null:
             target.bmi = rules.start_bmi + rules.fat_stages[-1]
             events.append({"type": &"fattened", "slot": target.slot})
+        DebugTool.GREASE:
+            _grease(player.node)
 
 
 ## A fire at the player's station if it can burn, otherwise at the first CUISSON 1.
@@ -592,11 +599,13 @@ func _advance(player: SimPlayer) -> void:
         player.progress += 1
         if player.progress < player.edge_ticks:
             return
+        var from := player.node
         player.node = player.path.pop_front()
         if not rules.lobby:
             _burn(player)
         player.progress = 0
         player.edge_ticks = 0
+        _on_floor(player, from)
     if player.path.is_empty():
         return
     var target: int = player.path[0]
@@ -605,10 +614,72 @@ func _advance(player: SimPlayer) -> void:
         player.path.clear()
         events.append({"type": &"bump", "by": player.slot, "target": occupant.slot})
         occupant.stun = rules.bump_stun
+        if player.sliding:
+            # Slid into them: both are stunned.
+            player.sliding = false
+            player.stun = rules.slip_stun
         return
-    # A fatter player walks slower, by stages (GDD §5.1); thinner isn't faster.
+    # A fatter player walks slower, by stages (GDD §5.1); thinner isn't faster. Sliding is fast.
     player.edge_ticks = rules.crawl_ticks if player.down \
             else roundi(_walk_ticks(player.node, target) / rules.walk_speed(player.bmi))
+    if player.sliding:
+        player.edge_ticks = maxi(1, player.edge_ticks / 2)
+
+
+## A player just reached a node, from another (GDD §8): the end of a slide hurts at a fryer or
+## a fire; grease sends them on (see _slip).
+func _on_floor(player: SimPlayer, from: int) -> void:
+    var slid := player.sliding
+    player.sliding = false
+    if slid:
+        var index := level.node_stations[player.node]
+        if index != SimLevel.NONE and (stations[index].burning or stations[index].kind in FRYERS):
+            events.append({"type": &"slid_into", "slot": player.slot, "station": index})
+            _hurt(player)
+    if grease.has(player.node) and not player.down and not rules.lobby:
+        _slip(player, from)
+    elif slid:
+        player.stun = rules.slip_stun
+
+
+## Grease underfoot: whatever is held falls (and is lost), and the player slides on to the next
+## node the way they were going, if there is one.
+func _slip(player: SimPlayer, from: int) -> void:
+    events.append({"type": &"slipped", "slot": player.slot, "dropped": player.item.kind if player.item else &""})
+    player.item = null
+    player.menu = SimLevel.NONE
+    player.aim = -1
+    player.aim_player = -1
+    player.path.clear()
+    var next := SimLevel.NONE
+    for direction in 4:
+        if level.neighbour(from, direction) == player.node:
+            next = level.neighbour(player.node, direction)
+    if next == SimLevel.NONE:
+        player.stun = rules.slip_stun
+        return
+    player.path.append(next)
+    player.sliding = true
+
+
+## Whether this item was left too long in the oil (the last of its Menu.SECOND_FRY results).
+static func _burnt(item: SimItem) -> bool:
+    return Menu.SECOND_FRY.values().any(func(results: Array) -> bool: return results[-1] == item.kind)
+
+
+## A puddle of grease on this node, fresh (GDD §8).
+func _grease(node: int) -> void:
+    if rules.lobby:
+        return
+    grease[node] = rules.grease_ticks
+    events.append({"type": &"grease", "node": node})
+
+
+func _dry_grease() -> void:
+    for node: int in grease.keys():
+        grease[node] -= 1
+        if grease[node] <= 0:
+            grease.erase(node)
 
 
 ## What interacting would do right now, for the on-screen hint; &"" when it would do nothing.
@@ -741,6 +812,9 @@ func _interact(player: SimPlayer) -> void:
                 Fryer.fill(station, held)
             else:
                 Fryer.use_second(station, player)
+                # Burnt food out of the oil drips grease where the player stands.
+                if player.item and player.item != held and _burnt(player.item):
+                    _grease(player.node)
         &"viandes" when action == &"veg":
             held.veg = true
         &"sauces", &"frigo", &"viandes", &"pain", &"peinture", &"casquette", &"telephone":
@@ -820,6 +894,8 @@ func _put_out(player: SimPlayer) -> void:
         stations[index].burning = false
         stations[index].burn_ticks = 0
         events.append({"type": &"fire_out", "station": index, "by": player.slot})
+        # The foam and the oil stay on the floor.
+        _grease(player.node)
     if player.item and player.item.kind == EXTINGUISHER:
         player.item = null
 

@@ -511,6 +511,8 @@ func _step() -> bool:
     for event in simulation.events:
         if event.type == &"bump":
             _views[event.target].show_bump()
+        elif event.type == &"slipped":
+            _views[event.slot].show_bump()
         elif event.type == &"fattened":
             _views[event.slot].show_fat_change(true)
         elif event.type == &"thinner":
@@ -942,7 +944,7 @@ func _show(p_alpha: float) -> void:
     var taken := {}
     for player in simulation.players:
         taken[player.node] = true
-    _room.show_squares(taken, _idle_nodes)
+    _room.show_squares(taken, _idle_nodes, simulation.grease)
     var open_menus := {}
     for player in simulation.players:
         open_menus[player.menu] = true

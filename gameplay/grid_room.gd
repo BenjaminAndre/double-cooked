@@ -61,6 +61,8 @@ const CAMERA_FOV := 25.0
 const SQUARE := Color(1, 1, 1, 60 / 255.0)
 const SQUARE_TAKEN := Color("FFF0D8", 120 / 255.0)
 const SQUARE_IDLE := Color(0.1, 0.1, 0.12, 0.35)
+## A square with grease on it (GDD §8): amber, like oil.
+const SQUARE_GREASE := Color(0.95, 0.65, 0.1, 0.6)
 ## A PRÊT cell's square, green.
 const SQUARE_READY := Color(0.3, 0.85, 0.35, 0.55)
 const SQUARE_SIZE := Vector3(0.7, 0.108, 0.7)
@@ -291,9 +293,12 @@ func _square(anchor: Anchor) -> MeshInstance3D:
 
 ## taken: nodes (anchor indices) a player stands on; idle: nodes at a station with nothing to
 ## do tonight. Only on change: a material swap, never a rebuild.
-func show_squares(taken: Dictionary, idle: Dictionary) -> void:
+## greasy: nodes with grease on them (Simulation.grease), shown before anything else.
+func show_squares(taken: Dictionary, idle: Dictionary, greasy := {}) -> void:
     for index in _squares.size():
         var color := SQUARE_TAKEN if taken.has(index) else SQUARE_IDLE if idle.has(index) else _square_colors[index]
+        if greasy.has(index):
+            color = SQUARE_GREASE
         var material := _square_material(color)
         if _squares[index].material_override != material:
             _squares[index].material_override = material

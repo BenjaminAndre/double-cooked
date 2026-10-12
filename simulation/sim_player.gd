@@ -26,6 +26,8 @@ var walked := 0
 var stun := 0
 ## Ticks left spraying the fire at their station with the extinguisher (GDD §8): busy, unhurt.
 var spraying := 0
+## Sliding on grease (GDD §8): the player is carried to the next node and can't act.
+var sliding := false
 ## Ticks spent standing next to a fire since the last heart it cost.
 var exposure := 0
 ## Station whose menu this player has open, or SimLevel.NONE; menu_choice is the selected
@@ -59,4 +61,4 @@ func occupied_node() -> int:
 
 func fingerprint() -> Array:
     return [node, path, progress, edge_ticks, health, item.fingerprint() if item else null, down,
-            stun, spraying, exposure, menu, menu_choice, aim, aim_ticks, aim_player, bmi, walked, color, hat]
+            stun, spraying, sliding, exposure, menu, menu_choice, aim, aim_ticks, aim_player, bmi, walked, color, hat]

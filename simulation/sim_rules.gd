@@ -72,6 +72,10 @@ var fire_spread_after := 8 * SECOND
 var spray_ticks := 2 * SECOND
 ## Stations fire never reaches, so the crew can always fight back.
 var fireproof: Array[StringName] = [&"extincteur"]
+## Grease on the floor (GDD §8): a puddle (from a fire put out, or burnt food lifted from the oil)
+## dries after this long. Slipping on it stuns for slip_stun once the slide stops.
+var grease_ticks := 45 * SECOND
+var slip_stun := 1 * SECOND
 ## A knocked-out player crawls one node in this many ticks, to a beer.
 var crawl_ticks := 2 * SECOND
 ## A bumped player is stunned this long: no moving, no acting (GDD §5.3).
