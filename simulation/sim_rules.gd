@@ -76,6 +76,8 @@ var fireproof: Array[StringName] = [&"extincteur"]
 ## dries after this long. Slipping on it stuns for slip_stun once the slide stops.
 var grease_ticks := 45 * SECOND
 var slip_stun := 1 * SECOND
+## The BB gun (GDD §8): shooting the AFSCA inspector stops the inspection but shocks the room.
+var mood_inspector_shot := 150
 ## Pigeons (GDD §8): one flies in every so often (none while pigeon_every_min is 0), up to
 ## max_pigeons at once; it takes pigeon_flight to land, and pecks pigeon_peck before flying off
 ## with a portion of the fries waiting on CUISSON 1.

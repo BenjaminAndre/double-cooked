@@ -27,6 +27,8 @@ enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KN
 enum ClockJump { HALF_HOUR, BOSS, CLOSING }
 
 const EXTINGUISHER := &"extincteur"
+## The yellow BB gun kept under each CAISSE (GDD §8).
+const GUN := &"carabine"
 ## The stations with hot oil: sliding into one burns (GDD §8).
 const FRYERS: Array[StringName] = [&"cuisson_1", &"cuisson_2", &"cuisson_viande"]
 ## Cans leave a hand at this height and are caught at that one.
@@ -83,6 +85,7 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
         stations.append(SimStation.new(kind))
         if kind == &"frigo":
             stations[-1].beers = rules.fridge_beers
+        stations[-1].gun = kind == &"caisse"
     var per_player := []
     per_player.resize(players.size())
     per_player.fill(0)
@@ -225,9 +228,10 @@ func _apply(player: SimPlayer, command: int) -> void:
         return
     if player.aim >= 0 and _use_aim(player, command):
         return
-    if command == Command.INTERACT and player.item and player.item.kind == Menu.BEER \
+    if command == Command.INTERACT and player.item and player.item.kind in [Menu.BEER, GUN] \
             and not player.down and player.menu == SimLevel.NONE:
-        # Holding a beer: aim first; a quick release still uses the station (see _use_aim).
+        # Holding a beer or the gun: aim first; a quick release still uses the station (see
+        # _use_aim).
         player.aim = 0
         player.aim_ticks = 0
         return
@@ -429,6 +433,8 @@ func _check_menu(player: SimPlayer) -> void:
 ## throws the beer. Escape stops aiming and keeps the beer. Returns whether the command was
 ## used by the aim.
 func _use_aim(player: SimPlayer, command: int) -> bool:
+    if player.item and player.item.kind == GUN:
+        return _use_gun_aim(player, command)
     var mates := players.filter(func(p: SimPlayer) -> bool: return p != player)
     match command:
         Command.MOVE_UP:
@@ -467,7 +473,7 @@ func _use_aim(player: SimPlayer, command: int) -> bool:
 func _check_aim(player: SimPlayer) -> void:
     if player.aim < 0:
         return
-    if player.down or player.stun > 0 or not player.item or player.item.kind != Menu.BEER:
+    if player.down or player.stun > 0 or not player.item or not player.item.kind in [Menu.BEER, GUN]:
         player.aim = -1
         player.aim_player = -1
     else:
@@ -664,7 +670,7 @@ func _on_floor(player: SimPlayer, from: int) -> void:
 ## node the way they were going, if there is one.
 func _slip(player: SimPlayer, from: int) -> void:
     events.append({"type": &"slipped", "slot": player.slot, "dropped": player.item.kind if player.item else &""})
-    player.item = null
+    _drop(player)
     player.menu = SimLevel.NONE
     player.aim = -1
     player.aim_player = -1
@@ -710,7 +716,9 @@ func action_for(player: SimPlayer) -> StringName:
     if player.spraying > 0:
         return &"spraying"
     if player.aim >= 0:
-        return &"throw" if player.aim_ticks >= rules.aim_hold else &""
+        if player.aim_ticks < rules.aim_hold:
+            return &""
+        return &"shoot" if player.item and player.item.kind == GUN else &"throw"
     if player.menu != SimLevel.NONE:
         return &"choose"
     return _station_action(player)
@@ -764,6 +772,11 @@ func _station_action(player: SimPlayer) -> StringName:
             return &"trash" if held else &""
         &"caisse":
             # Each CAISSE serves its own customer: two serve the first two in line.
+            # The BB gun is kept under it (GDD §8).
+            if not held and station.gun:
+                return &"take_gun"
+            if held and held.kind == GUN:
+                return &"return_gun" if not station.gun else &""
             var front := crowd.at_register(register_of(index))
             if front and front.asleep > 0 and not front.boss:
                 # Only explains why nothing happens.
@@ -850,10 +863,16 @@ func _interact(player: SimPlayer) -> void:
                 player.menu = index
                 player.menu_choice = 0
         &"poubelle":
-            player.item = null
+            _drop(player)
             events.append({"type": &"trashed", "station": index})
         &"caisse":
-            if crowd.serve(held, player.slot, events, register_of(index)):
+            if action == &"take_gun":
+                station.gun = false
+                player.item = SimItem.new(GUN)
+            elif action == &"return_gun":
+                station.gun = true
+                player.item = null
+            elif crowd.serve(held, player.slot, events, register_of(index)):
                 player.item = null
         &"extincteur":
             if not held:
@@ -1116,3 +1135,73 @@ func pigeon_at(station_index: int) -> SimPigeon:
 static func _waiting_fries(station: SimStation) -> bool:
     return station.kind == &"cuisson_1" and station.basket != null and not station.frying \
             and station.basket.kind == Fryer.FRIES_BLANCHED
+
+
+## What the player holds is gone; the BB gun goes back under a CAISSE by itself.
+func _drop(player: SimPlayer) -> void:
+    if player.item and player.item.kind == GUN:
+        for station in stations:
+            if station.kind == &"caisse" and not station.gun:
+                station.gun = true
+                break
+    player.item = null
+
+
+## What the BB gun can aim at (GDD §8), in a fixed order: the landed pigeons, the AFSCA inspector
+## while he inspects, then the teammates. Never the customers. Each is [kind, id]: [&"pigeon",
+## pigeon id], [&"inspector", 0], [&"mate", slot].
+func gun_targets(player: SimPlayer) -> Array:
+    var targets := []
+    for pigeon in pigeons:
+        if pigeon.landed():
+            targets.append([&"pigeon", pigeon.id])
+    if night_events.inspection > 0:
+        targets.append([&"inspector", 0])
+    for mate in players:
+        if mate != player:
+            targets.append([&"mate", mate.slot])
+    return targets
+
+
+## While the gun is held down, left and right pick a target (gun_targets); releasing after
+## SimRules.aim_hold fires, earlier uses the station (puts the gun back at a CAISSE).
+func _use_gun_aim(player: SimPlayer, command: int) -> bool:
+    var targets := gun_targets(player)
+    match command:
+        Command.MOVE_LEFT, Command.MOVE_RIGHT:
+            if not targets.is_empty():
+                player.aim = posmod(player.aim + (1 if command == Command.MOVE_RIGHT else -1), targets.size())
+        Command.MOVE_UP, Command.MOVE_DOWN, Command.INTERACT:
+            pass
+        Command.RELEASE:
+            var held_long := player.aim_ticks >= rules.aim_hold
+            var target: Array = targets[mini(player.aim, targets.size() - 1)] if not targets.is_empty() else []
+            player.aim = -1
+            if not held_long:
+                _interact(player)
+            elif not target.is_empty():
+                _shoot(player, target)
+        Command.CANCEL:
+            player.aim = -1
+        _:
+            return false
+    return true
+
+
+## A BB: a pigeon flies off, the inspector runs off (no verdict, but the room is shocked), a
+## teammate loses a heart and is stunned. Chaos.
+func _shoot(player: SimPlayer, target: Array) -> void:
+    events.append({"type": &"shot", "by": player.slot, "target": target[0], "id": target[1]})
+    match target[0]:
+        &"pigeon":
+            for pigeon in pigeons:
+                if pigeon.id == target[1]:
+                    _pigeon_leaves(pigeon, &"shot")
+                    break
+        &"inspector":
+            night_events.inspector_shot()
+            crowd.change_mood(rules.mood_inspector_shot)
+        &"mate":
+            var mate := players[target[1]]
+            _hurt(mate)
+            mate.stun = maxi(mate.stun, rules.bump_stun)

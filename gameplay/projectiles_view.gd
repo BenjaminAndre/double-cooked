@@ -39,6 +39,21 @@ func _process(_delta: float) -> void:
     _show_cursors(sim)
 
 
+## Where a BB gun target (Simulation.gun_targets) is, for the cursor over it.
+func _gun_target(sim: Simulation, target: Array) -> Vector3:
+    match target[0]:
+        &"pigeon":
+            for pigeon in sim.pigeons:
+                if pigeon.id == target[1]:
+                    return night.station_centre(pigeon.station) + PigeonsView.PERCH + Vector3.UP * 0.5
+        &"inspector":
+            if night.queue:
+                return night.queue.inspector_position() + Vector3.UP * CURSOR_HEIGHT
+        &"mate":
+            return sim.player_position(sim.players[target[1]]) + Vector3.UP * MATE_CURSOR_HEIGHT
+    return Vector3.ZERO
+
+
 ## A bobbing arrow over the customer or teammate each local player aims at, once the aim is held.
 func _show_cursors(sim: Simulation) -> void:
     var aims: Array[Vector3] = []
@@ -47,7 +62,11 @@ func _show_cursors(sim: Simulation) -> void:
             continue
         var player := sim.players[slot]
         if player.aim >= 0 and player.aim_ticks >= sim.rules.aim_hold:
-            if player.aim_player >= 0:
+            if player.item and player.item.kind == Simulation.GUN:
+                var targets := sim.gun_targets(player)
+                if not targets.is_empty():
+                    aims.append(_gun_target(sim, targets[mini(player.aim, targets.size() - 1)]))
+            elif player.aim_player >= 0:
                 aims.append(sim.player_position(sim.players[player.aim_player]) + Vector3.UP * MATE_CURSOR_HEIGHT)
             else:
                 aims.append(sim.level.queue_position(player.aim) + Vector3.UP * CURSOR_HEIGHT)

@@ -520,6 +520,10 @@ func _step() -> bool:
             _views[event.target].show_bump()
         elif event.type == &"slipped":
             _views[event.slot].show_bump()
+        elif event.type == &"shot" and event.target == &"inspector":
+            announced.emit("L'inspecteur s'enfuit !")
+        elif event.type == &"shot" and event.target == &"mate":
+            _views[event.id].show_bump()
         elif event.type == &"pigeon_left" and event.why == &"stole":
             notice.emit("Un pigeon a volé des frites !")
         elif event.type == &"fattened":
@@ -911,9 +915,13 @@ func _show(p_alpha: float) -> void:
                 hints.append([interact_key, ItemNames.action(action)])
                 if action == &"throw" and simulation.players.size() > 1:
                     hints.append(["Haut", "équipier"])
+                elif action == &"shoot":
+                    hints.append(["Gauche/Droite", "cible"])
             if player.item and player.item.kind == Menu.BEER and player.aim < 0 and not player.down:
                 # A beer can always be thrown: hold the key to aim at the line.
                 hints.append([interact_key, "maintenir : lancer"])
+            elif player.item and player.item.kind == Simulation.GUN and player.aim < 0 and not player.down:
+                hints.append([interact_key, "maintenir : viser"])
         var eat := simulation.eat_action(player) if simulation.outcome == &"" else &""
         if eat != &"":
             hints.append([_input.eat_key_name(local_index), ItemNames.action(eat)])

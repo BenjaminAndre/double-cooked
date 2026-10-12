@@ -39,6 +39,7 @@ const NAMES := {
     Menu.KETCHUP: "ketchup",
     Menu.NATURE: "nature",
     Simulation.EXTINGUISHER: "extincteur",
+    Simulation.GUN: "carabine",
     Looks.NONE: "rien",
     Looks.CAP: "casquette",
     Looks.BEER_HELMET: "casque à bières",
@@ -94,6 +95,9 @@ const ACTIONS := {
     &"asleep": "le client dort",
     &"spraying": "extinction...",
     &"shoo": "chasser le pigeon",
+    &"take_gun": "prendre la carabine",
+    &"return_gun": "ranger la carabine",
+    &"shoot": "tirer",
 }
 
 

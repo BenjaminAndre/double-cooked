@@ -230,4 +230,4 @@ static func station_in_use(kind: StringName, menu: Array[StringName] = FULL_MENU
 ## Whether a player can eat or drink this to get a heart back: anything from the kitchen,
 ## however badly done, but not the extinguisher (GDD §5.1).
 static func edible(item: SimItem) -> bool:
-    return item != null and item.kind != Simulation.EXTINGUISHER
+    return item != null and not item.kind in [Simulation.EXTINGUISHER, Simulation.GUN]

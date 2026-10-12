@@ -192,6 +192,20 @@ func _initialize() -> void:
             sim.rules.pigeon_peck = 1 << 30
             sim._pigeon_arrives()
             sim._pigeon_arrives()
+        "gun":
+            # A surprise inspection under way, a pigeon on CUISSON 2, the player at the CAISSE
+            # aiming the BB gun (placeholders).
+            night.play_local(2)
+            var sim := night.simulation
+            sim.players[0].node = sim.level.find("Caisse")
+            sim.players[0].item = SimItem.new(Simulation.GUN)
+            sim.stations[sim.level.node_stations[sim.level.find("Caisse")]].gun = false
+            sim.rules.surprise_warning = 1
+            sim.night_events.surprise_now(sim.events)
+            sim.players[0].aim = 1
+            sim.players[0].aim_ticks = 100
+            sim._pigeon_arrives()
+            sim.rules.pigeon_peck = 1 << 30
         "net_stats":
             # A host's network stats for one guest, the F4 panel on the network row (faked: no
             # network here, so the night stands still).

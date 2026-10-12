@@ -68,7 +68,24 @@ const DISHES := {
 
 ## The picture of an item kind or sauce, null if there is none.
 static func picture(kind: StringName) -> Texture2D:
+    if kind == Simulation.GUN:
+        return _gun()
     return load(PATH % ITEMS[kind][0]) if ITEMS.has(kind) else null
+
+
+static var _gun_picture: Texture2D
+
+
+## The yellow BB gun, drawn in code until the artist draws it: a body, a barrel and a grip.
+static func _gun() -> Texture2D:
+    if not _gun_picture:
+        var image := Image.create(96, 64, false, Image.FORMAT_RGBA8)
+        for part: Rect2i in [Rect2i(8, 18, 72, 16), Rect2i(78, 22, 16, 8), Rect2i(14, 32, 18, 26)]:
+            image.fill_rect(part.grow(2), Color(0.15, 0.1, 0.05))
+        for part: Rect2i in [Rect2i(8, 18, 72, 16), Rect2i(78, 22, 16, 8), Rect2i(14, 32, 18, 26)]:
+            image.fill_rect(part, Color(1.0, 0.85, 0.1))
+        _gun_picture = ImageTexture.create_from_image(image)
+    return _gun_picture
 
 
 static func tint(kind: StringName) -> Color:

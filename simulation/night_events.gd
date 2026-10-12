@@ -110,3 +110,10 @@ func _inspect(is_surprise: bool) -> void:
     inspection = rules.inspection_ticks
     inspection_failed = false
     surprise = is_surprise
+
+
+## Shot with the BB gun, the inspector runs off: the inspection ends with no verdict.
+func inspector_shot() -> void:
+    inspection = 0
+    inspection_failed = false
+    surprise = false

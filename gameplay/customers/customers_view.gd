@@ -22,6 +22,10 @@ const DRINKERS_AT := Vector3(-1.0, 0, 2.3)
 const LEADER := "res://art/textures/EventCharacter01.png"
 const COLLEAGUE := "res://art/textures/EventCharacter%02d.png"
 const COLLEAGUES_AT := Vector3(2.5, 0, -3.4)
+## The AFSCA inspector while he inspects (a placeholder picture until the artist draws him), in
+## the room by the counter (relative to this node).
+const INSPECTOR := "res://art/textures/EventCharacter06.png"
+const INSPECTOR_AT := Vector3(0, 0, 1.2)
 ## Over a customer put to sleep by one beer too many (GDD §6.2): the artist's Zzz, bobbing.
 const ASLEEP := preload("res://art/textures/EtatZzzz.png")
 const ASLEEP_HEIGHT := 1.75
@@ -74,6 +78,7 @@ var _drink_ticket: PanelContainer
 var _layer: CanvasLayer
 ## The colleagues waiting outside, while their leader is in line.
 var _colleagues: Array[Node3D] = []
+var _inspector: PaperFigure
 var _drinkers: Array[Node3D] = []
 
 
@@ -108,6 +113,7 @@ func _process(delta: float) -> void:
             figure.queue_free()
     _show_colleagues(crowd.line.any(func(customer: SimCrowd.Customer) -> bool: return customer.group))
     _show_drinkers(night.simulation.tick if not night.in_lobby else -1)
+    _show_inspector(night.simulation.night_events.inspection > 0 and not night.in_lobby)
     _show_tickets(crowd)
 
 
@@ -232,6 +238,20 @@ func _show_drinkers(tick: int) -> void:
     var count := 0 if roll % 3 == 0 else 1 + (roll / 3) % 3
     for index in _drinkers.size():
         _drinkers[index].visible = index < count
+
+
+## Where the inspector stands in the world, e.g. for the BB gun's cursor.
+func inspector_position() -> Vector3:
+    return to_global(INSPECTOR_AT)
+
+
+func _show_inspector(shown: bool) -> void:
+    if shown and not _inspector:
+        _inspector = PaperFigure.new(load(INSPECTOR))
+        _inspector.position = INSPECTOR_AT
+        add_child(_inspector)
+    if _inspector:
+        _inspector.visible = shown
 
 
 ## The leader's colleagues, standing outside with their cans while he is in line.
