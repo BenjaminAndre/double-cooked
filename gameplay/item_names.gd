@@ -93,6 +93,7 @@ const ACTIONS := {
     &"door_host": "l'hôte ouvre",
     &"asleep": "le client dort",
     &"spraying": "extinction...",
+    &"shoo": "chasser le pigeon",
 }
 
 

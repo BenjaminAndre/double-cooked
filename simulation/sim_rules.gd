@@ -76,6 +76,14 @@ var fireproof: Array[StringName] = [&"extincteur"]
 ## dries after this long. Slipping on it stuns for slip_stun once the slide stops.
 var grease_ticks := 45 * SECOND
 var slip_stun := 1 * SECOND
+## Pigeons (GDD §8): one flies in every so often (none while pigeon_every_min is 0), up to
+## max_pigeons at once; it takes pigeon_flight to land, and pecks pigeon_peck before flying off
+## with a portion of the fries waiting on CUISSON 1.
+var pigeon_every_min := 0
+var pigeon_every_max := 0
+var max_pigeons := 3
+var pigeon_flight := 2 * SECOND
+var pigeon_peck := 4 * SECOND
 ## A knocked-out player crawls one node in this many ticks, to a beer.
 var crawl_ticks := 2 * SECOND
 ## A bumped player is stunned this long: no moving, no acting (GDD §5.3).

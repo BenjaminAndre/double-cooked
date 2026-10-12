@@ -18,6 +18,10 @@ const ROTATION: Array[StringName] = [NightEvents.DIABLES_ROUGES, NightEvents.AFS
 const EXTRA_EVENT_AT := 0.65
 ## The chance of a surprise AFSCA inspection each night from the second week (GDD §6.4).
 const SURPRISE_INSPECTIONS := 0.5
+## Pigeons come from this night of a campaign, and to every Nuit unique, one every so often
+## (seconds, GDD §8).
+const PIGEONS_FROM := 3
+const PIGEON_EVERY := Vector2i(25, 45)
 
 ## What each night adds to the menu (Menu.FULL_MENU), from the first.
 const UNLOCKS: Array = [
@@ -63,6 +67,9 @@ static func menu_for(night: int) -> Array[StringName]:
 static func rules_for(night: int) -> SimRules:
     var rules := SimRules.new()
     rules.score_attack = night == 0
+    if night == 0 or night >= PIGEONS_FROM:
+        rules.pigeon_every_min = PIGEON_EVERY.x * SimRules.SECOND
+        rules.pigeon_every_max = PIGEON_EVERY.y * SimRules.SECOND
     if night > 0:
         rules.night_number = night
         rules.menu = menu_for(night)

@@ -183,6 +183,15 @@ func _initialize() -> void:
             var sim := night.simulation
             sim.grease[sim.level.find("Cuisson2")] = sim.rules.grease_ticks
             sim.grease[sim.level.find("Sauces")] = sim.rules.grease_ticks
+        "pigeons":
+            # Fries waiting on CUISSON 1, two pigeons coming (placeholders).
+            var sim := night.simulation
+            var fryer := sim.level.node_stations[sim.level.find("Cuisson1")]
+            sim.stations[fryer].basket = SimItem.new(Fryer.FRIES_BLANCHED)
+            sim.stations[fryer].basket.portions = 5
+            sim.rules.pigeon_peck = 1 << 30
+            sim._pigeon_arrives()
+            sim._pigeon_arrives()
         "net_stats":
             # A host's network stats for one guest, the F4 panel on the network row (faked: no
             # network here, so the night stands still).

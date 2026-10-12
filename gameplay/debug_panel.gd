@@ -104,7 +104,7 @@ func rows() -> Array[Dictionary]:
             {"id": &"mood", "label": "Humeur", "options": ["calme", "tendu", "chaud", "avant l'émeute"]},
             {"id": &"clock", "label": "Horloge", "options": ["+30 min", "02:00, le boss", "fermeture"]},
             {"id": &"customers", "label": "Clients", "options": ["boss maintenant", "file pleine", "AFSCA surprise"]},
-            {"id": &"kitchen", "label": "Cuisine", "options": ["frigo plein", "éteindre les feux", "allumer un feu", "flaque"]},
+            {"id": &"kitchen", "label": "Cuisine", "options": ["frigo plein", "éteindre les feux", "allumer un feu", "flaque", "pigeon"]},
             {"id": &"target", "label": "Joueur", "options": ["< %s >" % who]},
             {"id": &"crew", "label": "Équipe", "options": ["tout soigner", "K.O. : " + who, "affamé : " + who,
                     "gros : " + who]},
@@ -131,7 +131,7 @@ func _use(id: StringName, index: int, text: String) -> void:
         &"customers":
             night.use_tool([Tool.BOSS, Tool.FILL_LINE, Tool.INSPECTION][index])
         &"kitchen":
-            night.use_tool([Tool.FRIDGE, Tool.FIRES_OUT, Tool.FIRE, Tool.GREASE][index])
+            night.use_tool([Tool.FRIDGE, Tool.FIRES_OUT, Tool.FIRE, Tool.GREASE, Tool.PIGEON][index])
         &"crew":
             night.use_tool([Tool.HEAL, Tool.KNOCK_OUT, Tool.HUNGRY, Tool.FAT][index], _target)
         &"campaign":

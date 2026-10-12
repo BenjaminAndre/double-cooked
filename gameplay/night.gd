@@ -152,6 +152,8 @@ func _ready() -> void:
     _web_page = WebPage.new()
     _web_page.hidden_beat.connect(_on_hidden_beat)
     add_child(_web_page)
+    if players_parent:
+        players_parent.add_child(PigeonsView.new(self))
     play_lobby(1)
 
 
@@ -285,6 +287,11 @@ func submit(local_index: int, command: int) -> void:
 ## The slot of each player at this keyboard.
 func local_slots() -> PackedInt32Array:
     return _local_slots
+
+
+## The centre of a station's view in the world (an index into the simulation's stations).
+func station_centre(index: int) -> Vector3:
+    return _station_views[index].centre()
 
 
 ## Whether this peer may use the test tools (GDD §9.3): the host, or offline.
@@ -513,6 +520,8 @@ func _step() -> bool:
             _views[event.target].show_bump()
         elif event.type == &"slipped":
             _views[event.slot].show_bump()
+        elif event.type == &"pigeon_left" and event.why == &"stole":
+            notice.emit("Un pigeon a volé des frites !")
         elif event.type == &"fattened":
             _views[event.slot].show_fat_change(true)
         elif event.type == &"thinner":

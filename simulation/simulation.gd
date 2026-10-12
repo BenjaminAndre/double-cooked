@@ -23,7 +23,7 @@ const DEBUG_SPAN := 100
 ## The test tools. MOOD's argument is a SimCrowd.Level; CLOCK's a ClockJump; KNOCK_OUT, HUNGRY
 ## and FAT take a slot. New tools go at the end, so saved replays keep their meaning.
 enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT, GREASE,
-        INSPECTION }
+        INSPECTION, PIGEON }
 enum ClockJump { HALF_HOUR, BOSS, CLOSING }
 
 const EXTINGUISHER := &"extincteur"
@@ -60,6 +60,11 @@ var stats := {}
 var clock_skip := 0
 ## Grease on the floor (GDD §8): node -> ticks before it dries.
 var grease := {}
+## Pigeons in the kitchen (GDD §8), when the next one comes (a night tick, -1 not drawn yet),
+## and how many came so far tonight.
+var pigeons: Array[SimPigeon] = []
+var next_pigeon := -1
+var _pigeons_seen := 0
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
@@ -169,10 +174,12 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        # A fire or grease on the floor: what the AFSCA inspector looks for.
+        # A fire, grease on the floor, a pigeon: what the AFSCA inspector looks for.
         night_events.advance(night_tick(), events, not grease.is_empty()
+                or pigeons.any(func(pigeon: SimPigeon) -> bool: return pigeon.landed())
                 or stations.any(func(station: SimStation) -> bool: return station.burning))
         crowd.advance(night_tick(), players.size(), rng, events)
+        _advance_pigeons()
         _customers_throw()
     _advance_projectiles()
     tick += 1
@@ -191,13 +198,15 @@ func step(commands: Array) -> void:
 
 ## Fingerprint of the state, to check that two runs (or host and client) agree.
 func state_hash() -> int:
-    var state: Array = [tick, clock_skip, rng.state, grease]
+    var state: Array = [tick, clock_skip, rng.state, grease, next_pigeon, _pigeons_seen]
     for p in players:
         state.append(p.fingerprint())
     for station in stations:
         state.append(station.fingerprint())
     for projectile in projectiles:
         state.append(projectile.fingerprint())
+    for pigeon in pigeons:
+        state.append(pigeon.fingerprint())
     state.append(crowd.fingerprint())
     state.append(night_events.fingerprint())
     state.append(outcome)
@@ -363,6 +372,8 @@ func _debug(player: SimPlayer, tool: DebugTool, arg: int) -> void:
             _grease(player.node)
         DebugTool.INSPECTION:
             night_events.surprise_now(events)
+        DebugTool.PIGEON:
+            _pigeon_arrives()
 
 
 ## A fire at the player's station if it can burn, otherwise at the first CUISSON 1.
@@ -716,6 +727,9 @@ func _station_action(player: SimPlayer) -> StringName:
     var index := level.node_stations[player.node]
     if index == SimLevel.NONE:
         return &""
+    if pigeon_at(index) and not player.down:
+        # A pigeon squats the station: shoo it first.
+        return &"shoo"
     var station := stations[index]
     var held := player.item
     if station.burning:
@@ -802,6 +816,9 @@ func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
 func _interact(player: SimPlayer) -> void:
     var action := action_for(player)
     if action == &"":
+        return
+    if action == &"shoo":
+        _pigeon_leaves(pigeon_at(level.node_stations[player.node]), &"shooed")
         return
     var index := level.node_stations[player.node]
     var station := stations[index]
@@ -1028,3 +1045,74 @@ func _occupant(node: int) -> SimPlayer:
 func _walk_ticks(from: int, to: int) -> int:
     var distance := level.positions[from].distance_to(level.positions[to])
     return maxi(1, roundi(distance * TICK_RATE / WALK_SPEED))
+
+
+## Pigeons (GDD §8): one comes now and then; landed on the fries waiting on CUISSON 1, it pecks,
+## then flies off with a portion; anywhere else it squats until shooed. A fire chases it off.
+func _advance_pigeons() -> void:
+    if rules.pigeon_every_min > 0:
+        if next_pigeon < 0:
+            next_pigeon = night_tick() + _pigeon_delay()
+        if night_tick() >= next_pigeon and night_tick() < rules.night_ticks:
+            next_pigeon = night_tick() + _pigeon_delay()
+            _pigeon_arrives()
+    for pigeon in pigeons.duplicate():
+        if not pigeon.landed():
+            pigeon.flying -= 1
+            continue
+        var station := stations[pigeon.station]
+        if station.burning:
+            _pigeon_leaves(pigeon, &"fire")
+        elif _waiting_fries(station):
+            pigeon.peck -= 1
+            if pigeon.peck <= 0:
+                station.basket.portions -= 1
+                if station.basket.portions == 0:
+                    station.basket = null
+                _pigeon_leaves(pigeon, &"stole")
+
+
+## A pigeon flies in, if there is room for one (also a test tool): to the fries waiting on a
+## CUISSON 1 if any, otherwise to a station nobody squats, from its own random stream.
+func _pigeon_arrives() -> void:
+    if pigeons.size() >= rules.max_pigeons:
+        return
+    var taken := pigeons.map(func(pigeon: SimPigeon) -> int: return pigeon.station)
+    var free := range(stations.size()).filter(func(index: int) -> bool:
+        return not index in taken and not stations[index].burning and not stations[index].kind in rules.fireproof)
+    var fries := free.filter(func(index: int) -> bool: return _waiting_fries(stations[index]))
+    var choices: Array = fries if not fries.is_empty() else free
+    if choices.is_empty():
+        return
+    var pigeon := SimPigeon.new()
+    pigeon.id = _pigeons_seen
+    _pigeons_seen += 1
+    pigeon.station = choices[crowd.stream(["pigeon", pigeon.id]).randi_range(0, choices.size() - 1)]
+    pigeon.flying = rules.pigeon_flight
+    pigeon.peck = rules.pigeon_peck
+    pigeons.append(pigeon)
+    events.append({"type": &"pigeon_arrived", "id": pigeon.id, "station": pigeon.station})
+
+
+## why: &"shooed", &"stole", &"fire" (and later &"shot").
+func _pigeon_leaves(pigeon: SimPigeon, why: StringName) -> void:
+    pigeons.erase(pigeon)
+    events.append({"type": &"pigeon_left", "id": pigeon.id, "station": pigeon.station, "why": why})
+
+
+func _pigeon_delay() -> int:
+    return crowd.stream(["pigeon_delay", _pigeons_seen]).randi_range(rules.pigeon_every_min, rules.pigeon_every_max)
+
+
+## The pigeon landed on this station, null if none.
+func pigeon_at(station_index: int) -> SimPigeon:
+    for pigeon in pigeons:
+        if pigeon.station == station_index and pigeon.landed():
+            return pigeon
+    return null
+
+
+## Fries blanched and waiting on a CUISSON 1: what pigeons are after.
+static func _waiting_fries(station: SimStation) -> bool:
+    return station.kind == &"cuisson_1" and station.basket != null and not station.frying \
+            and station.basket.kind == Fryer.FRIES_BLANCHED
