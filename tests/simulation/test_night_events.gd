@@ -135,3 +135,37 @@ func _item_for(key: StringName) -> SimItem:
     if parts[1] != "nature":
         item.sauce = StringName(parts[1])
     return item
+
+
+func test_surprise_inspections_come_from_the_second_week_at_a_seeded_time() -> void:
+    assert_eq(Campaign.rules_for(7).surprise_inspection_chance, 0.0, "not in the first week")
+    assert_gt(Campaign.rules_for(8).surprise_inspection_chance, 0.0)
+    var rules := _rules([])
+    rules.surprise_inspection_chance = 1.0
+    var times := []
+    for seed_value in [1, 1, 2]:
+        times.append(Simulation.new(level, [fridge], seed_value, rules).night_events.surprise_at)
+    assert_eq(times[0], times[1], "the same seed, the same time")
+    assert_true(times[0] > 0 and times[0] < rules.night_ticks)
+    assert_ne(times[0], times[2])
+
+
+func test_a_dirty_kitchen_at_a_surprise_inspection_closes_the_shop() -> void:
+    var rules := _rules([])
+    var scenario := Scenario.new(level, [fridge], 1, rules)
+    var sim := scenario.at(0, 0, Simulation.debug_command(Simulation.DebugTool.INSPECTION)).run_until(1)
+    assert_gt(sim.night_events.inspector_coming, 0, "announced ahead")
+    # Grease on the floor while he looks.
+    sim.grease[fridge] = rules.grease_ticks
+    scenario.run_until(rules.surprise_warning + rules.inspection_ticks + 2)
+    assert_eq(sim.outcome, &"lost")
+    assert_eq(sim.outcome_reason, &"afsca")
+
+
+func test_a_clean_kitchen_passes_a_surprise_inspection() -> void:
+    var rules := _rules([])
+    var scenario := Scenario.new(level, [fridge], 1, rules)
+    var sim := scenario.at(0, 0, Simulation.debug_command(Simulation.DebugTool.INSPECTION)) \
+            .run_until(rules.surprise_warning + rules.inspection_ticks + 2)
+    assert_eq(sim.outcome, &"")
+    assert_true(scenario.events.any(func(e: Dictionary) -> bool: return e.type == &"inspection_over" and e.passed))

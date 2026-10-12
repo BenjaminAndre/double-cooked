@@ -132,9 +132,10 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 ### 6.4 Night events (the artist's, 0.2.29 onwards)
 - Besides the boss, a night can have **events**: each comes at its time, is announced at the top of the screen with the artist's picture, and changes the rules for a while (`NightEvents`). In a campaign they follow the artist's week; a single night has none for now.
 - **Mi-temps des Diables Rouges** (mercredi, 21:00): a rush of 6 customers in 20 s, on top of the usual ones and even into a full line, each with 20% less patience.
-- **Contrôle AFSCA** (jeudi, 22:00): the inspector watches the kitchen for 20 s (a countdown under the clock). No fire meanwhile, and the room calms down (−150); a fire, and it sours by a quarter of a riot. Without floor items in our game, "clean" means no fire.
+- **Contrôle AFSCA** (jeudi, 22:00): the inspector watches the kitchen for 20 s (a countdown under the clock). No fire and no grease on the floor (§8) meanwhile, and the room calms down (−150); otherwise it sours by a quarter of a riot.
 - **Les collègues** (vendredi, 19:00): announced 20 s ahead, while the FRIGO restocks twice as fast. Their leader queues like anyone and orders for the whole group, **5 or 6 beers** and 4 dishes, served one line at a time **in any order** (a thrown beer counts), with 100 s of patience at the front; his colleagues drink outside meanwhile. All served, the room cheers up (−300); walked out, it sours by a quarter of a riot.
 - **Panne de frigo** (samedi, mid-night): the FRIGO breaks down, no beer comes back for 25 s ("en panne" over it). Cola has to do.
+- **Surprise AFSCA inspections** (0.2.42): from the second week, each night has a one-in-two chance (drawn from the night's seed) of the inspector dropping by unannounced, at any hour: "L'AFSCA arrive !" only 5 s ahead, then the same 20 s look. **A dirty kitchen then closes the shop**: the night is lost ("Fermé par l'AFSCA"). Grease takes 45 s to dry, so a kitchen caught dirty almost always fails; the counter is the BB gun (§8, to come): shot, the inspector runs off.
 - **Dimanche** has one of these four, turn by turn week after week; **from the second week** every night has one more, at 00:30, never the same as the day's.
 - Just for the atmosphere, people sometimes drink their own beer on the pavement (the artist's EventCharacter07 to 09), and every other boss is a **drunk Santa** (same fight, another look).
 
@@ -230,7 +231,7 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 - **Mood**: calm, tense, hot (the middle of each band), or one walk-out away from the riot.
 - **Clock**, forward only: +30 min, 02:00 (the boss walks in) or closing. The night runs on its own clock (`Simulation.night_tick()`), so the replay's ticks are untouched.
 - **Customers**: the boss now (if he hasn't come yet), or a full line.
-- **Kitchen**: a full FRIGO, every fire out, or a fire at the station the host stands at (the first CUISSON 1 if that one can't burn).; or a puddle of grease where the host stands (0.2.41)
+- **Kitchen**: a full FRIGO, every fire out, or a fire at the station the host stands at (the first CUISSON 1 if that one can't burn), or a puddle of grease where the host stands (0.2.41).
 - **Crew**: heal everyone (on their feet, full hearts, fed if starving), or for one player (the "Joueur" row): K.O., hungry (one walk from collapsing) or the heaviest stage.
 - **Campaign**: go straight to one of its first 20 nights, with its menu and pace (also from the lobby). Online, the host takes everyone there.
 - **Speed** ×1, ×2 or ×4: the host steps that many more ticks a second and the guests follow; the HUD shows it. Faster isn't easier, so it doesn't mark the run.

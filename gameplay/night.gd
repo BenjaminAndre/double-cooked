@@ -530,7 +530,10 @@ func _step() -> bool:
         elif event.type == &"group_left":
             announced.emit("Les collègues trinquent !" if event.served else "Les collègues repartent furieux")
         elif event.type == &"inspection_over":
-            announced.emit("Contrôle AFSCA réussi !" if event.passed else "Contrôle AFSCA raté : la salle grogne")
+            if event.get("closed", false):
+                announced.emit("L'AFSCA ferme la friterie !")
+            else:
+                announced.emit("Contrôle AFSCA réussi !" if event.passed else "Contrôle AFSCA raté : la salle grogne")
         elif event.type == &"boss_arrived":
             announced.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:

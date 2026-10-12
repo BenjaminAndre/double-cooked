@@ -16,6 +16,8 @@ const NUIT_UNIQUE_SEED := 20261008
 const ROTATION: Array[StringName] = [NightEvents.DIABLES_ROUGES, NightEvents.AFSCA, NightEvents.COLLEGUES,
         NightEvents.PANNE_FRIGO]
 const EXTRA_EVENT_AT := 0.65
+## The chance of a surprise AFSCA inspection each night from the second week (GDD §6.4).
+const SURPRISE_INSPECTIONS := 0.5
 
 ## What each night adds to the menu (Menu.FULL_MENU), from the first.
 const UNLOCKS: Array = [
@@ -65,6 +67,8 @@ static func rules_for(night: int) -> SimRules:
         rules.night_number = night
         rules.menu = menu_for(night)
         rules.night_events = events_for(night)
+        # From the second week, the inspector may also drop by unannounced.
+        rules.surprise_inspection_chance = SURPRISE_INSPECTIONS if week(night) > 1 else 0.0
     return rules
 
 

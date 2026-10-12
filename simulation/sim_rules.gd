@@ -141,6 +141,10 @@ var rush_patience := 0.8
 var inspection_ticks := 20 * SECOND
 var mood_inspection_passed := -150
 var mood_inspection_failed := 250
+## Surprise inspections (from the second week of a campaign): the chance of one each night, and
+## how long before the inspector walks in once announced. One failed closes the shop.
+var surprise_inspection_chance := 0.0
+var surprise_warning := 5 * SECOND
 ## The colleagues: announced group_warning ticks ahead (the FRIGO restocks twice as fast
 ## meanwhile), their leader orders group_beers beers (at least, at most) and group_dishes dishes,
 ## waits group_patience, and the room cheers up or sours as they leave.

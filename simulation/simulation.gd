@@ -22,7 +22,8 @@ const DEBUG := 1000
 const DEBUG_SPAN := 100
 ## The test tools. MOOD's argument is a SimCrowd.Level; CLOCK's a ClockJump; KNOCK_OUT, HUNGRY
 ## and FAT take a slot. New tools go at the end, so saved replays keep their meaning.
-enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT, GREASE }
+enum DebugTool { MOOD, CLOCK, BOSS, FILL_LINE, FRIDGE, FIRES_OUT, FIRE, HEAL, KNOCK_OUT, HUNGRY, FAT, GREASE,
+        INSPECTION }
 enum ClockJump { HALF_HOUR, BOSS, CLOSING }
 
 const EXTINGUISHER := &"extincteur"
@@ -49,7 +50,8 @@ var crowd: SimCrowd
 var night_events: NightEvents
 ## &"won" at closing time, &"lost" otherwise; &"" while the night goes on.
 var outcome := &""
-## Why the night ended: &"closing", &"riot" or &"crew_down".
+## Why the night ended: &"closing", &"riot", &"crew_down" or &"afsca" (closed by a surprise
+## inspection).
 var outcome_reason := &""
 ## Counters for the end-of-night recap. Per-player lists are indexed by slot.
 var stats := {}
@@ -167,8 +169,9 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        night_events.advance(night_tick(), events,
-                stations.any(func(station: SimStation) -> bool: return station.burning))
+        # A fire or grease on the floor: what the AFSCA inspector looks for.
+        night_events.advance(night_tick(), events, not grease.is_empty()
+                or stations.any(func(station: SimStation) -> bool: return station.burning))
         crowd.advance(night_tick(), players.size(), rng, events)
         _customers_throw()
     _advance_projectiles()
@@ -178,6 +181,8 @@ func step(commands: Array) -> void:
         return
     if players.size() > 1 and players.all(func(p: SimPlayer) -> bool: return p.down):
         _end(&"lost", &"crew_down")
+    elif night_events.closed:
+        _end(&"lost", &"afsca")
     elif crowd.mood >= rules.riot:
         _end(&"lost", &"riot")
     elif night_tick() >= rules.night_ticks and crowd.line.is_empty():
@@ -356,6 +361,8 @@ func _debug(player: SimPlayer, tool: DebugTool, arg: int) -> void:
             events.append({"type": &"fattened", "slot": target.slot})
         DebugTool.GREASE:
             _grease(player.node)
+        DebugTool.INSPECTION:
+            night_events.surprise_now(events)
 
 
 ## A fire at the player's station if it can burn, otherwise at the first CUISSON 1.

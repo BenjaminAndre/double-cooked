@@ -294,13 +294,17 @@ static func desync_text(desyncs: int) -> String:
     return "Désynchro avec l'hôte (%d) · F3 : replay" % desyncs
 
 
-## The AFSCA inspection under way: its countdown, and whether a fire is spoiling it.
+## The AFSCA inspection under way: its countdown, and whether the kitchen is spoiling it (a
+## surprise one closes the shop).
 static func inspection_text(night_events: NightEvents) -> String:
+    if night_events.inspector_coming > 0:
+        return "L'AFSCA arrive !"
     if night_events.inspection == 0:
         return ""
     if night_events.inspection_failed:
-        return "Contrôle AFSCA : raté, il y a eu le feu"
-    return "Contrôle AFSCA · %d s" % ceili(night_events.inspection / float(Simulation.TICK_RATE))
+        return "Contrôle AFSCA : raté, ils vont fermer !" if night_events.surprise else "Contrôle AFSCA : raté, la cuisine est sale"
+    return "Contrôle AFSCA%s · %d s" % [" surprise" if night_events.surprise else "",
+            ceili(night_events.inspection / float(Simulation.TICK_RATE))]
 
 
 ## The host's view of each guest's network (Night.net_stats(), a test tool).
@@ -336,10 +340,14 @@ static func title(sim: Simulation, campaign_night := 0) -> String:
     if campaign_night > 0:
         if sim.outcome == &"won":
             return "%s tenu !" % capitalized(Campaign.day_label(campaign_night))
+        if sim.outcome_reason == &"afsca":
+            return "Fermé par l'AFSCA : campagne perdue, %s." % Campaign.day_label(campaign_night)
         return "Campagne perdue : %s." % Campaign.day_label(campaign_night)
     match sim.outcome_reason:
         &"closing":
             return "Fermeture ! Vous avez tenu la nuit."
+        &"afsca":
+            return "Fermé par l'AFSCA à %s." % clock(sim.clock_minutes())
         &"crew_down":
             return "Toute l'équipe est K.O. à %s." % clock(sim.clock_minutes())
     return "Émeute ! La nuit s'arrête à %s." % clock(sim.clock_minutes())

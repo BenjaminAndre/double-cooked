@@ -13,6 +13,9 @@ const PANNE_FRIGO := &"panne_frigo"
 const DIABLES_ROUGES := &"diables_rouges"
 const AFSCA := &"afsca"
 const COLLEGUES := &"collegues"
+## A surprise inspection (from the second week, GDD §6.4): announced only a few seconds ahead,
+## and a dirty kitchen (a fire, grease on the floor) gets the shop closed.
+const AFSCA_SURPRISE := &"afsca_surprise"
 
 var rules: SimRules
 var crowd: SimCrowd
@@ -23,6 +26,13 @@ var inspection := 0
 var inspection_failed := false
 ## Ticks before the colleagues' leader joins the line: the FRIGO restocks twice as fast meanwhile.
 var group_coming := 0
+## The tick a surprise inspection comes tonight, -1 if none (any more); ticks before the
+## inspector walks in once announced; whether the inspection under way is a surprise one, and
+## whether one closed the shop.
+var surprise_at := -1
+var inspector_coming := 0
+var surprise := false
+var closed := false
 ## How many of tonight's events have started, in their order.
 var _started := 0
 
@@ -30,21 +40,34 @@ var _started := 0
 func _init(p_rules: SimRules, p_crowd: SimCrowd) -> void:
     rules = p_rules
     crowd = p_crowd
+    # Drawn from the night's seed alone, like the customers.
+    var rng := crowd.stream("afsca_surprise")
+    if rng.randf() < rules.surprise_inspection_chance:
+        surprise_at = int(rules.night_ticks * rng.randf_range(0.15, 0.85))
 
 
 ## One tick: the next event starts once its time comes ({"type": &"night_event", "kind": ...}),
-## and those under way run out. fire: whether a station is burning.
-func advance(tick: int, events: Array[Dictionary], fire: bool) -> void:
+## and those under way run out. dirty: whether a station is burning or grease is on the floor.
+func advance(tick: int, events: Array[Dictionary], dirty: bool) -> void:
+    if inspector_coming > 0:
+        inspector_coming -= 1
+        if inspector_coming == 0:
+            _inspect(true)
     if group_coming > 0:
         group_coming -= 1
         if group_coming == 0:
             crowd.add_group(events)
     if inspection > 0:
-        inspection_failed = inspection_failed or fire
+        inspection_failed = inspection_failed or dirty
         inspection -= 1
         if inspection == 0:
-            crowd.change_mood(rules.mood_inspection_failed if inspection_failed else rules.mood_inspection_passed)
-            events.append({"type": &"inspection_over", "passed": not inspection_failed})
+            # A surprise inspection failed closes the shop; the planned one only sours the room.
+            closed = surprise and inspection_failed
+            if not closed:
+                crowd.change_mood(rules.mood_inspection_failed if inspection_failed else rules.mood_inspection_passed)
+            events.append({"type": &"inspection_over", "passed": not inspection_failed, "closed": closed})
+    if surprise_at >= 0 and tick >= surprise_at:
+        surprise_now(events)
     if fridge_down > 0:
         fridge_down -= 1
         if fridge_down == 0:
@@ -64,11 +87,26 @@ func _start(kind: StringName) -> void:
         DIABLES_ROUGES:
             crowd.rush = rules.rush_customers
         AFSCA:
-            inspection = rules.inspection_ticks
-            inspection_failed = false
+            _inspect(false)
         COLLEGUES:
             group_coming = rules.group_warning
 
 
 func fingerprint() -> Array:
-    return [fridge_down, inspection, inspection_failed, group_coming, _started]
+    return [fridge_down, inspection, inspection_failed, group_coming, _started, surprise_at, inspector_coming,
+            surprise, closed]
+
+
+## The surprise inspector is announced now (also a test tool), unless an inspection is on.
+func surprise_now(events: Array[Dictionary]) -> void:
+    surprise_at = -1
+    if inspection > 0 or inspector_coming > 0:
+        return
+    inspector_coming = rules.surprise_warning
+    events.append({"type": &"night_event", "kind": AFSCA_SURPRISE})
+
+
+func _inspect(is_surprise: bool) -> void:
+    inspection = rules.inspection_ticks
+    inspection_failed = false
+    surprise = is_surprise

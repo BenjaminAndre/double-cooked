@@ -10,7 +10,9 @@ const EVENTS := {
     NightEvents.PANNE_FRIGO: ["Event_PanneFrigo", "Panne de frigo !", "Plus de bière qui revient un moment"],
     NightEvents.DIABLES_ROUGES: ["Event_MiTempsDiablesRouges", "Mi-temps des Diables Rouges !",
             "Une foule pressée débarque"],
-    NightEvents.AFSCA: ["Event_Afsca", "Contrôle AFSCA !", "Pas un feu pendant 20 s"],
+    NightEvents.AFSCA: ["Event_Afsca", "Contrôle AFSCA !", "Pas de feu ni de graisse pendant 20 s"],
+    NightEvents.AFSCA_SURPRISE: ["Event_Afsca", "Contrôle AFSCA surprise !",
+            "Un feu ou de la graisse au sol, et la friterie ferme"],
     NightEvents.COLLEGUES: ["Event_GroupCollegues", "Les collègues arrivent !",
             "Une grosse commande, des bières surtout : remplis le frigo"],
 }
