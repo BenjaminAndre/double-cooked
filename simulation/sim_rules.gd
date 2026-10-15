@@ -126,6 +126,8 @@ var can_every := 8 * SECOND
 ## served (more than a third of their patience left, more than two thirds). Each of the boss's
 ## orders and the colleagues are worth more. A lost night scores nothing.
 var score_attack := false
+## The tutorial (Tutorial, GDD §4.4): its steps run the night.
+var tutorial := false
 var pace_up := 0.04
 var pace_down := 0.08
 var pace_min := 0.6

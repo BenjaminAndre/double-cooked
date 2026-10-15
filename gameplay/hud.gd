@@ -53,6 +53,9 @@ var _next: Label
 var _record: RichTextLabel
 ## The host's test tools (F4).
 var tools: DebugPanel
+## The tutorial's current step (Tutorial), at the top of the screen.
+var _tutorial: PanelContainer
+var _tutorial_text: Label
 
 
 func _ready() -> void:
@@ -153,6 +156,16 @@ func _ready() -> void:
     night.night_event_started.connect(_event_banner.show_event)
     tools = DebugPanel.new(night)
     add_child(tools)
+    _tutorial = ArtUi.panel(ArtUi.frame("FrameTextInfo", Vector4(100, 20, 20, 20), 16))
+    _tutorial.get_theme_stylebox("panel").content_margin_left = 110
+    _tutorial.custom_minimum_size = Vector2(560, 110)
+    _tutorial.visible = false
+    add_child(_tutorial)
+    _tutorial_text = _label(24, _tutorial)
+    _tutorial_text.add_theme_color_override("font_color", ArtUi.INK)
+    _tutorial_text.remove_theme_constant_override("outline_size")
+    _tutorial_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _tutorial_text.custom_minimum_size.x = 460
 
 
 func _process(delta: float) -> void:
@@ -191,6 +204,7 @@ func _process(delta: float) -> void:
     _notice.visible = _notice_left > 0.0
     _announce_left = maxf(_announce_left - delta, 0.0)
     _announce.visible = _announce_left > 0.0
+    _show_tutorial(sim)
     _banner.visible = sim.outcome != &""
     # The summary takes the middle of the screen.
     _announce.visible = _announce.visible and not _banner.visible
@@ -229,6 +243,25 @@ func _process(delta: float) -> void:
         # Recentre once the panel has taken the size of its text.
         _banner.reset_size()
         _banner.position = (_banner.get_viewport_rect().size - _banner.size) / 2
+
+
+## The tutorial's step, its keys named as this keyboard has them, centred at the top (the
+## tickets are below).
+func _show_tutorial(sim: Simulation) -> void:
+    _tutorial.visible = sim.tutorial != null and sim.outcome == &"" and not night.in_lobby
+    if not _tutorial.visible:
+        return
+    _set_text(_tutorial_text, tutorial_text(sim.tutorial, night.interact_key_name(), night.eat_key_name()))
+    _tutorial.reset_size()
+    var screen := _tutorial.get_viewport_rect().size
+    _tutorial.position = Vector2((screen.x - _tutorial.size.x) / 2, 16)
+
+
+## "Étape n / N", then what to do, with these key names.
+static func tutorial_text(tutorial: Tutorial, interact_key: String, eat_key: String) -> String:
+    var text: String = tutorial.current().get("text", "")
+    text = text.replace("{interagir}", interact_key).replace("{manger}", eat_key)
+    return "Étape %d / %d · %s" % [tutorial.step + 1, Tutorial.STEPS.size(), text]
 
 
 ## The end-of-night stars (docs/ART_PLAN.md): held until closing; the room still in the green
@@ -346,6 +379,8 @@ static func title(sim: Simulation, campaign_night := 0) -> String:
     match sim.outcome_reason:
         &"closing":
             return "Fermeture ! Vous avez tenu la nuit."
+        &"tutorial":
+            return "Tutoriel terminé ! La campagne vous attend."
         &"afsca":
             return "Fermé par l'AFSCA à %s." % clock(sim.clock_minutes())
         &"crew_down":

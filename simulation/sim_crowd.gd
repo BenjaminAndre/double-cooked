@@ -249,6 +249,14 @@ func fingerprint() -> Array:
     return [customers, mood, next_arrival, boss_came, _next_id, _arrivals, rush, rush_next, score, pace]
 
 
+## A customer with this order joins the line (the tutorial's, Tutorial).
+func add_customer(order: StringName, events: Array[Dictionary]) -> void:
+    var customer := _new_customer()
+    customer.order = order
+    line.append(customer)
+    events.append({"type": &"arrival"})
+
+
 ## Test tool (Simulation.DebugTool.BOSS): the boss walks in now, unless he came already.
 func boss_now(events: Array[Dictionary]) -> void:
     if not boss_came and rules.boss_orders > 0:

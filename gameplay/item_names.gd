@@ -48,6 +48,7 @@ const NAMES := {
     Menu.PHONE_LEAVE: "quitter",
     Menu.DOOR_CAMPAIGN: "campagne",
     Menu.DOOR_SINGLE_NIGHT: "nuit unique",
+    Menu.DOOR_TUTORIAL: "tutoriel",
 }
 
 ## Dishes as customers order them (see Menu.DISHES).

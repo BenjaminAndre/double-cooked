@@ -89,3 +89,15 @@ func test_the_four_player_kitchen_has_a_register_for_each_of_the_first_two_custo
     assert_true(level.queue_position(1).distance_to(level.positions[level.find("Caisse2")])
             < level.queue_position(0).distance_to(level.positions[level.find("Caisse2")]),
             "the second customer stands at the second CAISSE")
+
+
+func test_the_tutorial_goes_back_to_the_lobby_and_keeps_no_record() -> void:
+    night.play_local(1, Campaign.TUTORIAL)
+    assert_not_null(night.simulation.tutorial)
+    assert_false(night.in_lobby)
+    night.simulation.tutorial.step = Tutorial.STEPS.size()
+    await wait_until(func() -> bool: return night.simulation.outcome == &"won", 2.0)
+    assert_eq(Hud.title(night.simulation, night.campaign_night), "Tutoriel terminé ! La campagne vous attend.")
+    assert_eq(night.campaign_record().night, 0)
+    night.continue_after_night()
+    assert_true(night.in_lobby)

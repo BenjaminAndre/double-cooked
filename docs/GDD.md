@@ -34,7 +34,7 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - The game opens in a **waiting room that plays like the kitchen**: the same grid, walking and station menus, with no customers, clock or hunger. Since 0.2.15 it is the artist's room emptied of the kitchen (their idea, `docs/art/Readme_SettingsV3.txt`), dressed with their existing models until they draw lobby props: PEINTURE, CASQUETTE and TÉLÉPHONE (a till for now) on counters against the back wall, PRÊT tiles as green floor squares, and the PORTE is the shop's own doorway. Online, everyone connected is in it together; a newcomer joins it at once (during a night, they wait for the next lobby).
 - **PEINTURE**: choose one of the **four characters** (their faces, laid out like any menu, §5.4). Each is unique in the team (a teammate's is greyed out). **CASQUETTE**: nothing, a cap, or a beer helmet with straws. Looks are kept between sessions, and carried into the night (§5.5).
 - **TÉLÉPHONE**: create an online game, join one (type the code), two players on this keyboard or back to one, and leave the online game. It replaces the old H / J / F2 keys and the text over the screen.
-- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. Its menu offers a **campagne** (first, §4.2) or the **nuit unique** (§4.3). After a single night, Entrée takes everyone back to the lobby.
+- **PRÊT** tiles on the floor: a player standing on one is ready. **PORTE**: only the host opens it, once every other player is ready; the hint says what is missing. Its menu offers a **campagne** (first, §4.2), the **nuit unique** (§4.3) or the **tutoriel** (§4.4). After a single night, Entrée takes everyone back to the lobby.
 
 ### 4.2 The campaign (0.2.3)
 - Like the rounds of a zombie game: **nights one after the other, endless, until the crew falls**. A held night leads to the next one (Entrée, the host's online); a riot or the whole crew K.O. **loses the campaign** and everyone goes back to the lobby. No purchases between nights yet.
@@ -53,6 +53,12 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - **A riot or the whole crew K.O. is game over: zero points, no medal.** Only a night held until closing scores.
 - At the end, the artist's **medal** (bronze from 400, silver from 800, gold from 1200) instead of the campaign's stars, and the **best score** on this browser, kept per crew size since only those compare; the lobby shows it too.
 - No events for now.
+
+### 4.4 The tutorial (0.2.46)
+
+- The PORTE's third option, **tutoriel**: one quiet night in **11 steps**, shown at the top of the screen ("Étape n / 11", with this keyboard's key names) and pointed at by an arrow over the station to use. A step ends **only once the crew has done it**, whoever does it; nothing happens on a clock meanwhile.
+- The steps: plunge a batch at CUISSON 1, lift it in the green, take a portion, second fry at CUISSON 2, lift it golden (ruined: to the POUBELLE and take another portion), mayo at SAUCES, serve at the CAISSE; a beer from the FRIGO for a second customer, served at the CAISSE (and how to throw or drink one); then CUISSON 2 catches fire: take the EXTINCTEUR and put it out.
+- The night is otherwise still (`Campaign.rules_for(Campaign.TUTORIAL)`): fries, mayo and beer only, no patience lost, no mood, no clock, no starving, fires don't spread. After the last step the night is held ("Tutoriel terminé !") and Entrée goes back to the lobby; it sets no record. Later, a second part could show the beer rescue, the BB gun, grease and pigeons.
 
 ## 5. Players
 

@@ -68,7 +68,8 @@ var in_lobby := false
 var player_id := ""
 ## The host is gone and a new one is taking over: the night stands still meanwhile.
 var reconnecting := false
-## Which night of a campaign this is (GDD §4.2), 0 for a single night or the lobby.
+## Which night of a campaign this is (GDD §4.2), 0 for a single night or the lobby,
+## Campaign.TUTORIAL for the tutorial.
 var campaign_night := 0
 ## The campaign just ended on a night further than any before, or the Nuit unique on a score
 ## higher than any before for this many players, on this browser.
@@ -155,6 +156,7 @@ func _ready() -> void:
     if players_parent:
         players_parent.add_child(PigeonsView.new(self))
         players_parent.add_child(CarView.new(self))
+        players_parent.add_child(TutorialView.new(self))
     play_lobby(1)
 
 
@@ -288,6 +290,15 @@ func submit(local_index: int, command: int) -> void:
 ## The slot of each player at this keyboard.
 func local_slots() -> PackedInt32Array:
     return _local_slots
+
+
+## The name of a local player's interact and eat keys, as hints show them.
+func interact_key_name(local_index := 0) -> String:
+    return _input.interact_key_name(local_index) if _input else ""
+
+
+func eat_key_name(local_index := 0) -> String:
+    return _input.eat_key_name(local_index) if _input else ""
 
 
 ## The centre of a station's view in the world (an index into the simulation's stations).
@@ -558,7 +569,8 @@ func _step() -> bool:
             # Deferred: the lobby may start over, which replaces this simulation.
             phone_used.emit.call_deferred(event.choice)
         elif event.type == &"start_night" and role != Role.CLIENT:
-            var first := 1 if event.get("campaign", false) else 0
+            # The first night of a campaign (1), the Nuit unique (0) or the tutorial.
+            var first: int = event.get("night", 0)
             if role == Role.HOST:
                 host_online.call_deferred(first)
             else:

@@ -52,8 +52,8 @@ var crowd: SimCrowd
 var night_events: NightEvents
 ## &"won" at closing time, &"lost" otherwise; &"" while the night goes on.
 var outcome := &""
-## Why the night ended: &"closing", &"riot", &"crew_down" or &"afsca" (closed by a surprise
-## inspection).
+## Why the night ended: &"closing", &"riot", &"crew_down", &"afsca" (closed by a surprise
+## inspection) or &"tutorial" (its last step done).
 var outcome_reason := &""
 ## Counters for the end-of-night recap. Per-player lists are indexed by slot.
 var stats := {}
@@ -69,6 +69,8 @@ var next_pigeon := -1
 var _pigeons_seen := 0
 ## Rubble left by the car (GDD §6.4): nodes nobody can walk onto any more.
 var blocked := {}
+## The tutorial's steps (SimRules.tutorial), null in any other night.
+var tutorial: Tutorial
 
 
 ## spawns[slot] is the node where that player starts; its size is the player count.
@@ -79,6 +81,8 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     crowd = SimCrowd.new(rules, p_seed)
     night_events = NightEvents.new(rules, crowd)
     crowd.registers = maxi(1, level.station_kinds.count(&"caisse"))
+    if rules.tutorial:
+        tutorial = Tutorial.new()
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
         players[slot].bmi = rules.start_bmi
@@ -187,6 +191,8 @@ func step(commands: Array) -> void:
             _crash()
         crowd.advance(night_tick(), players.size(), rng, events)
         _advance_pigeons()
+        if tutorial:
+            tutorial.advance(self, events)
         _customers_throw()
     _advance_projectiles()
     tick += 1
@@ -197,6 +203,8 @@ func step(commands: Array) -> void:
         _end(&"lost", &"crew_down")
     elif night_events.closed:
         _end(&"lost", &"afsca")
+    elif tutorial and tutorial.finished():
+        _end(&"won", &"tutorial")
     elif crowd.mood >= rules.riot:
         _end(&"lost", &"riot")
     elif night_tick() >= rules.night_ticks and crowd.line.is_empty():
@@ -216,6 +224,7 @@ func state_hash() -> int:
         state.append(pigeon.fingerprint())
     state.append(crowd.fingerprint())
     state.append(night_events.fingerprint())
+    state.append(tutorial.fingerprint() if tutorial else null)
     state.append(outcome)
     state.append(stats)
     return hash(state)
@@ -285,7 +294,7 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
                     events.append({"type": &"phone", "choice": option, "slot": player.slot})
                 &"porte":
                     events.append({"type": &"start_night", "by": player.slot,
-                            "campaign": option == Menu.DOOR_CAMPAIGN})
+                            "night": {Menu.DOOR_CAMPAIGN: 1, Menu.DOOR_TUTORIAL: Campaign.TUTORIAL}.get(option, 0)})
                 &"sauces":
                     player.item.sauce = option
                 &"frigo":

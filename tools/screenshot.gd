@@ -213,6 +213,9 @@ func _initialize() -> void:
             sim.players[1].node = sim.level.find("ViandesA")
             sim.rules.car_warning = 2
             sim.night_events.car_now(sim.events)
+        "tutorial":
+            # The tutorial's first step: the panel at the bottom, the arrow over CUISSON 1.
+            night.play_local(1, Campaign.TUTORIAL)
         "net_stats":
             # A host's network stats for one guest, the F4 panel on the network row (faked: no
             # network here, so the night stands still).

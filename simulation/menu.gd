@@ -56,7 +56,8 @@ const PHONE: Array[StringName] = [PHONE_HOST, PHONE_JOIN, PHONE_DUO, PHONE_LEAVE
 ## The lobby's PORTE: a campaign (GDD §4.2) or the Nuit unique, a score attack (GDD §4.3).
 const DOOR_CAMPAIGN := &"campagne"
 const DOOR_SINGLE_NIGHT := &"nuit_unique"
-const DOOR: Array[StringName] = [DOOR_CAMPAIGN, DOOR_SINGLE_NIGHT]
+const DOOR_TUTORIAL := &"tutoriel"
+const DOOR: Array[StringName] = [DOOR_CAMPAIGN, DOOR_SINGLE_NIGHT, DOOR_TUTORIAL]
 
 ## The options of each station that opens a menu (GDD §5.4).
 const STATION_OPTIONS := {

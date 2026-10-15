@@ -68,9 +68,17 @@ static func menu_for(night: int) -> Array[StringName]:
     return menu
 
 
+## The night number of the tutorial (GDD §4.4), carried like a campaign night.
+const TUTORIAL := -1
+## The tutorial's menu: fries with mayo, and beer.
+const TUTORIAL_MENU: Array[StringName] = [&"frites", Menu.NATURE, Menu.MAYO, Menu.BEER]
+
+
 ## The rules of a night: night 0 is the Nuit unique, a score attack with the whole menu (GDD §4.3).
 static func rules_for(night: int) -> SimRules:
     var rules := SimRules.new()
+    if night == TUTORIAL:
+        return _tutorial_rules(rules)
     rules.score_attack = night == 0
     if night == 0 or night >= PIGEONS_FROM:
         rules.pigeon_every_min = PIGEON_EVERY.x * SimRules.SECOND
@@ -120,3 +128,22 @@ static func new_on(night: int) -> Array[StringName]:
         for entry: StringName in UNLOCKS[night - 1]:
             added.append(entry)
     return added
+
+
+## A quiet night where only the tutorial's steps bring customers and the fire (Tutorial): nobody
+## loses patience, the room never sours, the clock stands still, nobody starves and fires don't
+## spread.
+static func _tutorial_rules(rules: SimRules) -> SimRules:
+    const NEVER := 1 << 30
+    rules.tutorial = true
+    rules.menu = TUTORIAL_MENU.duplicate()
+    rules.first_arrival = NEVER
+    rules.boss_orders = 0
+    rules.night_ticks = NEVER
+    rules.front_drain = 0
+    rules.back_drain = 0
+    rules.line_pressure_every = NEVER
+    rules.moves_per_bmi = NEVER
+    rules.fire_spread_after = NEVER
+    rules.fire_damage_every = 3 * SimRules.SECOND
+    return rules
