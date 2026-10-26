@@ -6,11 +6,41 @@ extends Node
 ##   the night and the network going, without drawing.
 ## - A crash that kills the main loop leaves the canvas frozen with no sign of what happened.
 ##   A red banner, plain HTML, shows the error on top of it.
+## - On a phone (GDD §9.4), each touch asks for fullscreen if the page left it, locks landscape
+##   where the browser allows (Android, not iPhones), and keeps the screen awake, so a night isn't
+##   cut by the screen locking. Browsers only allow these from a touch, so plain JavaScript does
+##   it in the touch's own handler.
 
 ## Emitted about 30 times a second while the tab is hidden.
 signal hidden_beat
 
 const BEAT_MS := 33
+const PHONE := """
+(function () {
+    var wakeLock = null;
+    function keepAwake() {
+        if (navigator.wakeLock && (wakeLock === null || wakeLock.released)) {
+            navigator.wakeLock.request('screen').then(function (lock) { wakeLock = lock; }, function () {});
+        }
+    }
+    document.addEventListener('touchend', function () {
+        var page = document.documentElement;
+        if (!document.fullscreenElement && page.requestFullscreen) {
+            page.requestFullscreen().then(function () {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(function () {});
+                }
+            }, function () {});
+        }
+        keepAwake();
+    }, {passive: true, capture: true});
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            keepAwake();
+        }
+    });
+})();
+"""
 
 var _callback: JavaScriptObject
 
@@ -48,6 +78,8 @@ func _ready() -> void:
     });
 })();
 """ % BEAT_MS, true)
+    if LocalInput.touch_platform():
+        JavaScriptBridge.eval(PHONE, true)
 
 
 func _on_beat(_args: Array) -> void:
