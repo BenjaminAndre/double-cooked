@@ -18,10 +18,11 @@ func _init() -> void:
     visible = false
 
 
-## options: see PlayerPanel.show_menu; [] closes the bubble. key: the key that chooses.
-func show_menu(options: Array, choice: int, disabled: Array, key: String) -> void:
+## options: see PlayerPanel.show_menu; [] closes the bubble. hints: how to use it, [key, verb]
+## rows (LocalInput.menu_hints).
+func show_menu(options: Array, choice: int, disabled: Array, hints: Array) -> void:
     content.show_menu(options, choice, disabled)
-    content.show_hints([[key, "choisir"]] if not options.is_empty() else [])
+    content.show_hints(hints if not options.is_empty() else [])
     if visible != not options.is_empty():
         visible = not options.is_empty()
     reset_size()
@@ -33,5 +34,8 @@ func place_over(at: Vector3, camera: Camera3D) -> void:
         return
     var bottom := camera.unproject_position(at + Vector3.UP * BUBBLE_HEIGHT)
     var screen := get_viewport_rect().size
-    var corner := bottom - Vector2(size.x / 2, size.y)
-    position = corner.clamp(Vector2.ONE * PlayerPanel.MARGIN, (screen - size - Vector2.ONE * PlayerPanel.MARGIN).max(Vector2.ZERO))
+    # Bigger on a phone (ArtUi.ui_scale).
+    scale = Vector2.ONE * ArtUi.ui_scale
+    var shown := size * ArtUi.ui_scale
+    var corner := bottom - Vector2(shown.x / 2, shown.y)
+    position = corner.clamp(Vector2.ONE * PlayerPanel.MARGIN, (screen - shown - Vector2.ONE * PlayerPanel.MARGIN).max(Vector2.ZERO))

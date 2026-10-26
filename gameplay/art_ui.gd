@@ -6,6 +6,10 @@ extends RefCounted
 const PATH := "res://art/textures/UX_%s.png"
 ## Text on the cream frames.
 const INK := Color(0.2, 0.13, 0.08)
+## How much bigger the bubbles, menus and tickets are drawn: 1 on a desktop, PHONE_SCALE on a
+## phone (set by Night), so they read on a small screen.
+const PHONE_SCALE := 1.5
+static var ui_scale := 1.0
 
 static var _styles := {}
 

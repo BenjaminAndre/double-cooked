@@ -142,8 +142,11 @@ func hint_rows() -> Array:
 ## Centres the panel's bottom on this screen point, inside the screen.
 func place(bottom_centre: Vector2) -> void:
     var screen := get_viewport_rect().size
-    var at := bottom_centre - Vector2(size.x / 2, size.y)
-    position = at.clamp(Vector2.ONE * MARGIN, (screen - size - Vector2.ONE * MARGIN).max(Vector2.ZERO))
+    # Bigger on a phone (ArtUi.ui_scale).
+    scale = Vector2.ONE * ArtUi.ui_scale
+    var shown := size * ArtUi.ui_scale
+    var at := bottom_centre - Vector2(shown.x / 2, shown.y)
+    position = at.clamp(Vector2.ONE * MARGIN, (screen - shown - Vector2.ONE * MARGIN).max(Vector2.ZERO))
 
 
 func _label(text: String, font_size: int) -> Label:

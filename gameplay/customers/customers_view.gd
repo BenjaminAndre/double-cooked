@@ -316,17 +316,21 @@ func _show_tickets(crowd: SimCrowd) -> void:
             _fill(ticket, ItemIcons.order(customer.order), icon_size, float(customer.patience) / full, customer.boss)
         _show_dots(ticket, customer)
         var anchor := camera.unproject_position(figure.global_position)
-        var left := maxf(maxf(anchor.x - ticket.size.x / 2, previous_right + TICKET_GAP), TICKET_GAP)
+        # Bigger on a phone (ArtUi.ui_scale).
+        var s := ArtUi.ui_scale
+        ticket.scale = Vector2.ONE * s
+        _drink_ticket.scale = Vector2.ONE * s
+        var left := maxf(maxf(anchor.x - ticket.size.x * s / 2, previous_right + TICKET_GAP), TICKET_GAP)
         ticket.position = Vector2(left, anchor.y + TICKET_GAP_BELOW)
-        previous_right = left + ticket.size.x
-        lowest = maxf(lowest, ticket.position.y + ticket.size.y)
+        previous_right = left + ticket.size.x * s
+        lowest = maxf(lowest, ticket.position.y + ticket.size.y * s)
         placed.append(ticket)
         if customer.boss and customer.drink != &"":
             _drink_ticket.visible = true
             _fill(_drink_ticket, ItemIcons.order(customer.drink), icon_size,
                     float(customer.drink_patience) / crowd.rules.boss_drink_patience, true)
             _drink_ticket.position = Vector2(previous_right + TICKET_GAP, ticket.position.y)
-            previous_right += TICKET_GAP + _drink_ticket.size.x
+            previous_right += TICKET_GAP + _drink_ticket.size.x * s
             placed.append(_drink_ticket)
     var overflow := Vector2(maxf(previous_right + TICKET_GAP - screen.x, 0), maxf(lowest + TICKET_GAP - screen.y, 0))
     for ticket in placed:

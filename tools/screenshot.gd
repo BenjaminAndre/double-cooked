@@ -277,8 +277,12 @@ func _initialize() -> void:
             second.frying = true
             second.cook = Fryer.SECOND_FRY_MIN
             sim.players[0].node = sim.level.find("Cuisson2")
-        "menu":
-            # The SAUCES menu open on andalouse, and a line of three-line orders.
+        "menu", "menu_touch":
+            # The SAUCES menu open on andalouse, and a line of three-line orders; on a phone,
+            # everything bigger and the menu's gestures.
+            if setup == "menu_touch":
+                night.touch = true
+                night.play_local(1)
             var sim := night.simulation
             var player := sim.players[0]
             player.node = sim.level.find("Sauces")

@@ -87,9 +87,9 @@ func hint_rows() -> Array:
 ## An open station menu, in a bubble over the station at: see PlayerPanel.show_menu. key:
 ## the key that chooses. An empty list closes it.
 func show_menu(options: Array, choice: int, disabled: Array = [], at := Vector3.ZERO,
-        key := "") -> void:
+        hints: Array = []) -> void:
     if _menu_bubble:
-        _menu_bubble.show_menu(options, choice, disabled, key)
+        _menu_bubble.show_menu(options, choice, disabled, hints)
         _menu_at = at
         # The bubble says what the key does: no hints over the head meanwhile.
         _panel.visible = options.is_empty()

@@ -674,6 +674,8 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
     _log.clear()
     _local_slots = local_slots
     _input = LocalInput.new(local_slots.size(), touch)
+    # Bubbles, menus and tickets read bigger on a phone.
+    ArtUi.ui_scale = ArtUi.PHONE_SCALE if touch else 1.0
     _pending = _no_commands()
     _received.clear()
     _accumulator = 0.0
@@ -1018,7 +1020,7 @@ func _show(p_alpha: float) -> void:
                     disabled.append(index)
                 options.append(word)
         var menu_at: Vector3 = _station_views[player.menu].centre() if player.menu != SimLevel.NONE else Vector3.ZERO
-        _views[slot].show_menu(options, player.menu_choice, disabled, menu_at, interact_key)
+        _views[slot].show_menu(options, player.menu_choice, disabled, menu_at, _input.menu_hints(local_index))
     var taken := {}
     for player in simulation.players:
         taken[player.node] = true

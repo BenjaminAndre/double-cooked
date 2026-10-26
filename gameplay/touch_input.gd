@@ -1,7 +1,8 @@
 class_name TouchInput
 extends RefCounted
 ## One finger on a phone (GDD §9.4), turned into the same Simulation commands as the keys:
-## - a swipe is one step that way; held at the end of the swipe, the player keeps walking;
+## - a swipe is one step that way; held at the end of the swipe, the player keeps walking; in a
+##   station menu, one swipe moves the selection by one, whatever the finger does next;
 ## - a tap is interact (a press and a release at once);
 ## - holding still presses interact until the finger lifts: aiming a beer or the gun (swiping
 ##   meanwhile changes the target), or, with a station menu open, closing it;
@@ -11,10 +12,10 @@ extends RefCounted
 
 const C := Simulation.Command
 ## A swipe: this far, as a share of the screen's height.
-const SWIPE := 0.06
+const SWIPE := 0.10
 ## Holding still this long is a hold, not a tap.
 const HOLD_MSEC := 350
-const DOUBLE_TAP_MSEC := 220
+const DOUBLE_TAP_MSEC := 180
 ## Walking on while the finger stays down after a swipe: one more step this often, at most.
 const WALK_REPEAT_MSEC := 110
 
@@ -57,7 +58,8 @@ func read(event: InputEvent, now: int, screen_height: float) -> Array[int]:
                 commands.append_array(_tap(now))
         return commands
     var drag := event as InputEventScreenDrag
-    if drag and _down and drag.index == _finger:
+    # In a menu, one option per swipe: the finger lifts before the next.
+    if drag and _down and drag.index == _finger and not (context.menu and _moved):
         var delta := drag.position - _anchor
         if delta.length() >= SWIPE * screen_height:
             var direction: int
@@ -84,7 +86,8 @@ func update(now: int) -> Array[int]:
     if not _moved and not _holding and now - _since >= HOLD_MSEC:
         _holding = true
         commands.append(C.CANCEL if context.menu else C.INTERACT)
-    elif _moved and not _holding and _walk >= 0 and now >= _walk_next and context.path <= 1:
+    elif _moved and not _holding and not context.menu and _walk >= 0 and now >= _walk_next \
+            and context.path <= 1:
         commands.append(_walk)
         _walk_next = now + WALK_REPEAT_MSEC
     return commands

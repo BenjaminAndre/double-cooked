@@ -15,6 +15,7 @@ func test_a_swipe_is_a_step_that_way() -> void:
     _down(Vector2(500, 500), 0)
     assert_eq(_drag(Vector2(500 + _swipe(), 510), 50), [C.MOVE_RIGHT])
     assert_eq(_drag(Vector2(500 + _swipe(), 510 - _swipe()), 80), [C.MOVE_UP], "a second swipe from there")
+    assert_eq(_drag(Vector2(500 + _swipe(), 510 - _swipe() * 1.5), 90), [], "not yet a whole swipe further")
     assert_eq(_up(Vector2(500, 500), 100), [], "lifting after a swipe does nothing")
 
 
@@ -94,3 +95,14 @@ func _drag(at: Vector2, now: int) -> Array[int]:
     var event := InputEventScreenDrag.new()
     event.position = at
     return touch.read(event, now, HEIGHT)
+
+
+func test_in_a_menu_one_swipe_moves_the_selection_by_one() -> void:
+    touch.context.menu = true
+    _down(Vector2(500, 500), 0)
+    assert_eq(_drag(Vector2(500 + _swipe(), 500), 50), [C.MOVE_RIGHT])
+    assert_eq(_drag(Vector2(500 + 3 * _swipe(), 500), 80), [], "the finger lifts before the next")
+    assert_eq(touch.update(1000), [], "and holding doesn't repeat")
+    _up(Vector2(500 + 3 * _swipe(), 500), 1100)
+    _down(Vector2(500, 500), 1200)
+    assert_eq(_drag(Vector2(500, 500 + _swipe()), 1250), [C.MOVE_DOWN])

@@ -145,8 +145,8 @@ static func separate(bubbles: Array) -> void:
     for index in range(1, shown.size()):
         var before: CookingBubble = shown[index - 1]
         var bubble: CookingBubble = shown[index]
-        var mine := Rect2(bubble.position, bubble._panel.size)
-        var theirs := Rect2(before.position, before._panel.size)
+        var mine := Rect2(bubble.position, bubble._panel.size * bubble.scale)
+        var theirs := Rect2(before.position, before._panel.size * before.scale)
         if mine.intersects(theirs):
             bubble.position.x = theirs.end.x + GAP
 
@@ -157,11 +157,14 @@ func place_over(at: Vector3, camera: Camera3D) -> void:
         return
     var panel_size := _panel.get_combined_minimum_size()
     _panel.size = panel_size
+    # Bigger on a phone (ArtUi.ui_scale).
+    scale = Vector2.ONE * ArtUi.ui_scale
+    var shown := panel_size * ArtUi.ui_scale
     var tail := camera.unproject_position(at + Vector3.UP * HEIGHT)
-    var corner := tail - Vector2(panel_size.x - ArtUi.BUBBLE_TAIL_FROM_RIGHT, panel_size.y)
+    var corner := tail - Vector2(shown.x - ArtUi.BUBBLE_TAIL_FROM_RIGHT * ArtUi.ui_scale, shown.y)
     var screen := get_viewport_rect().size
     position = corner.clamp(Vector2.ONE * PlayerPanel.MARGIN,
-            (screen - panel_size - Vector2.ONE * PlayerPanel.MARGIN).max(Vector2.ZERO))
+            (screen - shown - Vector2.ONE * PlayerPanel.MARGIN).max(Vector2.ZERO))
     _alert.position = Vector2(panel_size.x - ALERT_SIZE * 0.6, -ALERT_SIZE * 0.4)
 
 

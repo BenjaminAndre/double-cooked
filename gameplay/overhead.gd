@@ -98,18 +98,22 @@ func show_player(item: SimItem, health: int, status: String, status_color := Col
 
 
 ## Stacks everything upwards from the top of the head, at this point of the screen.
+## Bigger on a phone (ArtUi.ui_scale).
 func place(head: Vector2) -> void:
+    var s := ArtUi.ui_scale
+    for part: Control in [_hearts, _status, _bubble]:
+        part.scale = Vector2.ONE * s
     var y := head.y
     _hearts.reset_size()
-    y -= _hearts.size.y
-    _hearts.position = Vector2(head.x - _hearts.size.x / 2, y)
+    y -= _hearts.size.y * s
+    _hearts.position = Vector2(head.x - _hearts.size.x * s / 2, y)
     if _status.text != "":
-        y -= _status.size.y
-        _status.position = Vector2(head.x - _status.size.x / 2, y)
+        y -= _status.size.y * s
+        _status.position = Vector2(head.x - _status.size.x * s / 2, y)
     if _bubble.visible:
-        y -= _bubble.size.y + GAP
+        y -= (_bubble.size.y + GAP) * s
         # The tail's tip over the head.
-        _bubble.position = Vector2(head.x - _bubble.size.x + ArtUi.BUBBLE_TAIL_FROM_RIGHT, y)
+        _bubble.position = Vector2(head.x - (_bubble.size.x - ArtUi.BUBBLE_TAIL_FROM_RIGHT) * s, y)
 
 
 ## The top of what is shown, on screen: where a local player's key hints go.

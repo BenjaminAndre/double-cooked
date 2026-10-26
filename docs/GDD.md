@@ -251,12 +251,12 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 
 The web build plays on a phone, to share a link at a party: no app. On a phone or tablet browser (`LocalInput.touch_platform()`), **one finger** plays, so the other hand can hold a beer (`TouchInput`):
 
-- **swipe**: one step that way; keep the finger down at the end of the swipe and the player keeps walking that way;
+- **swipe** (a tenth of the screen's height, 0.3.1): one step that way; keep the finger down at the end of the swipe and the player keeps walking that way. In a station menu, one swipe moves the selection by one option, whatever the finger does next (the menu's bubble lists its gestures: glisser, toucher, maintenir);
 - **tap**: interact;
 - **hold still**: interact held down, i.e. aim a beer or the BB gun (swipe meanwhile to change the target, lift to throw or fire); with a station menu open, holding closes it;
-- **double tap**: eat or drink. Only while holding something edible does a tap wait 0.22 s for a second one; otherwise it acts at once.
+- **double tap**: eat or drink. Only while holding something edible does a tap wait 0.18 s for a second one; otherwise it acts at once.
 
-Hints and the tutorial name gestures there ("Toucher", "glisser", "2× toucher", "garde le doigt appuyé"), and a tap goes on after a night. On a phone, each touch also asks for **fullscreen** (if the page left it), **locks landscape** where the browser allows it (Android; iPhones can't), and **keeps the screen awake** (0.2.48). The on-screen keyboard comes up to type a room code. Replays (F3) and the test tools (F4) stay on desktops. The kitchen may show past the artist's scene on screens wider than 16:9: the artist will extend the scene.
+Hints and the tutorial name gestures there ("Toucher", "glisser", "2× toucher", "garde le doigt appuyé"), and a tap goes on after a night. On a phone, each touch also asks for **fullscreen** (if the page left it), **locks landscape** where the browser allows it (Android; iPhones can't), and **keeps the screen awake** (0.2.48). The on-screen keyboard comes up to type a room code. On a phone, bubbles, menus, hints and tickets are drawn **1.5× bigger** (`ArtUi.ui_scale`), and the room code twice as big (0.3.1). Replays (F3) and the test tools (F4) stay on desktops. The kitchen may show past the artist's scene on screens wider than 16:9: the artist will extend the scene.
 
 ## 10. First playable slice (v0.1.x) — implemented in 0.1.8
 

@@ -270,3 +270,7 @@ func _refresh() -> void:
     if _error != "":
         text = "Erreur : %s\n%s" % [_error, text]
     _status.text = text.strip_edges()
+    # On a phone, the room code (and the field to type one) twice as big, to read across a table.
+    var font_size := ThemeDB.fallback_font_size * (2 if night.touch else 1)
+    _status.add_theme_font_size_override("font_size", font_size)
+    _code_field.add_theme_font_size_override("font_size", font_size)

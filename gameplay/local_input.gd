@@ -73,6 +73,13 @@ func arrows_name() -> String:
     return "glisser" if touch else "flèches"
 
 
+## How to use an open station menu, as [key, verb] rows: on a phone, every gesture it takes.
+func menu_hints(local_index: int) -> Array:
+    if touch:
+        return [["Glisser", "changer"], ["Toucher", "choisir"], ["Maintenir", "fermer"]]
+    return [[interact_key_name(local_index), "choisir"]]
+
+
 ## A hint for holding interact down: [key, what it does].
 func hold_hint(local_index: int, verb: String) -> Array:
     return ["Maintenir", verb] if touch else [interact_key_name(local_index), "maintenir : " + verb]
