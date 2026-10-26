@@ -171,10 +171,10 @@ func test_sundays_take_turns_and_later_weeks_have_one_more_event() -> void:
 
 func test_a_crew_starts_the_campaign_further_on_but_still_on_monday() -> void:
     assert_eq(Campaign.level(1, 1), 1, "alone, from the start")
-    assert_eq(Campaign.level(1, 2), 1 + Campaign.HEAD_START)
+    assert_eq([Campaign.level(1, 2), Campaign.level(1, 3), Campaign.level(1, 4)], [2, 3, 4], "a night ahead per extra player")
     assert_eq(Campaign.level(0, 4), 0, "the Nuit unique has no head start")
     var crew := Campaign.rules_for(1, 4)
-    assert_eq(crew.menu, Campaign.menu_for(1 + Campaign.HEAD_START))
-    assert_eq(crew.night_number, 1 + Campaign.HEAD_START, "the pace of night 5")
+    assert_eq(crew.menu, Campaign.menu_for(4))
+    assert_eq(crew.night_number, 4, "the pace of night 4")
     assert_eq(crew.night_events, Campaign.events_for(1), "but Monday's calendar")
     assert_eq(Campaign.rules_for(1, 1).menu, Campaign.menu_for(1))

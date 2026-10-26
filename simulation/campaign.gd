@@ -74,16 +74,21 @@ const TUTORIAL := -1
 const TUTORIAL_MENU: Array[StringName] = [&"frites", Menu.NATURE, Menu.MAYO, Menu.BEER]
 
 
-## A crew of several players starts a campaign this many nights further on (GDD §4.2): one of
-## them surely knows the game, and four make the first nights too easy. It is still lundi, night
-## 1, for them.
-const HEAD_START := 4
+## A crew starts a campaign further on (GDD §4.2): one of them surely knows the game, and a big
+## crew makes the first nights too easy. One night ahead per player beyond the first (2 players:
+## 1, 3: 2, 4: 3). It is still lundi, night 1, for them.
+const HEAD_START_PER_PLAYER := 1
 
 
 ## How hard this night of a campaign is for a crew of this many: the night whose menu and pace
-## it gets (night itself alone, HEAD_START nights further on with others).
+## it gets (night itself alone, further on for a crew).
 static func level(night: int, players: int) -> int:
-    return night + HEAD_START if night > 0 and players > 1 else night
+    return night + head_start(players) if night > 0 else night
+
+
+## How many nights ahead a crew of this many starts a campaign.
+static func head_start(players: int) -> int:
+    return maxi(players - 1, 0) * HEAD_START_PER_PLAYER
 
 
 ## The rules of a night: night 0 is the Nuit unique, a score attack with the whole menu (GDD §4.3).

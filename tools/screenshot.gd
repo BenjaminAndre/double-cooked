@@ -88,8 +88,8 @@ func _initialize() -> void:
             # Tuesday of a campaign, its splash: sauces and cola are new; VIANDES and PAIN greyed out.
             night.play_local(1, 2)
         "campaign_crew":
-            # A crew of two on Monday: they start further on (Campaign.HEAD_START), the whole menu
-            # of night 5 on the splash.
+            # A crew of two on Monday: they start a night further on (Campaign.head_start), the whole menu
+            # of night 2 on the splash.
             night.play_local(2, 1)
         "campaign_week2":
             # A Thursday in the second week, the splash just gone.
