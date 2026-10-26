@@ -305,7 +305,7 @@ func _on_began() -> void:
     if _record.visible:
         _record.text = "[right]%s[/right]" % "\n".join(lines)
     if night.campaign_night > 0:
-        _splash.show_night(night.campaign_night)
+        _splash.show_night(night.campaign_night, Campaign.level(night.campaign_night, night.simulation.players.size()))
     else:
         _splash.visible = false
 

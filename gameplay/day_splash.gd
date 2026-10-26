@@ -35,13 +35,16 @@ func _init() -> void:
     column.add_child(_items)
 
 
-## Shows the start of this night of a campaign.
-func show_night(night: int) -> void:
+## Shows the start of this night of a campaign; hard: the night its menu comes from
+## (Campaign.level, further on for a crew).
+func show_night(night: int, hard := -1) -> void:
+    if hard < 0:
+        hard = night
     _day.text = Hud.capitalized(Campaign.day_label(night))
     for child in _items.get_children():
         child.free()
     # The first night shows its whole menu, the next ones what they add to it.
-    var added: Array = Campaign.new_on(night) if night > 1 else Campaign.menu_for(night)
+    var added: Array = Campaign.new_on(hard) if night > 1 else Campaign.menu_for(hard)
     added = added.filter(func(entry: StringName) -> bool: return entry != Menu.NATURE)
     _new.text = "Nouveau ce soir" if night > 1 else "Au menu ce soir"
     for entry in added:

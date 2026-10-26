@@ -74,21 +74,35 @@ const TUTORIAL := -1
 const TUTORIAL_MENU: Array[StringName] = [&"frites", Menu.NATURE, Menu.MAYO, Menu.BEER]
 
 
+## A crew of several players starts a campaign this many nights further on (GDD §4.2): one of
+## them surely knows the game, and four make the first nights too easy. It is still lundi, night
+## 1, for them.
+const HEAD_START := 4
+
+
+## How hard this night of a campaign is for a crew of this many: the night whose menu and pace
+## it gets (night itself alone, HEAD_START nights further on with others).
+static func level(night: int, players: int) -> int:
+    return night + HEAD_START if night > 0 and players > 1 else night
+
+
 ## The rules of a night: night 0 is the Nuit unique, a score attack with the whole menu (GDD §4.3).
-static func rules_for(night: int) -> SimRules:
+static func rules_for(night: int, players := 1) -> SimRules:
     var rules := SimRules.new()
     if night == TUTORIAL:
         return _tutorial_rules(rules)
     rules.score_attack = night == 0
-    if night == 0 or night >= PIGEONS_FROM:
+    # How hard: a crew starts further on. The calendar (the day, its events) keeps the night.
+    var hard := level(night, players)
+    if night == 0 or hard >= PIGEONS_FROM:
         rules.pigeon_every_min = PIGEON_EVERY.x * SimRules.SECOND
         rules.pigeon_every_max = PIGEON_EVERY.y * SimRules.SECOND
     if night > 0:
-        rules.night_number = night
-        rules.menu = menu_for(night)
+        rules.night_number = hard
+        rules.menu = menu_for(hard)
         rules.night_events = events_for(night)
-        # From the second week, the inspector may also drop by unannounced.
-        rules.surprise_inspection_chance = SURPRISE_INSPECTIONS if week(night) > 1 else 0.0
+        # From the second week (of difficulty), the inspector may also drop by unannounced.
+        rules.surprise_inspection_chance = SURPRISE_INSPECTIONS if week(hard) > 1 else 0.0
     return rules
 
 

@@ -658,7 +658,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
         spawn_nodes.append(level.find(spawn_name))
     campaign_night = 0 if in_lobby else p_campaign_night
     new_record = false
-    var rules := Campaign.rules_for(campaign_night)
+    var rules := Campaign.rules_for(campaign_night, player_count)
     rules.lobby = in_lobby
     simulation = Simulation.new(level, spawn_nodes, seed_value, rules)
     simulation.apply_looks(looks)
