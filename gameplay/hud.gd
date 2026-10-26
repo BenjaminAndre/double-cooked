@@ -212,12 +212,15 @@ func _process(delta: float) -> void:
         _splash.visible = false
     if _banner.visible:
         var goes_on := night.campaign_night > 0 and sim.outcome == &"won"
-        var next := "Entrée : %s" % Campaign.day_label(night.campaign_night + 1) if goes_on else "Entrée : retour à la salle"
+        # On a phone, a tap goes on, and there is no F3.
+        var key := "Toucher" if night.touch else "Entrée"
+        var next := "%s : %s" % [key, Campaign.day_label(night.campaign_night + 1) if goes_on else "retour à la salle"]
         if night.role == Night.Role.HOST and not goes_on:
-            next = "Entrée : tout le monde en salle"
+            next = "%s : tout le monde en salle" % key
         elif night.role == Night.Role.CLIENT:
             next = "En attente de l'hôte..."
-        next += "\nF3 : télécharger le replay"
+        if not night.touch:
+            next += "\nF3 : télécharger le replay"
         _set_text(_title, title(sim, night.campaign_night))
         # The Nuit unique has its medal, a campaign night its stars.
         _stars.visible = not sim.rules.score_attack
@@ -251,16 +254,17 @@ func _show_tutorial(sim: Simulation) -> void:
     _tutorial.visible = sim.tutorial != null and sim.outcome == &"" and not night.in_lobby
     if not _tutorial.visible:
         return
-    _set_text(_tutorial_text, tutorial_text(sim.tutorial, night.interact_key_name(), night.eat_key_name()))
+    _set_text(_tutorial_text, tutorial_text(sim.tutorial, night.key_names()))
     _tutorial.reset_size()
     var screen := _tutorial.get_viewport_rect().size
     _tutorial.position = Vector2((screen.x - _tutorial.size.x) / 2, 16)
 
 
-## "Étape n / N", then what to do, with these key names.
-static func tutorial_text(tutorial: Tutorial, interact_key: String, eat_key: String) -> String:
+## "Étape n / N", then what to do, with these key or gesture names (Night.key_names()).
+static func tutorial_text(tutorial: Tutorial, names: Dictionary) -> String:
     var text: String = tutorial.current().get("text", "")
-    text = text.replace("{interagir}", interact_key).replace("{manger}", eat_key)
+    for name: String in names:
+        text = text.replace("{%s}" % name, names[name])
     return "Étape %d / %d · %s" % [tutorial.step + 1, Tutorial.STEPS.size(), text]
 
 

@@ -246,6 +246,17 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 - **Speed** ×1, ×2 or ×4: the host steps that many more ticks a second and the guests follow; the HUD shows it. Faster isn't easier, so it doesn't mark the run.
 - **Network** (online host only): a forced **desync** (a point of mood only the host has), to check that the guests' red warning shows; and the **network stats** under the clock: for each guest, the round trip of a ping sent every second, how many ticks behind the host it was, and the last tick it had received.
 
+### 9.4 Phones (0.2.47)
+
+The web build plays on a phone, to share a link at a party: no app. On a phone or tablet browser (`LocalInput.touch_platform()`), **one finger** plays, so the other hand can hold a beer (`TouchInput`):
+
+- **swipe**: one step that way; keep the finger down at the end of the swipe and the player keeps walking that way;
+- **tap**: interact;
+- **hold still**: interact held down, i.e. aim a beer or the BB gun (swipe meanwhile to change the target, lift to throw or fire); with a station menu open, holding closes it;
+- **double tap**: eat or drink. Only while holding something edible does a tap wait 0.22 s for a second one; otherwise it acts at once.
+
+Hints and the tutorial name gestures there ("Toucher", "glisser", "2× toucher", "garde le doigt appuyé"), and a tap goes on after a night. Replays (F3) and the test tools (F4) stay on desktops. The kitchen may show past the artist's scene on screens wider than 16:9: the artist will extend the scene.
+
 ## 10. First playable slice (v0.1.x) — implemented in 0.1.8
 
 Goal: prove the core loop **with multiplayer**.

@@ -101,3 +101,18 @@ func test_the_tutorial_goes_back_to_the_lobby_and_keeps_no_record() -> void:
     assert_eq(night.campaign_record().night, 0)
     night.continue_after_night()
     assert_true(night.in_lobby)
+
+
+func test_on_a_phone_the_hints_and_the_tutorial_name_gestures_and_a_tap_goes_on() -> void:
+    night.touch = true
+    night.play_local(1, Campaign.TUTORIAL)
+    assert_eq(night.interact_key_name(), "Toucher")
+    var text := Hud.tutorial_text(night.simulation.tutorial, night.key_names())
+    assert_string_contains(text, "glisser")
+    assert_string_contains(text, "Toucher")
+    assert_false(text.contains("{"), "every name replaced")
+    night.simulation._end(&"won", &"tutorial")
+    var tap := InputEventScreenTouch.new()
+    tap.pressed = false
+    night._unhandled_input(tap)
+    assert_true(night.in_lobby, "a tap goes on")

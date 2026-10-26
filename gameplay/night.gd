@@ -79,12 +79,16 @@ var new_record := false
 var debug_used := false
 ## Host and offline: ticks per second, times this (a test tool); the guests follow.
 var speed := 1
+## A phone or tablet (LocalInput.touch_platform()): one finger plays (TouchInput), and the hints
+## name gestures (GDD §9.4). Set by tests and screenshots to try it on a desktop.
+var touch := LocalInput.touch_platform()
 ## Host: whether the HUD shows each guest's network stats (a test tool, see net_stats()).
 var show_net_stats := false
 
 @onready var _link: NightLink = $Link
 
 var _input: LocalInput
+var _touch := TouchInput.new()
 ## The slot of each player at this keyboard.
 var _local_slots := PackedInt32Array()
 var _views: Array[Player] = []
@@ -301,6 +305,16 @@ func eat_key_name(local_index := 0) -> String:
     return _input.eat_key_name(local_index) if _input else ""
 
 
+## The names of the first local player's keys, or gestures on a phone, for texts such as the
+## tutorial's: interagir, manger, fleches (moving), maintenir (holding interact down).
+func key_names() -> Dictionary:
+    if not _input:
+        return {}
+    return {"interagir": _input.interact_key_name(0), "manger": _input.eat_key_name(0),
+            "fleches": _input.arrows_name(),
+            "maintenir": "garde le doigt appuyé" if touch else "maintiens " + _input.interact_key_name(0)}
+
+
 ## The centre of a station's view in the world (an index into the simulation's stations).
 func station_centre(index: int) -> Vector3:
     return _station_views[index].centre()
@@ -448,9 +462,35 @@ func _unhandled_input(event: InputEvent) -> void:
         continue_after_night()
         get_viewport().set_input_as_handled()
         return
+    if touch and (event is InputEventScreenTouch or event is InputEventScreenDrag):
+        _read_touch(event)
+        return
     var command := _input.read(event)
     if not command.is_empty():
         submit(command[0], command[1])
+
+
+## A finger on a phone (TouchInput): commands for the player at this device. Once a night is
+## over, a tap goes on, as Enter does (online, only the host's).
+func _read_touch(event: InputEvent) -> void:
+    var tap := event as InputEventScreenTouch
+    if simulation.outcome != &"":
+        if tap and not tap.pressed and role != Role.CLIENT:
+            continue_after_night()
+        return
+    for command in _touch.read(event, Time.get_ticks_msec(), get_viewport().get_visible_rect().size.y):
+        submit(0, command)
+
+
+## What the gestures depend on (TouchInput.context), and those that come with time.
+func _update_touch() -> void:
+    if not touch or _local_slots.is_empty() or _local_slots[0] >= simulation.players.size():
+        return
+    var player := simulation.players[_local_slots[0]]
+    _touch.context = {"menu": player.menu != SimLevel.NONE, "edible": Menu.edible(player.item),
+            "path": player.path.size()}
+    for command in _touch.update(Time.get_ticks_msec()):
+        submit(0, command)
 
 
 func _process(delta: float) -> void:
@@ -458,6 +498,7 @@ func _process(delta: float) -> void:
         _reconnect_left -= delta
         if _reconnect_left <= 0.0:
             _give_up_waiting()
+    _update_touch()
     if role == Role.HOST and show_net_stats:
         _ping_guests(delta)
     _advance()
@@ -632,7 +673,7 @@ func _begin(player_count: int, local_slots: PackedInt32Array, seed_value: int, p
             "room": String(room.name)}
     _log.clear()
     _local_slots = local_slots
-    _input = LocalInput.new(local_slots.size())
+    _input = LocalInput.new(local_slots.size(), touch)
     _pending = _no_commands()
     _received.clear()
     _accumulator = 0.0
@@ -931,14 +972,14 @@ func _show(p_alpha: float) -> void:
             elif action != &"":
                 hints.append([interact_key, ItemNames.action(action)])
                 if action == &"throw" and simulation.players.size() > 1:
-                    hints.append(["Haut", "équipier"])
+                    hints.append(["Glisser haut" if touch else "Haut", "équipier"])
                 elif action == &"shoot":
-                    hints.append(["Gauche/Droite", "cible"])
+                    hints.append(["Glisser" if touch else "Gauche/Droite", "cible"])
             if player.item and player.item.kind == Menu.BEER and player.aim < 0 and not player.down:
                 # A beer can always be thrown: hold the key to aim at the line.
-                hints.append([interact_key, "maintenir : lancer"])
+                hints.append(_input.hold_hint(local_index, "lancer"))
             elif player.item and player.item.kind == Simulation.GUN and player.aim < 0 and not player.down:
-                hints.append([interact_key, "maintenir : viser"])
+                hints.append(_input.hold_hint(local_index, "viser"))
         var eat := simulation.eat_action(player) if simulation.outcome == &"" else &""
         if eat != &"":
             hints.append([_input.eat_key_name(local_index), ItemNames.action(eat)])
