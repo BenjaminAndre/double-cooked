@@ -1,11 +1,11 @@
 # double-cooked
 
-A keyboard-only multiplayer game about surviving the night in a Belgian fritkot, made with Godot 4.7 and GDScript. **[docs/GDD.md](docs/GDD.md) is the reference for gameplay**: read the relevant section before changing a rule, and update it when a decision changes.
+A multiplayer game about surviving the night in a Belgian fritkot, played on a keyboard or with one finger on a phone (GDD §9.4), made with Godot 4.7 and GDScript. **[docs/GDD.md](docs/GDD.md) is the reference for gameplay**: read the relevant section before changing a rule, and update it when a decision changes.
 
 ## Workflow
 
 - Work directly on `main`. Commit each change set, but ask before pushing.
-- **Bump `config/version` in `project.godot` in every commit**, as semantic versioning. Only the patch number goes up: 0.1.x until the art (docs/ART_PLAN.md) is in place, which is 0.2.0, then 0.2.x.
+- **Bump `config/version` in `project.godot` in every commit**, as semantic versioning. Only the patch number goes up, unless the user calls a new minor: 0.1.x until the art was in place (0.2.0), 0.3.0 for phone play (2026-10-26), now 0.3.x.
 - Each push builds, tests and deploys the Web export (`.github/workflows/build.yml`), to https://benjaminandre.github.io/double-cooked/.
 
 ## Commands
