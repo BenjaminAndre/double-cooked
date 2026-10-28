@@ -61,6 +61,31 @@ func face(direction: Vector3, camera: Camera3D) -> void:
         set_mirrored(sideways < 0.0)
 
 
+## The point of the drawing this high above the feet, where the shader draws it in the world: it
+## rises along the screen, not straight up. For what goes over a figure (particles, stars).
+func card_point(height: float) -> Vector3:
+    var camera := get_viewport().get_camera_3d() if is_inside_tree() else null
+    if not camera:
+        return global_position + Vector3.UP * height
+    var eye := camera.global_position
+    var forward := -camera.global_basis.z
+    var card := global_position + camera.global_basis.y * height
+    var upright := global_position + Vector3.UP * height
+    return eye + (card - eye) * ((upright - eye).dot(forward) / (card - eye).dot(forward))
+
+
+## Hit by a beer (the artist's DLC 1): it rocks back on its feet a moment, and steadies.
+func rock() -> void:
+    var tween := create_tween()
+    tween.tween_method(_set_tilt, 0.0, -0.3, 0.08)
+    tween.tween_method(_set_tilt, -0.3, 0.12, 0.15)
+    tween.tween_method(_set_tilt, 0.12, 0.0, 0.15)
+
+
+func _set_tilt(angle: float) -> void:
+    _material.set_shader_parameter(&"tilt", angle)
+
+
 ## 1 is the drawing as is; more is wider.
 func set_girth(girth: float) -> void:
     _material.set_shader_parameter(&"girth", girth)

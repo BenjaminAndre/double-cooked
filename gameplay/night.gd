@@ -572,6 +572,10 @@ func _step() -> bool:
             _views[event.target].show_bump()
         elif event.type == &"slipped":
             _views[event.slot].show_bump()
+        elif event.type in [&"served", &"angry", &"walk_out", &"beer_gift", &"asleep"] and queue:
+            queue.show_event(event)
+        elif event.type in [&"beer_drunk", &"revived"]:
+            _views[event.slot].show_beer()
         elif event.type == &"car_crash":
             announced.emit("La voiture a tout défoncé !")
         elif event.type == &"shot" and event.target == &"inspector":

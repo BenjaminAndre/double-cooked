@@ -118,6 +118,23 @@ func _initialize() -> void:
             sim.crowd.front().asleep = 1000
             sim.players[0].node = sim.level.find("Caisse")
             sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
+        "effects":
+            # The artist's particles (DLC 1), caught mid-way: banknotes over the first customer
+            # (served), grawlix over the second (angry), beer drops over the third, the fourth
+            # asleep. Capture at 2.5 s.
+            var sim := night.simulation
+            sim.rules.arrival_min = 10
+            sim.rules.arrival_max = 10
+            sim.crowd.next_arrival = 1
+            sim.rules.front_drain = 0
+            sim.rules.back_drain = 0
+            await create_timer(1.6).timeout
+            var line := sim.crowd.line
+            line[3 if line.size() > 3 else line.size() - 1].asleep = 1000
+            await create_timer(0.5).timeout
+            var queue: CustomersView = game.get_node("Customers")
+            for index in mini(3, line.size()):
+                queue.show_event({"type": [&"served", &"angry", &"beer_gift"][index], "id": line[index].id})
         "breads":
             # P1 at PAIN choosing a bread, P2 holding a burger complet; burger and mitraillette orders.
             night.play_local(2)

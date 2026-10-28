@@ -202,6 +202,12 @@ func _beer_helmet() -> Node3D:
 
 
 ## A small hop when someone runs into this player.
+## A teammate's beer landed on them (DLC 1): beer drops, and they rock back on their feet.
+func show_beer() -> void:
+    Bursts.beer_drops(get_parent(), _figure.card_point(HEAD_TOP))
+    _figure.rock()
+
+
 func show_bump() -> void:
     if _bump_tween:
         _bump_tween.kill()

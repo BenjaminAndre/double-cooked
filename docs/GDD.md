@@ -249,7 +249,7 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 
 ### 9.3b The artist's DLC 1 (0.3.8 onwards)
 
-The artist's first update (`docs/art/DLC1/`): widened rooms (no void on wider screens), updated models and atlas, the pigeon and the crashed car in place of the placeholders, a third drunk look for the boss, the game logo on the loading screen, bigger frying oil, and the corner frames (score, day, clock) drawn at their own proportions, the text shrunk to fit ("MERCREDI S2"). The stations no longer write their name or state over themselves: the models say it. The raw fries keep sharing CUISSON 1's shelf with the cooked portions (0.2.19), unlike the artist's scene.
+The artist's first update (`docs/art/DLC1/`): widened rooms (no void on wider screens), updated models and atlas, the pigeon and the crashed car in place of the placeholders, a third drunk look for the boss, the game logo on the loading screen, bigger frying oil, and the corner frames (score, day, clock) drawn at their own proportions, the text shrunk to fit ("MERCREDI S2"). The stations no longer write their name or state over themselves: the models say it. The raw fries keep sharing CUISSON 1's shelf with the cooked portions (0.2.19), unlike the artist's scene. The artist's particles (0.3.9, `Bursts`, calibrated on their preview GIFs): banknotes over a customer served, grawlix over one leaving angry or walking out, beer drops where a beer lands on a customer or a teammate (who also rocks back on their feet), and Z's rising over a sleeper instead of the Zzz picture.
 
 ### 9.4 Phones (0.2.47)
 

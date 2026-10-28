@@ -12,10 +12,13 @@ uniform float girth = 1.0;
 uniform bool standing = true;
 // Walking towards the left of the screen: the drawing is flipped (the artist's rule).
 uniform bool mirrored = false;
+// Rocking on its feet (radians, on screen): hit by a beer.
+uniform float tilt = 0.0;
 
 void vertex() {
 	// The quad spans -0.5..0.5: centred on the feet, drawn upwards from them.
 	vec2 local = vec2(VERTEX.x * size.x * girth, (VERTEX.y + 0.5) * size.y);
+	local = vec2(cos(tilt) * local.x - sin(tilt) * local.y, sin(tilt) * local.x + cos(tilt) * local.y);
 	if (standing) {
 		vec3 feet = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 		// Facing the camera: a card in view space, up along the screen's up.

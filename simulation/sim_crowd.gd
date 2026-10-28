@@ -119,7 +119,7 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
         if customer.patience <= 0:
             _leave_line(index)
             change_mood(rules.mood_group_failed if customer.group else rules.mood_walk_out)
-            events.append({"type": &"walk_out", "index": index, "by": -1})
+            events.append({"type": &"walk_out", "index": index, "by": -1, "id": customer.id})
             _lost()
             if customer.group:
                 events.append({"type": &"group_left", "served": false})
@@ -154,10 +154,10 @@ func serve(item: SimItem, by: int, events: Array[Dictionary], index := 0) -> boo
     _leave_line(index)
     if Menu.done_right(item):
         change_mood(rules.mood_served)
-        events.append({"type": &"served", "by": by})
+        events.append({"type": &"served", "by": by, "id": customer.id})
         _score(_speed_points(customer), events)
     else:
-        _leave_angry(index, by, events)
+        _leave_angry(customer, index, by, events)
     return true
 
 
@@ -173,16 +173,16 @@ func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
     elif customer.order == Menu.BEER:
         _leave_line(index)
         change_mood(rules.mood_served)
-        events.append({"type": &"served", "by": by})
+        events.append({"type": &"served", "by": by, "id": customer.id})
         _score(_speed_points(customer), events)
     elif customer.gifts < rules.beer_gifts:
         customer.gifts += 1
         customer.patience = mini(customer.patience + rules.beer_patience, maxi(customer.full_patience, rules.patience))
-        events.append({"type": &"beer_gift", "index": index, "by": by})
+        events.append({"type": &"beer_gift", "index": index, "by": by, "id": customer.id})
     else:
         customer.gifts += 1
         customer.asleep = rules.beer_sleep
-        events.append({"type": &"asleep", "index": index, "by": by})
+        events.append({"type": &"asleep", "index": index, "by": by, "id": customer.id})
 
 
 ## One line of the group's order (key, done right; &"" for a wrong or badly done one, refused).
@@ -198,7 +198,7 @@ func _serve_group(leader: Customer, key: StringName, by: int, events: Array[Dict
     if leader.orders.is_empty():
         _leave_line(line.find(leader))
         change_mood(rules.mood_group_served)
-        events.append({"type": &"served", "by": by})
+        events.append({"type": &"served", "by": by, "id": leader.id})
         _score(rules.points_group, events)
         events.append({"type": &"group_left", "served": true})
     return true
@@ -222,10 +222,10 @@ func add_group(events: Array[Dictionary]) -> void:
     events.append({"type": &"arrival"})
 
 
-func _leave_angry(index: int, by: int, events: Array[Dictionary]) -> void:
+func _leave_angry(customer: Customer, index: int, by: int, events: Array[Dictionary]) -> void:
     _lost()
     change_mood(rules.mood_angry)
-    events.append({"type": &"angry", "index": index, "by": by})
+    events.append({"type": &"angry", "index": index, "by": by, "id": customer.id})
 
 
 ## The customer at index leaves the line. With two registers, the one waiting at the second

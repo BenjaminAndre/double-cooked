@@ -27,8 +27,7 @@ const COLLEAGUES_AT := Vector3(2.5, 0, -3.4)
 const INSPECTOR := "res://art/textures/EventCharacter06.png"
 const INSPECTOR_AT := Vector3(0, 0, 1.2)
 ## Over a customer put to sleep by one beer too many (GDD §6.2): the artist's Zzz, bobbing.
-const ASLEEP := preload("res://art/textures/EtatZzzz.png")
-const ASLEEP_HEIGHT := 1.75
+const ASLEEP_HEIGHT := 1.45
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
 ## How fast they walk round to the door, in metres per second.
@@ -117,20 +116,33 @@ func _process(delta: float) -> void:
     _show_tickets(crowd)
 
 
+## Asleep: Z's rise from the head (the artist's particles, DLC 1).
 func _show_asleep(figure: Node3D, asleep: bool) -> void:
-    var zzz := figure.get_node_or_null("Zzz") as Sprite3D
+    var zzz := figure.get_node_or_null("Zzz") as CPUParticles3D
     if asleep and not zzz:
-        zzz = Sprite3D.new()
+        zzz = Bursts.zzz(figure)
         zzz.name = "Zzz"
-        zzz.texture = ASLEEP
-        zzz.pixel_size = 0.5 / ASLEEP.get_width()
-        zzz.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-        zzz.no_depth_test = true
-        zzz.position.y = ASLEEP_HEIGHT
-        figure.add_child(zzz)
     if zzz:
-        zzz.visible = asleep
-        zzz.position.y = ASLEEP_HEIGHT + sin(Time.get_ticks_msec() * 0.004) * 0.05
+        zzz.global_position = (figure as PaperFigure).card_point(ASLEEP_HEIGHT)
+        if zzz.emitting != asleep:
+            zzz.emitting = asleep
+
+
+## A customer's moment, from the night's events (DLC 1): banknotes when served, grawlix when
+## leaving angry, beer drops and a rock back when a beer lands on them.
+func show_event(event: Dictionary) -> void:
+    var figure: PaperFigure = _figures.get(event.get("id", -1))
+    if not figure:
+        return
+    var head := figure.card_point(PaperFigure.HEIGHT * 0.85)
+    match event.type:
+        &"served":
+            Bursts.money(self, head)
+        &"angry", &"walk_out":
+            Bursts.grawlix(self, head)
+        &"beer_gift", &"asleep":
+            Bursts.beer_drops(self, head)
+            figure.rock()
 
 
 ## Where the customer at this place in line stands, relative to this node. With two registers,
