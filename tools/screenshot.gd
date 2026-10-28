@@ -62,6 +62,10 @@ func _initialize() -> void:
             for slot in 4:
                 sim.players[slot].color = [4, 5, 0, 3][slot]
                 sim.players[slot].hat = slot + 1
+            # Two of them facing left: the hats flip with them.
+            await create_timer(0.3).timeout
+            for slot in [2, 3]:
+                night._views[slot]._figure.set_mirrored(true)
         "eject":
             # Both CUISSON VIANDE baskets halfway through tipping out, about 1 s in.
             var views := LevelReader.stations(game.get_node("Restaurant/Kitchen").anchors_root())

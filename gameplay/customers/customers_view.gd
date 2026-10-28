@@ -27,6 +27,8 @@ const COLLEAGUES_AT := Vector3(2.5, 0, -3.4)
 const INSPECTOR := "res://art/textures/EventCharacter06.png"
 const INSPECTOR_AT := Vector3(0, 0, 1.2)
 ## Over a customer put to sleep by one beer too many (GDD §6.2): the artist's Zzz, bobbing.
+## The order tickets, drawn 20% bigger than their layout (from playtesting).
+const TICKET_SCALE := 1.2
 const ASLEEP_HEIGHT := 1.45
 ## How fast customers walk to their place in line, as a fraction of the distance per second.
 const SHUFFLE_SPEED := 8.0
@@ -328,8 +330,8 @@ func _show_tickets(crowd: SimCrowd) -> void:
             _fill(ticket, ItemIcons.order(customer.order), icon_size, float(customer.patience) / full, customer.boss)
         _show_dots(ticket, customer)
         var anchor := camera.unproject_position(figure.global_position)
-        # Bigger on a phone (ArtUi.ui_scale).
-        var s := ArtUi.ui_scale
+        # Bigger than the rest (to read the orders), and bigger again on a phone (ArtUi.ui_scale).
+        var s := ArtUi.ui_scale * TICKET_SCALE
         ticket.scale = Vector2.ONE * s
         _drink_ticket.scale = Vector2.ONE * s
         var left := maxf(maxf(anchor.x - ticket.size.x * s / 2, previous_right + TICKET_GAP), TICKET_GAP)

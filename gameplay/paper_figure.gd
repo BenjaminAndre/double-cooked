@@ -44,6 +44,11 @@ func set_picture(texture: Texture2D, height := HEIGHT) -> void:
                 Vector2(height * texture.get_width() / texture.get_height(), height))
 
 
+## Whether the drawing is flipped (walking towards the left of the screen).
+func is_mirrored() -> bool:
+    return _mirrored
+
+
 ## Walking to the left of the screen: the drawing flips; to the right, it faces as drawn.
 func set_mirrored(mirrored: bool) -> void:
     if mirrored != _mirrored:

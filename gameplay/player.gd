@@ -12,8 +12,8 @@ const THIN_WIDTH := 0.07
 const HEAD_TOP := PaperFigure.HEIGHT - 0.12
 ## The artist's hats (DLC 1): how wide they are drawn, and how much of the picture stands above
 ## the top of the head (as a share of its height).
-const HAT_WIDTH := 0.5
-const HAT_RAISE := 0.3
+const HAT_WIDTH := 0.38
+const HAT_RAISE := 0.12
 ## Where the hearts and the held item go over a knocked-out player, flat on the floor.
 const LYING_TOP := 0.45
 
@@ -230,6 +230,13 @@ func _card_point(camera: Camera3D, height: float) -> Vector3:
 func _follow_card(camera: Camera3D) -> void:
     var toward_camera := camera.global_basis.z * 0.05
     if _helmet and _helmet.visible:
-        _helmet.global_position = _card_point(camera, HEAD_TOP) + toward_camera
+        # On the head, which isn't in the middle of the drawing: it flips with the character.
+        var mirrored := _figure.is_mirrored()
+        var picture := Looks.character(_color, _fat)
+        var head_x: float = Looks.HEAD_X[clampi(_color, 0, Looks.HEAD_X.size() - 1)][clampi(_fat, 0, 3)]
+        var across := head_x * PaperFigure.HEIGHT \
+                * picture.get_width() / picture.get_height() * (-1.0 if mirrored else 1.0)
+        _helmet.flip_h = mirrored
+        _helmet.global_position = _card_point(camera, HEAD_TOP) + camera.global_basis.x * across + toward_camera
     if _stars.visible:
         _stars.global_position = _card_point(camera, PaperFigure.HEIGHT - 0.1) + toward_camera

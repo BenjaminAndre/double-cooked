@@ -10,6 +10,13 @@ const COLORS: Array[StringName] = [&"bleu", &"rouge", &"vert", &"jaune", &"blanc
 const TINTS: Array[Color] = [Color(0.24, 0.49, 0.73), Color(0.69, 0.12, 0.12), Color(0.24, 0.69, 0.26),
         Color(0.91, 0.83, 0.23), Color(0.95, 0.95, 0.93), Color(0.64, 0.24, 0.83)]
 const PORTRAITS := "res://art/textures/IconPlayer%02d.png"
+## Where each character's head is across their drawing, per fat picture (as drawn, then Fat01 to
+## 03): its centre's distance from the middle, as a share of the drawing's width (measured on the
+## artist's pictures), for the hat.
+const HEAD_X: Array = [
+    [0.083, 0.083, 0.009, 0.007], [0.084, 0.084, 0.0, -0.011], [0.083, 0.083, 0.0, 0.005],
+    [0.084, 0.084, 0.001, 0.003], [0.002, 0.036, 0.043, 0.0], [-0.05, -0.067, -0.063, -0.092],
+]
 const CHARACTERS := "res://art/textures/MainCharacter%02d.png"
 const CHARACTERS_FAT := "res://art/textures/MainCharacter%02d_Fat%02d.png"
 const FAT_PICTURES := 3
