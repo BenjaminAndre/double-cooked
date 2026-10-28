@@ -10,7 +10,7 @@ enum State { OFFLINE, HOSTING, TYPING_CODE, JOINING, JOINED }
 ## Readable when spoken or typed: no O/0, I/1.
 const CODE_CHARACTERS := "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 const APP_ID := "X9DO2vGZpLH9ByZ"
-const TRACKERS: Array[String] = ["wss://tracker.androodev.com", "wss://tracker.openwebtorrent.com",
+const TRACKERS: Array[String] = ["wss://tracker.openwebtorrent.com",
         "wss://tracker.files.fm:7073/announce", "wss://tracker.btorrent.xyz/"]
 const STUN_SERVERS: Array[String] = ["stun:stun.l.google.com:19302", "stun:stun.cloudflare.com:3478"]
 ## When the host is lost, everyone tries to rejoin the same code; the next host (Night.host_lost)
