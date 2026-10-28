@@ -21,7 +21,7 @@ godot --path . --resolution 64x64 -s res://tools/screenshot.gd -- out.png 3 crow
 
 The last command renders a 1280×720 screenshot to check a layout (setups are listed in the script). **Never pop a window on the user's monitor.** The script shrinks its window, moves it off-screen at runtime and renders into a SubViewport. Headless can't render, a minimized window renders blank, and `--position` at startup gets pulled back on screen.
 
-The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PLAN.md`); reference pictures are in `docs/art/`, which has a `.gdignore`.
+The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PLAN.md`); reference pictures are in `docs/art/`, which has a `.gdignore`. Pictures import as **lossy WebP** (`compress/mode=1`, quality 0.8) to keep the web download small; the lossless PNGs stay in the repo. Only the UI frames (`UX_*`, stretched) and the glass mask stay lossless: set new pictures the same way.
 
 `bash tools/fetch_deps.sh` downloads the git-ignored `addons/` at pinned versions (CI caches them, keyed on that script). On this machine, set `CURL_EXTRA=--ssl-revoke-best-effort`.
 
