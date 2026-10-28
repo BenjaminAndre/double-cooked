@@ -40,6 +40,16 @@ jobs:
 
       - run: echo "GODOT=$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" >> "$GITHUB_ENV"
 
+      # The addons are pinned in fetch_deps.sh: cached until that script changes, so a build
+      # doesn't depend on their hosts answering.
+      - uses: actions/cache@v6
+        with:
+          path: |
+            addons/debug_draw_3d
+            addons/tube
+            addons/gut
+          key: addons-${{ hashFiles('tools/fetch_deps.sh') }}
+
       - run: bash tools/fetch_deps.sh
 
       - id: version

@@ -23,7 +23,7 @@ The last command renders a 1280×720 screenshot to check a layout (setups are li
 
 The artist's assets live in `art/` (committed, see `CREDITS.md` and `docs/ART_PLAN.md`); reference pictures are in `docs/art/`, which has a `.gdignore`.
 
-`bash tools/fetch_deps.sh` downloads the git-ignored `assets/` and `addons/` folders at pinned versions. On this machine, set `CURL_EXTRA=--ssl-revoke-best-effort`. The "invalid UID" warnings for Kenney models are expected: those UIDs are generated per machine.
+`bash tools/fetch_deps.sh` downloads the git-ignored `addons/` at pinned versions (CI caches them, keyed on that script). On this machine, set `CURL_EXTRA=--ssl-revoke-best-effort`.
 
 ## Architecture (GDD §9.1)
 

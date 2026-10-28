@@ -17,7 +17,6 @@ extends Node3D
 ## that replays refer to; otherwise they are "Cell<row>_<column>".
 
 const ANCHOR_SCENE := preload("res://gameplay/anchor.tscn")
-const FLOOR := preload("res://assets/kenney_prototype-kit/Models/GLB format/floor-small-square.glb")
 const SPACING := 1.0
 const LABELS := {
     &"peinture": "PEINTURE",
@@ -83,8 +82,6 @@ const SHELF_QUARTER := 0.25
 
 @export var layout := PackedStringArray()
 @export var names := PackedStringArray()
-## Kenney floor tiles under each cell (the kitchen has the artist's floor instead).
-@export var floor_tiles := true
 ## How far station boxes stand from their cell, behind the top row and in front of the bottom one.
 @export var back_offset := 0.8
 @export var front_offset := 0.8
@@ -169,10 +166,6 @@ func _build() -> void:
             if squares:
                 _squares.append(_square(anchor))
                 _square_colors.append(SQUARE_READY if cell.trim_suffix("@") == "pret" else SQUARE)
-            if floor_tiles:
-                var floor_tile: Node3D = FLOOR.instantiate()
-                floor_tile.position = anchor.position
-                add_child(floor_tile)
             if cell.ends_with("@"):
                 _spawns.append(anchor.name)
                 cell = cell.trim_suffix("@")

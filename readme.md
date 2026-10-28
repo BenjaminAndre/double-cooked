@@ -2,12 +2,11 @@
 
 ## Run the project
 Assets to have loaded (should be found on another repo like SVN or even a USB stick)
-* ./assets/kenney_prototype-kit : Downloadable here : https://kenney.nl/assets/prototype-kit
 * ./godot-extension-webrtc : A prerequisite to use WebRTC on the computer
 * ./addons/tube : A needed addon to help find lobbies
 * ./addons/debug_draw_3d : How to work without it, seriously ?
 
-`bash tools/fetch_deps.sh` (Git Bash on Windows) downloads the Kenney kit, tube and debug_draw_3d at the versions CI uses. WebRTC for desktop is still manual.
+`bash tools/fetch_deps.sh` (Git Bash on Windows) downloads tube, debug_draw_3d and GUT at the versions CI uses. WebRTC for desktop is still manual.
 
 ## How to play (first slice)
 Survive from 18:00 to 04:00 (7 minutes) without the room rioting or the whole crew going down.
