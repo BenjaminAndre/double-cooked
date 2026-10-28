@@ -11,7 +11,8 @@ enum State { OFFLINE, HOSTING, TYPING_CODE, JOINING, JOINED }
 const CODE_CHARACTERS := "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 const APP_ID := "X9DO2vGZpLH9ByZ"
 const TRACKERS: Array[String] = ["wss://tracker.openwebtorrent.com",
-        "wss://tracker.files.fm:7073/announce", "wss://tracker.btorrent.xyz/"]
+        "wss://tracker.files.fm:7073/announce", "wss://tracker.btorrent.xyz/",
+        "wss://tracker.ghostchu-services.top:443/announce"]
 const STUN_SERVERS: Array[String] = ["stun:stun.l.google.com:19302", "stun:stun.cloudflare.com:3478"]
 ## When the host is lost, everyone tries to rejoin the same code; the next host (Night.host_lost)
 ## tries NEXT_HOST_ATTEMPTS times, then opens its own session under that code.

@@ -14,20 +14,17 @@ func before_each() -> void:
 func test_a_swipe_is_a_step_that_way() -> void:
     _down(Vector2(500, 500), 0)
     assert_eq(_drag(Vector2(500 + _swipe(), 510), 50), [C.MOVE_RIGHT])
-    assert_eq(_drag(Vector2(500 + _swipe(), 510 - _swipe()), 80), [C.MOVE_UP], "a second swipe from there")
-    assert_eq(_drag(Vector2(500 + _swipe(), 510 - _swipe() * 1.5), 90), [], "not yet a whole swipe further")
+    assert_eq(_drag(Vector2(500 + 3 * _swipe(), 510 - _swipe()), 80), [], "one tile per swipe, however long")
     assert_eq(_up(Vector2(500, 500), 100), [], "lifting after a swipe does nothing")
 
 
-func test_holding_after_a_swipe_keeps_walking_while_the_path_is_short() -> void:
+func test_holding_after_a_swipe_doesnt_walk_on_and_the_next_swipe_steps_again() -> void:
     _down(Vector2(500, 500), 0)
     _drag(Vector2(500, 500 + _swipe()), 50)
-    assert_eq(touch.update(50 + TouchInput.WALK_REPEAT_MSEC), [C.MOVE_DOWN])
-    touch.context.path = 3
-    assert_eq(touch.update(50 + 3 * TouchInput.WALK_REPEAT_MSEC), [], "steps still queued: wait")
-    _up(Vector2(500, 500 + _swipe()), 500)
-    touch.context.path = 0
-    assert_eq(touch.update(800), [], "the finger is up")
+    assert_eq(touch.update(2000), [], "the finger stays down: no more steps")
+    _up(Vector2(500, 500 + _swipe()), 2100)
+    _down(Vector2(500, 500), 2200)
+    assert_eq(_drag(Vector2(500, 500 + _swipe()), 2250), [C.MOVE_DOWN])
 
 
 func test_a_tap_interacts_at_once() -> void:

@@ -251,7 +251,7 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 
 The web build plays on a phone, to share a link at a party: no app. On a phone or tablet browser (`LocalInput.touch_platform()`), **one finger** plays, so the other hand can hold a beer (`TouchInput`):
 
-- **swipe** (a tenth of the screen's height, 0.3.1): one step that way; keep the finger down at the end of the swipe and the player keeps walking that way. In a station menu, one swipe moves the selection by one option, whatever the finger does next (the menu's bubble lists its gestures: glisser, toucher, maintenir);
+- **swipe** (a tenth of the screen's height, 0.3.1): **one tile per swipe** (0.3.6, for fine control), however long the swipe or however long the finger stays down; in a station menu, one option (the menu's bubble lists its gestures: glisser, toucher, maintenir);
 - **tap**: interact;
 - **hold still**: interact held down, i.e. aim a beer or the BB gun (swipe meanwhile to change the target, lift to throw or fire); with a station menu open, holding closes it;
 - **double tap**: eat or drink. Only while holding something edible does a tap wait 0.18 s for a second one; otherwise it acts at once.

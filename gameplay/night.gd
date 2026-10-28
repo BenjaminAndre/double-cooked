@@ -487,8 +487,7 @@ func _update_touch() -> void:
     if not touch or _local_slots.is_empty() or _local_slots[0] >= simulation.players.size():
         return
     var player := simulation.players[_local_slots[0]]
-    _touch.context = {"menu": player.menu != SimLevel.NONE, "edible": Menu.edible(player.item),
-            "path": player.path.size()}
+    _touch.context = {"menu": player.menu != SimLevel.NONE, "edible": Menu.edible(player.item)}
     for command in _touch.update(Time.get_ticks_msec()):
         submit(0, command)
 
