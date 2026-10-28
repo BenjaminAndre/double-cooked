@@ -4,8 +4,9 @@ extends RefCounted
 ## a baguette; with one in hand, a player fills it, in any order, still one item in the hand:
 ## - a burger: a steak, taken from a CUISSON VIANDE in the green; with salad and tomato from
 ##   VIANDES it is a burger complet;
-## - a mitraillette: a meat (fricadelle, warm cervelas or brochette) taken from a CUISSON VIANDE
-##   in the green, and a portion of fries taken from CUISSON 2 in the green.
+## - a mitraillette: a meat (fricadelle or grizzly, the artist's DLC 1) taken from a CUISSON VIANDE
+##   in the green, and a portion of fries taken from CUISSON 2 in the green; with salad and
+##   tomato from VIANDES, it is a mitraillette crudités. It always takes a sauce.
 ## SAUCES adds a sauce to either. The other way round works too: holding a good meat (or fries,
 ## for a baguette), PAIN wraps it in the bread chosen.
 
@@ -14,11 +15,17 @@ const BREADS: Array[StringName] = [Menu.BUN, Menu.BAGUETTE]
 const BURGER := &"burger"
 const BURGER_COMPLET := &"burger_complet"
 const MITRAILLETTE := &"mitraillette"
-const DISHES: Array[StringName] = [BURGER, BURGER_COMPLET, MITRAILLETTE]
+const MITRAILLETTE_CRUDITES := &"mitraillette_crudites"
+const MITRAILLETTE_GRIZZLY := &"mitraillette_grizzly"
+const MITRAILLETTE_GRIZZLY_CRUDITES := &"mitraillette_grizzly_crudites"
+const MITRAILLETTES: Array[StringName] = [MITRAILLETTE, MITRAILLETTE_CRUDITES, MITRAILLETTE_GRIZZLY,
+        MITRAILLETTE_GRIZZLY_CRUDITES]
+const DISHES: Array[StringName] = [BURGER, BURGER_COMPLET, MITRAILLETTE, MITRAILLETTE_CRUDITES,
+        MITRAILLETTE_GRIZZLY, MITRAILLETTE_GRIZZLY_CRUDITES]
 ## The cooked meats each bread takes.
 const FILLINGS := {
     Menu.BUN: [Menu.STEAK],
-    Menu.BAGUETTE: [Menu.FRICADELLE, Menu.CERVELAS_WARM, Menu.BROCHETTE],
+    Menu.BAGUETTE: [Menu.FRICADELLE, Menu.GRIZZLY],
 }
 
 
@@ -36,9 +43,10 @@ static func takes_fries(bread: SimItem) -> bool:
     return is_bread(bread) and bread.kind == Menu.BAGUETTE and bread.fries == null
 
 
-## Whether VIANDES can add salad and tomato: a bun without them yet.
+## Whether VIANDES can add salad and tomato: a bread without them yet (whether tonight's menu
+## wants them is Menu.veg_on_menu).
 static func takes_veg(bread: SimItem) -> bool:
-    return is_bread(bread) and bread.kind == Menu.BUN and not bread.veg
+    return is_bread(bread) and not bread.veg
 
 
 ## PAIN with something in hand: the chosen bread around it, null if it doesn't go in.
@@ -63,7 +71,10 @@ static func dish(bread: SimItem) -> StringName:
                 return BURGER_COMPLET if bread.veg else BURGER
         Menu.BAGUETTE:
             if bread.filling and bread.fries:
-                return MITRAILLETTE
+                var grizzly := bread.filling.kind == Menu.GRIZZLY
+                if bread.veg:
+                    return MITRAILLETTE_GRIZZLY_CRUDITES if grizzly else MITRAILLETTE_CRUDITES
+                return MITRAILLETTE_GRIZZLY if grizzly else MITRAILLETTE
     return &""
 
 

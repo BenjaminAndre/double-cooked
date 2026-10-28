@@ -56,9 +56,9 @@ func test_the_boss_comes_now_and_the_line_fills_up() -> void:
 func test_the_fridge_fills_up() -> void:
     var scenario := Scenario.new(level, [fryer], 0, rules)
     var sim := scenario.run_until(1)
-    sim.stations[2].beers = 0
+    sim.stations[2].stock[Menu.BEER] = 0
     scenario.at(1, 0, Simulation.debug_command(Tool.FRIDGE)).run_until(2)
-    assert_eq(sim.stations[2].beers, rules.fridge_beers)
+    assert_eq(sim.stations[2].left(Menu.BEER), rules.fridge_beers)
 
 
 func test_a_fire_starts_where_the_player_stands_or_at_the_first_fryer_and_goes_out() -> void:

@@ -89,7 +89,7 @@ func _show_cursors(sim: Simulation) -> void:
 
 ## A beer flies as a Jupiler, what customers throw as a folded can.
 func _new_can(projectile: SimProjectile) -> Node3D:
-    var can := CanModels.beer(CanModels.FLIGHT_SCALE) if projectile.kind == SimProjectile.BEER \
+    var can := CanModels.drink(projectile.drink, CanModels.FLIGHT_SCALE) if projectile.kind == SimProjectile.BEER \
             else CanModels.folded(CanModels.FLIGHT_SCALE)
     add_child(can)
     return can

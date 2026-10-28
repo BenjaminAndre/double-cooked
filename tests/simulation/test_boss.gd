@@ -89,7 +89,7 @@ func test_his_drink_is_served_at_the_counter_or_thrown() -> void:
     assert_eq(boss.results[0], SimCrowd.Result.WAITING, "a drink isn't his order")
     boss.drink = Menu.BEER
     var events: Array[Dictionary] = []
-    sim.crowd.give_beer(0, 0, events)
+    sim.crowd.give_drink(0, Menu.BEER, 0, events)
     assert_eq(boss.drink, &"", "a thrown beer counts")
     assert_eq(events[0].type, &"boss_drank")
 

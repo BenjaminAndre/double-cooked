@@ -38,6 +38,10 @@ const ITEMS := {
     Menu.STEAK: ["ViandeBurger_Cooked", Color.WHITE],
     Menu.STEAK_UNDERCOOKED: ["ViandeBurger_Raw", WASHED],
     Menu.STEAK_BURNT: ["ViandeBurger_Burned", Color.WHITE],
+    Menu.GRIZZLY_RAW: ["Grizzly_Raw", Color.WHITE],
+    Menu.GRIZZLY: ["Grizzly_Cooked", Color.WHITE],
+    Menu.GRIZZLY_UNDERCOOKED: ["Grizzly_Raw", WASHED],
+    Menu.GRIZZLY_BURNT: ["Grizzly_Burned", Color.WHITE],
     Menu.BUN: ["PainBurger", Color.WHITE],
     Menu.BAGUETTE: ["Baguette", Color.WHITE],
     # The dishes in a bread, and the salad and tomato of a burger complet.
@@ -46,10 +50,13 @@ const ITEMS := {
     LEGUMES: ["SaladeTomate", Color.WHITE],
     Menu.COLA: ["Coca", Color.WHITE],
     Menu.BEER: ["Jupiler", Color.WHITE],
+    Menu.MAES: ["Maes", Color.WHITE],
+    Menu.SPRITE: ["Sprite", Color.WHITE],
     Simulation.EXTINGUISHER: ["Extincteur", Color.WHITE],
     Menu.MAYO: ["Sauce_Mayo", Color.WHITE],
     Menu.ANDALOUSE: ["Sauce_Andalouse", Color.WHITE],
     Menu.KETCHUP: ["Sauce_Ketchup", Color.WHITE],
+    Menu.RICHE: ["Sauce_Riche", Color.WHITE],
 }
 ## Dishes as ordered (Menu.order_key) -> the item that serves them.
 const DISHES := {
@@ -59,15 +66,20 @@ const DISHES := {
     &"cervelas_chaud": Menu.CERVELAS_WARM,
     &"boulette": Menu.BOULETTE,
     &"brochette": Menu.BROCHETTE,
+    &"grizzly": Menu.GRIZZLY,
     &"burger": &"burger",
     &"mitraillette": &"mitraillette",
     Menu.COLA: Menu.COLA,
     Menu.BEER: Menu.BEER,
+    Menu.MAES: Menu.MAES,
+    Menu.SPRITE: Menu.SPRITE,
 }
 
 
 ## The picture of an item kind or sauce, null if there is none.
 static func picture(kind: StringName) -> Texture2D:
+    if String(kind).begins_with("mitraillette"):
+        return load(PATH % mitraillette(kind))
     if kind == Simulation.GUN:
         return _gun()
     return load(PATH % ITEMS[kind][0]) if ITEMS.has(kind) else null
@@ -95,6 +107,9 @@ static func tint(kind: StringName) -> Color:
 ## An order line (Menu.order_key) as the kinds to draw: the dish, then its sauce unless nature.
 static func order(key: StringName) -> Array[StringName]:
     var parts := String(key).split(":")
+    # A mitraillette's picture has its sauce and crudités in it.
+    if StringName(parts[0]) in Recipes.MITRAILLETTES:
+        return [key]
     var kinds: Array[StringName] = [DISHES.get(StringName(parts[0]), StringName(parts[0]))]
     if parts[0] == "burger_complet":
         kinds = [&"burger", LEGUMES]
@@ -108,12 +123,13 @@ static func order(key: StringName) -> Array[StringName]:
 static func held(item: SimItem) -> Array[StringName]:
     if not Recipes.is_bread(item):
         return [item.kind]
+    # A mitraillette's picture has its sauce and crudités in it.
+    if Recipes.dish(item) in Recipes.MITRAILLETTES:
+        return [Menu.order_key(item)]
     var kinds: Array[StringName] = []
     match Recipes.dish(item):
         Recipes.BURGER, Recipes.BURGER_COMPLET:
             kinds.append(&"burger")
-        Recipes.MITRAILLETTE:
-            kinds.append(&"mitraillette")
         _:
             kinds.append(item.kind)
             for part: SimItem in [item.filling, item.fries]:
@@ -122,3 +138,19 @@ static func held(item: SimItem) -> Array[StringName]:
     if item.veg:
         kinds.append(LEGUMES)
     return kinds
+
+
+## The artist's picture of a mitraillette (DLC 1), from its order key or dish: fricadelle or
+## grizzly, with or without crudités, and its sauce (mayo, the plain picture, when none yet).
+static func mitraillette(key: StringName) -> String:
+    var parts := String(key).split(":")
+    var dish := parts[0]
+    var name := "Mitraillette"
+    if dish.contains("grizzly"):
+        name += "Grizzly"
+    if dish.contains("crudites"):
+        name += "Crudités"
+    var sauce := parts[1] if parts.size() > 1 else ""
+    if sauce in [String(Menu.ANDALOUSE), String(Menu.KETCHUP), String(Menu.RICHE)]:
+        name += "_" + sauce.capitalize()
+    return name

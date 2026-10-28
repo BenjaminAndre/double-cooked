@@ -176,9 +176,9 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
   - **frites** with a sauce;
   - **fricadelle** (raw from VIANDES, fried once in a CUISSON VIANDE) with a sauce;
   - **cervelas**: served **cold** straight from VIANDES, or **warm** after a fry in a CUISSON VIANDE, with a sauce;
-  - **cola** or **bière** from the FRIGO. Colas never run out; the FRIGO holds **5 beers** and gets one back every **12 s** (the artist's figure, 0.2.27; shown over it and in its menu), so beers are a shared, scarce resource for orders, gifts, rescues and healing (after the fourth playtest: one player was spending the night gifting beers).
-- **boulette** and **brochette**, raw from VIANDES and fried in a CUISSON VIANDE like the fricadelle.
-- The sauces are **mayo**, **andalouse** and **ketchup**, or **nature** (no sauce), which customers order too. A campaign night only has part of the menu (§4.2).
+  - drinks from the FRIGO: **cola**, **Sprite**, **bière** (Jupiler) and **Maes** (the last two the artist's DLC 1, 0.3.12). **Every drink is stocked and limited** (the user, 0.3.12: "any drink throwable, and therefore limited"): the FRIGO holds **5 of each** and gets one back every **12 s**, the drink with the fewest left first (counts in its menu; the Jupiler and Maes cans show on its shelves). Drinks are a shared, scarce resource for orders, gifts, rescues and healing. **Any drink can be thrown** like a beer (§8): to the customer who ordered it, it serves them; to another, it is a gift; a teammate drinks it.
+- **boulette**, **brochette** and the **grizzly** (the artist's DLC 1), raw from VIANDES and fried in a CUISSON VIANDE like the fricadelle.
+- The sauces are **mayo**, **andalouse**, **ketchup** and **riche** (DLC 1), or **nature** (no sauce), which customers order too (never on a mitraillette). A campaign night only has part of the menu (§4.2).
 - Nothing with sauce goes into a fryer.
 - A CUISSON VIANDE lifts meats with the same window as the fries' second fry: too early gives undercooked (fricadelle) or lukewarm (cervelas), too late gives burnt. Both are served at a mood penalty.
 - Later: samouraï and other sauces, a menu board in the kitchen as in Cat Cafe.
@@ -186,10 +186,10 @@ Fries go through a first fry at CUISSON 1, in **batches of 5 portions**, then a 
 ### 7.3 Breads (the artist's recipes, 0.2.28)
 - **PAIN** hands out a **burger bun** or a **baguette** (its menu). A bread is one item in the hand, filled **in any order**:
   - **burger**: a bun and a **steak** (raw from VIANDES, fried in a CUISSON VIANDE). Holding the bun at the CUISSON VIANDE takes the steak **only in the green**; too early or burnt, it doesn't go in. At VIANDES, the bun gets **salad and tomato**: a **burger complet**.
-  - **mitraillette**: a baguette, a meat (fricadelle, warm cervelas or brochette) taken from a CUISSON VIANDE in the green, and a portion of fries taken from CUISSON 2 in the green.
+  - **mitraillette**: a baguette, a meat (**fricadelle** or **grizzly**, the artist's 16 pictures since DLC 1: cervelas and brochette no longer go in) taken from a CUISSON VIANDE in the green, and a portion of fries taken from CUISSON 2 in the green; with salad and tomato from VIANDES it is a **mitraillette crudités**. It **always takes a sauce**.
   - SAUCES puts its sauce on either. The other way round works too: holding a good steak, meat or portion of fries, PAIN wraps the chosen bread around it.
-- Customers order "burger", "burger complet" or "mitraillette" (whatever its meat), with a sauce or nature, and wait **30% longer** for them. A half-made bread is no dish: the CAISSE refuses it.
-- In a campaign they come in the second week: burger on the 9th night, burger complet on the 10th, mitraillette on the 11th.
+- Customers order "burger" or "burger complet" (a sauce or nature), or one of the four mitraillettes (fricadelle or grizzly, crudités or not, always with a sauce), and wait **30% longer** for them. A half-made bread is no dish: the CAISSE refuses it.
+- In a campaign they come in the second week: burger on the 9th night, burger complet on the 10th, mitraillette on the 11th, the grizzly and its mitraillette on the 12th, the crudités mitraillettes on the 13th. (DLC 1 also brings Maes on the 1st night, Sprite on the 2nd, riche on the 6th.)
 
 ## 8. Hazards
 

@@ -9,6 +9,8 @@ const HINT_FONT := 20
 const KEY_FONT := 18
 ## Kept this far from the screen edges.
 const MARGIN := 8.0
+## Bubbles and menus stay below the HUD's buttons (sound, exit) in the top left corner.
+const TOP := 84.0
 ## A colour swatch in a menu, and how faded a greyed-out option is.
 const SWATCH := 36
 ## A picture option, e.g. a character's face or a sauce.
@@ -146,7 +148,7 @@ func place(bottom_centre: Vector2) -> void:
     scale = Vector2.ONE * ArtUi.ui_scale
     var shown := size * ArtUi.ui_scale
     var at := bottom_centre - Vector2(shown.x / 2, shown.y)
-    position = at.clamp(Vector2.ONE * MARGIN, (screen - shown - Vector2.ONE * MARGIN).max(Vector2.ZERO))
+    position = at.clamp(Vector2(MARGIN, TOP), (screen - shown - Vector2.ONE * MARGIN).max(Vector2(MARGIN, TOP)))
 
 
 func _label(text: String, font_size: int) -> Label:

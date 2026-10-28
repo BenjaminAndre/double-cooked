@@ -9,13 +9,21 @@ extends RefCounted
 const MAYO := &"mayo"
 const ANDALOUSE := &"andalouse"
 const KETCHUP := &"ketchup"
+## The artist's sauce riche (DLC 1).
+const RICHE := &"riche"
 ## No sauce, which customers ask for too.
 const NATURE := &"nature"
-const SAUCES: Array[StringName] = [MAYO, ANDALOUSE, KETCHUP]
+const SAUCES: Array[StringName] = [MAYO, ANDALOUSE, KETCHUP, RICHE]
 
 const COLA := &"cola"
+## The Jupiler.
 const BEER := &"biere"
-const DRINKS: Array[StringName] = [COLA, BEER]
+## The artist's DLC 1: a second beer and a second soda, working like the first ones.
+const MAES := &"maes"
+const SPRITE := &"sprite"
+## Every drink is stocked in the FRIGO and can be thrown (GDD §7.2).
+const DRINKS: Array[StringName] = [COLA, BEER, MAES, SPRITE]
+const BEERS: Array[StringName] = [BEER, MAES]
 
 ## Cold, straight from VIANDES; fried in CUISSON 2 it becomes a warm one.
 const CERVELAS := &"cervelas"
@@ -40,12 +48,17 @@ const STEAK_RAW := &"steak_cru"
 const STEAK := &"steak"
 const STEAK_UNDERCOOKED := &"steak_pas_cuit"
 const STEAK_BURNT := &"steak_brule"
+## The artist's grizzly (DLC 1), fried in a CUISSON VIANDE from raw.
+const GRIZZLY_RAW := &"grizzly_cru"
+const GRIZZLY := &"grizzly"
+const GRIZZLY_UNDERCOOKED := &"grizzly_pas_cuit"
+const GRIZZLY_BURNT := &"grizzly_brule"
 ## The breads PAIN hands out (Recipes).
 const BUN := &"pain_burger"
 const BAGUETTE := &"baguette"
 const BREADS: Array[StringName] = [BUN, BAGUETTE]
 ## What VIANDES hands out, the most common first.
-const MEATS: Array[StringName] = [CERVELAS, FRICADELLE_RAW, BOULETTE_RAW, BROCHETTE_RAW, STEAK_RAW]
+const MEATS: Array[StringName] = [CERVELAS, FRICADELLE_RAW, BOULETTE_RAW, BROCHETTE_RAW, STEAK_RAW, GRIZZLY_RAW]
 
 ## The lobby's TÉLÉPHONE: play online or on this keyboard (GDD §4.1).
 const PHONE_HOST := &"creer"
@@ -91,6 +104,7 @@ const SECOND_FRY := {
     BOULETTE_RAW: [BOULETTE_UNDERCOOKED, BOULETTE, BOULETTE_BURNT],
     BROCHETTE_RAW: [BROCHETTE_UNDERCOOKED, BROCHETTE, BROCHETTE_BURNT],
     STEAK_RAW: [STEAK_UNDERCOOKED, STEAK, STEAK_BURNT],
+    GRIZZLY_RAW: [GRIZZLY_UNDERCOOKED, GRIZZLY, GRIZZLY_BURNT],
 }
 
 ## Servable items: [the dish they count as, whether they were done right].
@@ -115,31 +129,40 @@ const DISHES := {
     STEAK: [&"steak", true],
     STEAK_UNDERCOOKED: [&"steak", false],
     STEAK_BURNT: [&"steak", false],
+    GRIZZLY: [&"grizzly", true],
+    GRIZZLY_UNDERCOOKED: [&"grizzly", false],
+    GRIZZLY_BURNT: [&"grizzly", false],
     COLA: [COLA, true],
     BEER: [BEER, true],
+    MAES: [MAES, true],
+    SPRITE: [SPRITE, true],
 }
 
 ## The dishes an order line can ask for, per category.
 const FRIES_DISHES: Array[StringName] = [&"frites"]
 const MEAT_DISHES: Array[StringName] = [&"fricadelle", &"cervelas_froid", &"cervelas_chaud", &"boulette",
-        &"brochette"]
+        &"brochette", &"grizzly"]
 ## The dishes a CUISSON VIANDE cooks.
 const COOKED_MEATS: Array[StringName] = [&"cervelas_chaud", &"fricadelle", &"boulette", &"brochette",
-        &"burger", &"burger_complet", &"mitraillette"]
+        &"grizzly", &"burger", &"burger_complet", &"mitraillette", &"mitraillette_crudites", &"mitraillette_grizzly",
+        &"mitraillette_grizzly_crudites"]
 ## Which dish each raw meat from VIANDES leads to.
 const MEAT_FOR := {
     CERVELAS: [&"cervelas_froid", &"cervelas_chaud"],
-    FRICADELLE_RAW: [&"fricadelle"],
+    FRICADELLE_RAW: [&"fricadelle", &"mitraillette", &"mitraillette_crudites"],
     BOULETTE_RAW: [&"boulette"],
     BROCHETTE_RAW: [&"brochette"],
     STEAK_RAW: [&"burger", &"burger_complet"],
+    GRIZZLY_RAW: [&"grizzly", &"mitraillette_grizzly", &"mitraillette_grizzly_crudites"],
 }
 ## The dishes in a bread (Recipes.DISHES), ordered like the meats.
-const BREAD_DISHES: Array[StringName] = [&"burger", &"burger_complet", &"mitraillette"]
+const BREAD_DISHES: Array[StringName] = [&"burger", &"burger_complet", &"mitraillette", &"mitraillette_crudites",
+        &"mitraillette_grizzly", &"mitraillette_grizzly_crudites"]
 ## Everything a menu can hold (see SimRules.menu): dishes, sauces and drinks, as ordered.
-const FULL_MENU: Array[StringName] = [&"frites", NATURE, MAYO, ANDALOUSE, KETCHUP, &"cervelas_froid",
-        &"fricadelle", COLA, BEER, &"cervelas_chaud", &"boulette", &"brochette", &"burger", &"burger_complet",
-        &"mitraillette"]
+const FULL_MENU: Array[StringName] = [&"frites", NATURE, MAYO, ANDALOUSE, KETCHUP, RICHE, &"cervelas_froid",
+        &"fricadelle", COLA, BEER, MAES, SPRITE, &"cervelas_chaud", &"boulette", &"brochette", &"grizzly", &"burger",
+        &"burger_complet", &"mitraillette", &"mitraillette_crudites", &"mitraillette_grizzly",
+        &"mitraillette_grizzly_crudites"]
 
 
 ## Whether SAUCES can go on this item: a servable food or a bread, without a sauce yet.
@@ -190,8 +213,12 @@ static func random_order(rng: RandomNumberGenerator, category_weights: PackedFlo
     return drinks[rng.randi_range(0, drinks.size() - 1)]
 
 
+## A mitraillette always has a sauce (the artist's, DLC 1): never nature.
 static func _with_sauce(dish: StringName, rng: RandomNumberGenerator, menu: Array[StringName]) -> StringName:
-    var sauces := [NATURE] + SAUCES.filter(func(sauce: StringName) -> bool: return sauce in menu)
+    var sauces := ([] if dish in Recipes.MITRAILLETTES else [NATURE]) \
+            + SAUCES.filter(func(sauce: StringName) -> bool: return sauce in menu)
+    if sauces.is_empty():
+        sauces = [MAYO]
     return StringName("%s:%s" % [dish, sauces[rng.randi_range(0, sauces.size() - 1)]])
 
 
@@ -214,7 +241,14 @@ static func options(kind: StringName, menu: Array[StringName] = FULL_MENU) -> Ar
 static func _bread_needed(bread: StringName, menu: Array[StringName]) -> bool:
     if bread == BUN:
         return &"burger" in menu or &"burger_complet" in menu
-    return &"mitraillette" in menu
+    return Recipes.MITRAILLETTES.any(func(dish: StringName) -> bool: return dish in menu)
+
+
+## Whether tonight's menu has a dish with salad and tomato in this bread (VIANDES adds them).
+static func veg_on_menu(bread: StringName, menu: Array[StringName]) -> bool:
+    if bread == BUN:
+        return &"burger_complet" in menu
+    return &"mitraillette_crudites" in menu or &"mitraillette_grizzly_crudites" in menu
 
 
 ## Whether a station has anything to do tonight; one that hasn't is greyed out and does nothing

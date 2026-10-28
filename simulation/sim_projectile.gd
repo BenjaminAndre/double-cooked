@@ -21,6 +21,8 @@ var duration: int
 var by := -1
 ## A beer thrown to a teammate: their slot; -1 for one thrown to the line.
 var at_player := -1
+## A drink thrown (DLC 1: any drink): which one, the Jupiler for older replays.
+var drink := &"biere"
 
 
 func _init(p_kind: StringName, p_from: Vector3, p_to: Vector3, p_start: int, p_duration: int) -> void:
@@ -43,4 +45,4 @@ func position_at(tick: float) -> Vector3:
 
 
 func fingerprint() -> Array:
-    return [kind, from, to, start, duration, by, at_player]
+    return [kind, from, to, start, duration, by, at_player, drink]

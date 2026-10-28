@@ -37,12 +37,12 @@ func test_the_fridge_breakdown_stops_the_beers_coming_back() -> void:
     assert_eq(started.size(), 1)
     assert_eq(started[0].tick, 500, "an eighth of the night in")
     # Emptied just as it breaks down.
-    sim.stations[0].beers = 0
+    sim.stations[0].stock[Menu.BEER] = 0
     var beers := 0
     scenario.run_until(500 + rules.fridge_breakdown)
-    assert_eq(sim.stations[0].beers, beers, "none came back while broken")
+    assert_eq(sim.stations[0].left(Menu.BEER), beers, "none came back while broken")
     scenario.run_until(500 + rules.fridge_breakdown + 20)
-    assert_gt(sim.stations[0].beers, beers, "working again")
+    assert_gt(sim.stations[0].left(Menu.BEER), beers, "working again")
 
 
 func test_the_diables_rouges_bring_a_rush_in_a_hurry() -> void:
@@ -113,10 +113,10 @@ func test_while_the_colleagues_come_the_fridge_restocks_twice_as_fast() -> void:
     rules.fridge_restock = 100
     var scenario := Scenario.new(level, [fridge], 1, rules)
     var sim := scenario.run_until(501)
-    sim.stations[0].beers = 0
+    sim.stations[0].stock[Menu.BEER] = 0
     sim.stations[0].restock = 0
     scenario.run_until(601)
-    assert_eq(sim.stations[0].beers, 2, "two in the time of one")
+    assert_eq(sim.stations[0].left(Menu.BEER), 2, "two in the time of one")
 
 
 ## An item that serves this order line, done right.

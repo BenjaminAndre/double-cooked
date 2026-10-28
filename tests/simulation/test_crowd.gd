@@ -96,7 +96,7 @@ func test_anything_badly_done_sends_them_off_angry() -> void:
 
 func test_the_wrong_order_is_refused_and_costs_patience() -> void:
     for served in [_item(Fryer.FRIES_GOOD, Menu.ANDALOUSE), _item(Fryer.FRIES_GOOD, &""),
-            _item(Menu.CERVELAS, Menu.MAYO), _item(Menu.COLA, &"")]:
+            _item(Menu.CERVELAS, Menu.MAYO)]:
         var scenario := _scenario()
         var sim := _with_order(scenario, &"frites:mayo")
         var patience := sim.crowd.front().patience

@@ -83,7 +83,8 @@ func show_player(item: SimItem, health: int, status: String, status_color := Col
         child.free()
     for kind in kinds.slice(1):
         _extras.add_child(ArtUi.picture(ItemIcons.picture(kind), SAUCE_SIZE, ItemIcons.tint(kind)))
-    var sauce := ItemIcons.picture(item.sauce) if item.sauce != &"" else null
+    # A mitraillette's picture already has its sauce.
+    var sauce := ItemIcons.picture(item.sauce) if item.sauce != &"" and not String(kinds[0]).begins_with("mitraillette") else null
     _sauce.visible = sauce != null
     _sauce.texture = sauce
     # Items the artist hasn't drawn yet show their name; batches their portions.

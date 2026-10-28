@@ -148,6 +148,7 @@ func test_sauces_only_open_for_a_food_without_sauce() -> void:
 func test_the_menu_opens_on_its_first_option_and_grows_to_the_right_then_left() -> void:
     var rules := SimRules.new()
     rules.menu.erase(Menu.KETCHUP)
+    rules.menu.erase(Menu.RICHE)
     var scenario := Scenario.new(level, [sauces], 0, rules)
     var player := scenario.simulation.players[0]
     player.item = SimItem.new(Fryer.FRIES_GOOD)

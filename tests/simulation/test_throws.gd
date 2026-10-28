@@ -192,3 +192,22 @@ func test_without_a_culprit_the_can_goes_to_the_player_nearest_the_counter() -> 
     scenario.run_until(sim.tick + 2)
     var thrown := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"can_thrown")
     assert_eq(thrown[0].at, 1, "slot 1 stands nearer the counter")
+
+
+func test_any_drink_can_be_thrown_a_sprite_serves_a_sprite_order_and_a_maes_is_a_gift() -> void:
+    # The artist's DLC 1: every drink is stocked, so every drink can be thrown.
+    var scenario := _with_line(["frites:mayo", "sprite"])
+    var sim := scenario.simulation
+    sim.players[0].item = SimItem.new(Menu.SPRITE)
+    var start := sim.tick
+    scenario.at(start, 0, C.INTERACT).at(start, 0, C.MOVE_RIGHT) \
+            .at(start + rules.aim_hold + 1, 0, C.RELEASE)
+    scenario.run_until(start + rules.aim_hold + rules.beer_flight + 3)
+    assert_eq(sim.stats.served, 1, "the Sprite drinker left happy")
+    var patience := sim.crowd.front().patience
+    sim.players[0].item = SimItem.new(Menu.MAES)
+    start = sim.tick
+    scenario.at(start, 0, C.INTERACT).at(start + rules.aim_hold + 1, 0, C.RELEASE)
+    scenario.run_until(start + rules.aim_hold + rules.beer_flight + 3)
+    assert_eq(sim.stats.beers, 1, "a gift to the fries customer")
+    assert_gt(sim.crowd.front().patience, patience - (rules.aim_hold + rules.beer_flight + 3) * rules.front_drain)

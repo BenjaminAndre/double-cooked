@@ -102,7 +102,8 @@ var moves_per_bmi := 25
 var fat_stages: Array[int] = [1, 3, 5]
 var fat_speeds: Array[float] = [0.95, 0.85, 0.7]
 
-## Beers in the FRIGO: it starts full and gets one back every fridge_restock ticks.
+## Each drink in the FRIGO (DLC 1: every drink is stocked): it starts with fridge_beers of each,
+## and gets one back every fridge_restock ticks (the drink with the fewest left first).
 var fridge_beers := 5
 var fridge_restock := 12 * SECOND
 

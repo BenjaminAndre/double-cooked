@@ -95,13 +95,25 @@ func test_the_fridge_runs_out_of_beers_and_restocks_slowly() -> void:
             assert_eq(player.item.kind, Menu.BEER)
             player.item = null
     assert_null(player.item, "the third beer isn't there")
-    assert_eq(sim.stations[2].beers, 0)
+    assert_eq(sim.stations[2].left(Menu.BEER), 0)
     scenario.run_until(sim.tick + rules.fridge_restock)
-    assert_eq(sim.stations[2].beers, 1, "one came back")
+    assert_eq(sim.stations[2].left(Menu.BEER), 1, "one came back, the drink with the fewest left")
 
 
-func test_colas_never_run_out() -> void:
+func test_every_drink_runs_out_like_the_beer() -> void:
     var rules := SimRules.new()
     rules.fridge_beers = 0
     var sim := Scenario.new(level, [fridge], 0, rules).at(0, 0, INTERACT).at(1, 0, INTERACT).run_until(2)
-    assert_eq(sim.players[0].item.kind, Menu.COLA)
+    assert_null(sim.players[0].item, "no cola left either (the artist's DLC 1: every drink is stocked)")
+
+
+func test_the_drink_with_the_fewest_left_comes_back_first() -> void:
+    var rules := SimRules.new()
+    var sim := Scenario.new(level, [fridge], 0, rules).run_until(1)
+    var frigo := sim.stations[2]
+    frigo.stock[Menu.MAES] = 1
+    frigo.stock[Menu.SPRITE] = 3
+    frigo.restock = rules.fridge_restock - 1
+    sim.step([[]])
+    assert_eq(frigo.left(Menu.MAES), 2, "the Maes before the Sprite")
+    assert_eq(frigo.left(Menu.SPRITE), 3)

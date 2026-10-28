@@ -26,7 +26,7 @@ func before_each() -> void:
 
 
 func test_the_menu_grows_night_after_night() -> void:
-    assert_eq(Campaign.menu_for(1), [&"frites", Menu.NATURE, Menu.BEER] as Array[StringName])
+    assert_eq(Campaign.menu_for(1), [&"frites", Menu.NATURE, Menu.BEER, Menu.MAES] as Array[StringName])
     assert_false(Menu.COLA in Campaign.menu_for(1))
     assert_true(Menu.MAYO in Campaign.menu_for(2))
     assert_true(Menu.COLA in Campaign.menu_for(2))
@@ -50,9 +50,10 @@ func test_the_first_night_only_orders_plain_fries_and_beer() -> void:
     var seen := {}
     for customer in sim.crowd.line:
         seen[customer.order] = true
-    assert_eq(seen.size(), 2)
+    assert_eq(seen.size(), 3)
     assert_true(seen.has(&"frites:nature"))
     assert_true(seen.has(Menu.BEER))
+    assert_true(seen.has(Menu.MAES), "the artist's second beer (DLC 1)")
 
 
 func test_each_night_brings_customers_faster() -> void:
@@ -75,8 +76,8 @@ func test_stations_only_offer_what_tonight_needs() -> void:
     assert_eq(Menu.options(&"viandes", Campaign.menu_for(3)), [Menu.CERVELAS])
     assert_eq(Menu.options(&"viandes", Campaign.menu_for(4)), [Menu.CERVELAS, Menu.FRICADELLE_RAW])
     assert_eq(Menu.options(&"sauces", Campaign.menu_for(2)), [Menu.MAYO, Menu.ANDALOUSE])
-    assert_eq(Menu.options(&"frigo", Campaign.menu_for(1)), [Menu.BEER], "a beer to crawl to from the start")
-    assert_eq(Menu.options(&"frigo", Campaign.menu_for(2)), [Menu.COLA, Menu.BEER])
+    assert_eq(Menu.options(&"frigo", Campaign.menu_for(1)), [Menu.BEER, Menu.MAES], "a beer to crawl to from the start")
+    assert_eq(Menu.options(&"frigo", Campaign.menu_for(2)), Menu.DRINKS)
     assert_false(Menu.station_in_use(&"pain", Campaign.menu_for(8)), "no bread before the second week")
     assert_true(Menu.station_in_use(&"caisse", Campaign.menu_for(1)))
 
@@ -111,7 +112,7 @@ func test_each_player_has_their_own_stats() -> void:
     var sim := scenario.run_until(2)
     sim.crowd.front().order = &"cola"
     sim.players[1].item = SimItem.new(Menu.COLA)
-    scenario.at(2, 1, INTERACT).run_until(3)
+    scenario.at(2, 1, INTERACT).at(2, 1, Simulation.Command.RELEASE).run_until(3)
     assert_eq(sim.stats.served_by, [0, 1])
     assert_eq(sim.stats.missed_by, [0, 0])
     var slot := sim.add_player(bread, -1, -1)
@@ -142,6 +143,7 @@ func test_a_knocked_out_player_can_drink_a_beer_from_the_first_night() -> void:
 func test_a_menu_with_nothing_in_it_never_opens() -> void:
     var rules := Campaign.rules_for(1)
     rules.menu.erase(Menu.BEER)
+    rules.menu.erase(Menu.MAES)
     var scenario := Scenario.new(level, [fridge], 1, rules)
     var player := scenario.simulation.players[0]
     player.health = 0

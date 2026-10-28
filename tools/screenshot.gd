@@ -142,6 +142,22 @@ func _initialize() -> void:
             var queue: CustomersView = game.get_node("Customers")
             for index in mini(3, line.size()):
                 queue.show_event({"type": [&"served", &"angry", &"beer_gift"][index], "id": line[index].id})
+        "dlc_menu":
+            # The artist's DLC 1 on the menu: the FRIGO's four drinks with their stock, a line of
+            # mitraillette and grizzly orders.
+            var sim := night.simulation
+            var player := sim.players[0]
+            sim.stations[sim.level.node_stations[sim.level.find("Frigo")]].stock[Menu.MAES] = 2
+            player.menu = sim.level.node_stations[player.node]
+            sim.rules.arrival_min = 10
+            sim.rules.arrival_max = 10
+            sim.crowd.next_arrival = 1
+            sim.rules.front_drain = 0
+            sim.rules.back_drain = 0
+            await create_timer(1.2).timeout
+            var orders := [&"mitraillette_grizzly_crudites:riche", &"mitraillette:andalouse", &"grizzly:ketchup"]
+            for index in mini(3, sim.crowd.line.size()):
+                sim.crowd.line[index].order = orders[index]
         "breads":
             # P1 at PAIN choosing a bread, P2 holding a burger complet; burger and mitraillette orders.
             night.play_local(2)

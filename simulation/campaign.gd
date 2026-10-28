@@ -30,17 +30,20 @@ const PIGEON_EVERY := Vector2i(25, 45)
 
 ## What each night adds to the menu (Menu.FULL_MENU), from the first.
 const UNLOCKS: Array = [
-    [&"frites", Menu.NATURE, Menu.BEER],
-    [Menu.MAYO, Menu.ANDALOUSE, Menu.COLA],
+    [&"frites", Menu.NATURE, Menu.BEER, Menu.MAES],
+    [Menu.MAYO, Menu.ANDALOUSE, Menu.COLA, Menu.SPRITE],
     [&"cervelas_froid"],
     [&"fricadelle"],
     [&"cervelas_chaud"],
-    [Menu.KETCHUP],
+    [Menu.KETCHUP, Menu.RICHE],
     [&"boulette"],
     [&"brochette"],
     [&"burger"],
     [&"burger_complet"],
     [&"mitraillette"],
+    # The artist's DLC 1.
+    [&"grizzly", &"mitraillette_grizzly"],
+    [&"mitraillette_crudites", &"mitraillette_grizzly_crudites"],
 ]
 
 

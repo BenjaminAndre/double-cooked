@@ -297,7 +297,7 @@ func _compare(sim: Simulation) -> void:
                 play(&"gauge_warning" if alert == CookingBubble.Alert.WARNING else &"gauge_alert")
         if station.burning:
             counts[&"fire_loop"] += 1
-        if station.kind == &"frigo" and station.beers > _beers[index]:
+        if station.kind == &"frigo" and _total(station) > _beers[index]:
             play(&"fridge_regen")
     for loop: StringName in LOOPS:
         _set_loop(loop, counts[loop])
@@ -316,7 +316,7 @@ func _picked(sim: Simulation, player: SimPlayer, item: SimItem) -> void:
     var kind := sim.stations[at].kind if at != SimLevel.NONE else &""
     if item.kind == Simulation.EXTINGUISHER:
         play(&"extinguisher_pickup")
-    elif item.kind == Menu.BEER:
+    elif item.kind in Menu.BEERS:
         play(&"beer_take", 120)
     elif item.kind in Menu.DRINKS:
         play(&"coke_take", 120)
@@ -336,7 +336,7 @@ func _eaten(slot: int) -> void:
     var was: StringName = _items[slot][0]
     if was in Menu.DRINKS:
         play(&"drink_gulp")
-        if was == Menu.BEER and randi() % 3 == 0:
+        if was in Menu.BEERS and randi() % 3 == 0:
             play(&"burp", 400)
     elif String(was).contains("brul"):
         play(&"eat_burnt")
@@ -404,7 +404,7 @@ func _remember(sim: Simulation) -> void:
     _beers.clear()
     for station in sim.stations:
         _frying.append(station.frying)
-        _beers.append(station.beers)
+        _beers.append(_total(station))
     _asleep.clear()
     for customer in sim.crowd.line:
         if customer.asleep > 0:
@@ -432,3 +432,11 @@ func _save_muted() -> void:
     config.load(night.looks_path)
     config.set_value("settings", "muted", muted)
     config.save(night.looks_path)
+
+
+## All the drinks left in a FRIGO.
+static func _total(station: SimStation) -> int:
+    var total := 0
+    for count: int in station.stock.values():
+        total += count
+    return total

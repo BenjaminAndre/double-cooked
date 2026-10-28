@@ -90,7 +90,8 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     for kind in level.station_kinds:
         stations.append(SimStation.new(kind))
         if kind == &"frigo":
-            stations[-1].beers = rules.fridge_beers
+            for drink in Menu.DRINKS:
+                stations[-1].stock[drink] = rules.fridge_beers
         stations[-1].gun = kind == &"caisse"
     var per_player := []
     per_player.resize(players.size())
@@ -170,13 +171,14 @@ func step(commands: Array) -> void:
         _advance(player)
     for station in stations:
         Fryer.advance(station)
-        # Broken down, the FRIGO gets no beer back.
-        if station.kind == &"frigo" and station.beers < rules.fridge_beers and night_events.fridge_down == 0:
+        # Broken down, the FRIGO gets nothing back.
+        var short := _shortest_drink(station) if station.kind == &"frigo" else &""
+        if short != &"" and night_events.fridge_down == 0:
             # Twice as fast while the colleagues are on their way.
             station.restock += 2 if night_events.group_coming > 0 else 1
             if station.restock >= rules.fridge_restock:
                 station.restock = 0
-                station.beers += 1
+                station.stock[short] += 1
     _advance_fires()
     _dry_grease()
     for player in players:
@@ -241,7 +243,7 @@ func _apply(player: SimPlayer, command: int) -> void:
         return
     if player.aim >= 0 and _use_aim(player, command):
         return
-    if command == Command.INTERACT and player.item and player.item.kind in [Menu.BEER, GUN] \
+    if command == Command.INTERACT and player.item and player.item.kind in Menu.DRINKS + [GUN] \
             and not player.down and player.menu == SimLevel.NONE:
         # Holding a beer or the gun: aim first; a quick release still uses the station (see
         # _use_aim).
@@ -298,10 +300,10 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
                 &"sauces":
                     player.item.sauce = option
                 &"frigo":
-                    if option == Menu.BEER:
-                        if station.beers == 0:
+                    if option in Menu.DRINKS:
+                        if station.left(option) == 0:
                             return true
-                        station.beers -= 1
+                        station.stock[option] -= 1
                     player.item = SimItem.new(option)
                 &"viandes":
                     player.item = SimItem.new(option)
@@ -358,7 +360,8 @@ func _debug(player: SimPlayer, tool: DebugTool, arg: int) -> void:
         DebugTool.FRIDGE:
             for station in stations:
                 if station.kind == &"frigo":
-                    station.beers = rules.fridge_beers
+                    for drink in Menu.DRINKS:
+                        station.stock[drink] = rules.fridge_beers
                     station.restock = 0
         DebugTool.FIRES_OUT:
             for index in stations.size():
@@ -488,7 +491,7 @@ func _use_aim(player: SimPlayer, command: int) -> bool:
 func _check_aim(player: SimPlayer) -> void:
     if player.aim < 0:
         return
-    if player.down or player.stun > 0 or not player.item or not player.item.kind in [Menu.BEER, GUN]:
+    if player.down or player.stun > 0 or not player.item or not player.item.kind in Menu.DRINKS + [GUN]:
         player.aim = -1
         player.aim_player = -1
     else:
@@ -504,6 +507,7 @@ func _throw_beer(player: SimPlayer, target: int, mate: int) -> void:
     var can := SimProjectile.new(SimProjectile.BEER, player_position(player) + Vector3.UP * THROW_HEIGHT,
             to, tick, rules.beer_flight)
     can.by = player.slot
+    can.drink = player.item.kind
     can.at_player = mate
     projectiles.append(can)
     player.item = null
@@ -518,7 +522,7 @@ func _beer_to_mate(can: SimProjectile) -> void:
         if player.slot == can.by or player_position(player).distance_to(landing) > rules.can_radius:
             continue
         if player.down:
-            player.item = SimItem.new(Menu.BEER)
+            player.item = SimItem.new(can.drink)
             _consume(player)
             events.append({"type": &"revived", "slot": player.slot, "by": can.by})
             return
@@ -583,7 +587,7 @@ func _advance_projectiles() -> void:
         elif can.kind == SimProjectile.BEER:
             var index := level.queue_index_at(can.to)
             if index >= 0 and index < crowd.line.size():
-                crowd.give_beer(index, can.by, events)
+                crowd.give_drink(index, can.drink, can.by, events)
             else:
                 events.append({"type": &"beer_missed"})
         else:
@@ -819,7 +823,7 @@ func _menu_action(station: SimStation, player: SimPlayer) -> StringName:
         &"frigo":
             return &"fridge" if not held else &""
         &"viandes":
-            if held and Recipes.takes_veg(held) and &"burger_complet" in rules.menu:
+            if held and Recipes.takes_veg(held) and Menu.veg_on_menu(held.kind, rules.menu):
                 return &"veg"
             return &"meat" if not held else &""
         &"pain":
@@ -1282,3 +1286,14 @@ func _clear_of_rubble(node: int) -> int:
                 next.append(neighbour)
         frontier = next
     return node
+
+
+## The FRIGO's drink on tonight's menu with the fewest left (the first in Menu.DRINKS on a tie),
+## &"" when they are all full: the next to come back.
+func _shortest_drink(station: SimStation) -> StringName:
+    var shortest := &""
+    for drink in Menu.DRINKS:
+        if drink in rules.menu and station.left(drink) < rules.fridge_beers \
+                and (shortest == &"" or station.left(drink) < station.left(shortest)):
+            shortest = drink
+    return shortest

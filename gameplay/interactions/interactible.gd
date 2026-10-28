@@ -35,6 +35,8 @@ var basket_model: Node3D
 var cooked_models: Array = []
 ## The FRIGO's beers, one shown per beer left (the artist's Beers01 to 05).
 var stock_models: Array = []
+## The FRIGO's Maes (the artist's BeersMaes01 to 05, DLC 1), one per Maes left.
+var maes_models: Array = []
 ## Whether the station writes its state over itself ("FEU !", "bière ×5"): not in a room with the
 ## artist's models, whose look says it.
 var state_text := true
@@ -90,7 +92,10 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     if station.burning:
         label = "FEU !"
     elif kind == &"frigo" and _in_use:
-        label = "bière ×%d" % station.beers + (" · en panne" if broken else "")
+        var drinks := 0
+        for count: int in station.stock.values():
+            drinks += count
+        label = "boissons ×%d" % drinks + (" · en panne" if broken else "")
     _show_label(label if state_text else "", station.burning)
     if frying:
         var window := Fryer.window(station)
@@ -111,7 +116,11 @@ func show_station(station: SimStation, rules: SimRules) -> void:
     for index in cooked_models.size():
         cooked_models[index].visible = index < left
     for index in stock_models.size():
-        stock_models[index].visible = index < station.beers
+        stock_models[index].visible = index < station.left(Menu.BEER)
+    # The Maes (DLC 1), once on the menu.
+    var maes := station.left(Menu.MAES) if Menu.MAES in rules.menu else 0
+    for index in maes_models.size():
+        maes_models[index].visible = index < maes
     _show_oil(frying)
     _show_flipbook(FIRE, station.burning, FIRE_HEIGHT, FIRE_SIZE)
 

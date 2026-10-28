@@ -2,6 +2,7 @@ extends GutTest
 ## The Nuit unique (GDD §4.3): a score attack whose pace follows the crew.
 
 const INTERACT := Simulation.Command.INTERACT
+const RELEASE := Simulation.Command.RELEASE
 const NEVER := 1 << 30
 
 var level: SimLevel
@@ -47,7 +48,7 @@ func test_the_pace_follows_the_crew_both_ways() -> void:
     var sim := scenario.run_until(2)
     sim.crowd.front().order = &"cola"
     sim.players[0].item = SimItem.new(Menu.COLA)
-    scenario.at(2, 0, INTERACT).run_until(3)
+    scenario.at(2, 0, INTERACT).at(2, 0, RELEASE).run_until(3)
     assert_almost_eq(sim.crowd.pace, 1.0 + rules.pace_up, 0.0001, "served: faster")
     # A walk-out slows it back down.
     sim.crowd.line.append(SimCrowd.Customer.new())
@@ -73,6 +74,6 @@ func test_the_campaign_scores_nothing() -> void:
     var sim := scenario.run_until(2)
     sim.crowd.front().order = &"cola"
     sim.players[0].item = SimItem.new(Menu.COLA)
-    scenario.at(2, 0, INTERACT).run_until(3)
+    scenario.at(2, 0, INTERACT).at(2, 0, RELEASE).run_until(3)
     assert_eq(sim.score(), 0)
     assert_eq(sim.crowd.pace, 1.0)

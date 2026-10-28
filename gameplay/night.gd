@@ -1001,8 +1001,8 @@ func _show(p_alpha: float) -> void:
                     hints.append(["Glisser haut" if touch else "Haut", "équipier"])
                 elif action == &"shoot":
                     hints.append(["Glisser" if touch else "Gauche/Droite", "cible"])
-            if player.item and player.item.kind == Menu.BEER and player.aim < 0 and not player.down:
-                # A beer can always be thrown: hold the key to aim at the line.
+            if player.item and player.item.kind in Menu.DRINKS and player.aim < 0 and not player.down:
+                # A drink can always be thrown: hold the key to aim at the line.
                 hints.append(_input.hold_hint(local_index, "lancer"))
             elif player.item and player.item.kind == Simulation.GUN and player.aim < 0 and not player.down:
                 hints.append(_input.hold_hint(local_index, "viser"))
@@ -1032,9 +1032,10 @@ func _show(p_alpha: float) -> void:
                     options.append(Looks.hat_picture(index))
                     continue
                 var picture := ItemIcons.picture(option)
-                if option == Menu.BEER:
-                    options.append([picture, "×%d" % menu_station.beers])
-                    if menu_station.beers == 0:
+                if option in Menu.DRINKS:
+                    # Every drink is stocked (DLC 1): how many are left.
+                    options.append([picture, "×%d" % menu_station.left(option)])
+                    if menu_station.left(option) == 0:
                         disabled.append(index)
                     continue
                 if picture:

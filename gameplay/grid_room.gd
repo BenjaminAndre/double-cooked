@@ -338,9 +338,7 @@ func _use_art(stations: Node3D) -> void:
             &"frigo":
                 if station.models:
                     station.stock_models = _sorted(station.models.find_children("*_Beers0*", "", true, false))
-                    # The Maes (DLC 1) aren't on the menu yet.
-                    for maes: Node3D in station.models.find_children("*_BeersMaes0*", "", true, false):
-                        maes.visible = false
+                    station.maes_models = _sorted(station.models.find_children("*_BeersMaes0*", "", true, false))
             &"cuisson_1":
                 var fryer := art.get_node_or_null("DoubleCooked_DeepFryer")
                 if fryer:

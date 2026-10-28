@@ -129,7 +129,7 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
 
 ## Serving is handing over what is held (GDD §6.2). The right order, done right, sends the
 ## customer off happy; done wrong (burnt, soggy...), angry, at the player who served (by). A
-## wrong dish is refused and costs them patience. A beer is the exception (see give_beer).
+## wrong dish is refused and costs them patience. A drink is the exception (see give_drink).
 ## index: the register (see at_register), so two CAISSE serve two customers at once.
 ## Returns whether the item was handed over.
 func serve(item: SimItem, by: int, events: Array[Dictionary], index := 0) -> bool:
@@ -144,8 +144,8 @@ func serve(item: SimItem, by: int, events: Array[Dictionary], index := 0) -> boo
         return false
     if customer.group:
         return _serve_group(customer, Menu.order_key(item) if Menu.done_right(item) else &"", by, events)
-    if item.kind == Menu.BEER:
-        give_beer(index, by, events)
+    if item.kind in Menu.DRINKS:
+        give_drink(index, item.kind, by, events)
         return true
     if Menu.order_key(item) != customer.order:
         customer.patience -= rules.wrong_delivery
@@ -161,16 +161,17 @@ func serve(item: SimItem, by: int, events: Array[Dictionary], index := 0) -> boo
     return true
 
 
-## A beer for the customer at index, handed over or caught. If they ordered one, they're
-## served. The first unordered ones (SimRules.beer_gifts) buy back some patience; one more puts
-## them to sleep for a while (the artist's rule). The boss only takes it as his drink.
-func give_beer(index: int, by: int, events: Array[Dictionary]) -> void:
+## A drink for the customer at index (any drink since DLC 1), handed over or caught. If they
+## ordered it, they're served. The first unordered ones (SimRules.beer_gifts) buy back some
+## patience; one more puts them to sleep for a while (the artist's rule). The boss only takes it as
+## his drink.
+func give_drink(index: int, drink: StringName, by: int, events: Array[Dictionary]) -> void:
     var customer := line[index]
     if customer.boss:
-        _boss_drink(customer, Menu.BEER, events)
-    elif customer.group and Menu.BEER in customer.orders:
-        _serve_group(customer, Menu.BEER, by, events)
-    elif customer.order == Menu.BEER:
+        _boss_drink(customer, drink, events)
+    elif customer.group and drink in customer.orders:
+        _serve_group(customer, drink, by, events)
+    elif customer.order == drink:
         _leave_line(index)
         change_mood(rules.mood_served)
         events.append({"type": &"served", "by": by, "id": customer.id})

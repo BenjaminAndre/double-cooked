@@ -122,3 +122,33 @@ func test_breads_come_in_the_second_week_and_wait_longer() -> void:
     rules.first_arrival = 1
     var sim := Scenario.new(level, [bread], 1, rules).run_until(2)
     assert_eq(sim.crowd.front().patience, roundi(rules.patience * rules.bread_patience) - rules.front_drain)
+
+
+func test_mitraillettes_come_with_fricadelle_or_grizzly_and_crudites_or_not() -> void:
+    # The artist's DLC 1.
+    var cases := [[Menu.FRICADELLE, false, Recipes.MITRAILLETTE], [Menu.FRICADELLE, true, Recipes.MITRAILLETTE_CRUDITES],
+            [Menu.GRIZZLY, false, Recipes.MITRAILLETTE_GRIZZLY], [Menu.GRIZZLY, true, Recipes.MITRAILLETTE_GRIZZLY_CRUDITES]]
+    for case in cases:
+        var baguette := SimItem.new(Menu.BAGUETTE)
+        baguette.filling = SimItem.new(case[0])
+        baguette.fries = SimItem.new(Fryer.FRIES_GOOD)
+        baguette.veg = case[1]
+        assert_eq(Recipes.dish(baguette), case[2])
+    assert_false(Recipes.takes_meat(SimItem.new(Menu.BAGUETTE), Menu.BROCHETTE), "only the artist's two meats")
+    assert_true(Menu.veg_on_menu(Menu.BAGUETTE, Campaign.menu_for(13)), "crudités from night 13")
+    assert_false(Menu.veg_on_menu(Menu.BAGUETTE, Campaign.menu_for(12)))
+
+
+func test_a_mitraillette_is_always_ordered_with_a_sauce() -> void:
+    var rng := RandomNumberGenerator.new()
+    var menu: Array[StringName] = [&"mitraillette", &"mitraillette_grizzly_crudites", Menu.MAYO, Menu.RICHE, Menu.NATURE]
+    for draw in 200:
+        var order := String(Menu.random_order(rng, PackedFloat32Array([0, 1, 0]), menu))
+        assert_false(order.ends_with(":nature"), order)
+
+
+func test_every_mitraillette_has_its_picture() -> void:
+    for dish in Recipes.MITRAILLETTES:
+        for sauce in [Menu.NATURE] + Array(Menu.SAUCES):
+            var key := StringName("%s:%s" % [dish, sauce])
+            assert_true(ResourceLoader.exists(ItemIcons.PATH % ItemIcons.mitraillette(key)), String(key))

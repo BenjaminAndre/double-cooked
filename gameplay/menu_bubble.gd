@@ -38,4 +38,5 @@ func place_over(at: Vector3, camera: Camera3D) -> void:
     scale = Vector2.ONE * ArtUi.ui_scale
     var shown := size * ArtUi.ui_scale
     var corner := bottom - Vector2(shown.x / 2, shown.y)
-    position = corner.clamp(Vector2.ONE * PlayerPanel.MARGIN, (screen - shown - Vector2.ONE * PlayerPanel.MARGIN).max(Vector2.ZERO))
+    position = corner.clamp(Vector2(PlayerPanel.MARGIN, PlayerPanel.TOP),
+            (screen - shown - Vector2.ONE * PlayerPanel.MARGIN).max(Vector2(PlayerPanel.MARGIN, PlayerPanel.TOP)))
