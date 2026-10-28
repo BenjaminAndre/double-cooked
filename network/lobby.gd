@@ -130,11 +130,13 @@ func _on_code_submitted(code: String) -> void:
 ## Back to an offline lobby, whatever the current state.
 func _leave() -> void:
     _migrating = false
+    # Offline first: Tube says session_left before it is idle, and _on_session_left would
+    # otherwise leave again, and again (Firefox: "too much recursion").
+    state = State.OFFLINE
     if _tube and _tube.state != TubeClient.State.IDLE:
         _tube.leave_session()
     _code_field.visible = false
     _code_field.release_focus()
-    state = State.OFFLINE
     if night.role != Night.Role.OFFLINE or not night.in_lobby:
         night.play_lobby(1)
     _refresh()

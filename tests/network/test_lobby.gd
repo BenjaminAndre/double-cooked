@@ -54,3 +54,16 @@ func test_hosting_without_webrtc_reports_an_error_and_stays_offline() -> void:
 
 func _status() -> String:
     return lobby._status.text
+
+
+func test_a_session_that_fails_to_open_goes_back_offline_once() -> void:
+    # As if Tube had started creating a session, then found no tracker (no network here).
+    lobby._ensure_tube()
+    lobby.state = Lobby.State.HOSTING
+    lobby._tube.state = TubeClient.State.CREATING_SESSION
+    var left := [0]
+    lobby._tube.session_left.connect(func() -> void: left[0] += 1)
+    lobby._on_error(TubeClient.SessionError.CREATE_SESSION_FAILED, "cannot connect to any tracker")
+    assert_eq(lobby.state, Lobby.State.OFFLINE)
+    assert_eq(left[0], 1, "left once, not again and again")
+    assert_eq(lobby._tube.state, TubeClient.State.IDLE)
