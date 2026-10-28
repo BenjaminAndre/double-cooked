@@ -70,11 +70,16 @@ func _ready() -> void:
         banner.textContent = "Le jeu a planté · F12 puis Console, et copie l'erreur :\\n" + text;
         document.body.appendChild(banner);
     }
+    // With the stack, the first lines of it at least: on a phone there is no console to open.
+    function describe(error, message) {
+        var stack = error && error.stack ? String(error.stack).split('\n').slice(0, 12).join('\n') : '';
+        return (message || String(error)) + (stack ? '\n' + stack : '');
+    }
     window.addEventListener('error', function (event) {
-        showCrash(event.message || String(event.error));
+        showCrash(describe(event.error, event.message));
     });
     window.addEventListener('unhandledrejection', function (event) {
-        showCrash(String(event.reason));
+        showCrash(describe(event.reason, String(event.reason)));
     });
 })();
 """ % BEAT_MS, true)
