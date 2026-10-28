@@ -19,6 +19,10 @@ const STUN_SERVERS: Array[String] = ["stun:stun.l.google.com:19302", "stun:stun.
 const REJOIN_ATTEMPTS := 12
 const NEXT_HOST_ATTEMPTS := 2
 const REJOIN_DELAY := 2.0
+## Tube drops a tracker whose connection closed and never reopens it: a phone loses them all when
+## it switches app (to send the code) or loses its network for a moment, and then nobody can join
+## any more. While hosting, the lobby reopens the missing ones this often (seconds).
+const TRACKER_RETRY := 10.0
 
 
 ## Tube draws a new code for each session; this one can reuse the last one, so the players
@@ -44,6 +48,10 @@ var _migrating := false
 var _next_host := false
 var _attempts := 0
 var _context: ReusableContext
+var _tracker_retry_left := 0.0
+## Opens a tracker connection for the host (Tube's own start), replaced in tests so they never
+## open a socket.
+var open_tracker := func(url: String) -> void: _tube._initiate_tracker(url)
 
 
 func _ready() -> void:
@@ -277,3 +285,34 @@ func _refresh() -> void:
     var font_size := ThemeDB.fallback_font_size * (2 if night.touch else 1)
     _status.add_theme_font_size_override("font_size", font_size)
     _code_field.add_theme_font_size_override("font_size", font_size)
+
+
+func _process(delta: float) -> void:
+    if not _tube or _tube.state != TubeClient.State.SESSION_CREATED:
+        _tracker_retry_left = 0.0
+        return
+    _tracker_retry_left -= delta
+    if _tracker_retry_left > 0.0:
+        return
+    _tracker_retry_left = TRACKER_RETRY
+    var open := PackedStringArray()
+    for tracker in _tube._trackers:
+        open.append(tracker.socket.get_requested_url())
+    for url in missing_trackers(open):
+        open_tracker.call(url)
+    # Back online: the signaling error no longer holds.
+    if not _tube._trackers.is_empty() and _error.begins_with("Signaling failed"):
+        _error = ""
+        _refresh()
+
+
+## The trackers of TRACKERS that aren't among these open ones (their URLs as requested).
+static func missing_trackers(open: PackedStringArray) -> PackedStringArray:
+    var normalized := PackedStringArray()
+    for url in open:
+        normalized.append(url.trim_suffix("/"))
+    var missing := PackedStringArray()
+    for url in TRACKERS:
+        if not url.trim_suffix("/") in normalized:
+            missing.append(url)
+    return missing

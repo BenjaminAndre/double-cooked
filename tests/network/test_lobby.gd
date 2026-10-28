@@ -67,3 +67,19 @@ func test_a_session_that_fails_to_open_goes_back_offline_once() -> void:
     assert_eq(lobby.state, Lobby.State.OFFLINE)
     assert_eq(left[0], 1, "left once, not again and again")
     assert_eq(lobby._tube.state, TubeClient.State.IDLE)
+
+
+func test_a_host_that_lost_its_trackers_reopens_them() -> void:
+    var opened := []
+    lobby.open_tracker = func(url: String) -> void: opened.append(url)
+    lobby._ensure_tube()
+    lobby.state = Lobby.State.HOSTING
+    lobby._tube.state = TubeClient.State.SESSION_CREATED
+    lobby._process(0.1)
+    assert_eq(opened, Array(Lobby.TRACKERS), "all of them, none being open")
+    opened.clear()
+    lobby._process(0.1)
+    assert_eq(opened, [], "not again before TRACKER_RETRY")
+    assert_eq(Lobby.missing_trackers(PackedStringArray(["wss://tracker.btorrent.xyz", Lobby.TRACKERS[0]])).size(),
+            Lobby.TRACKERS.size() - 2, "the open ones, with or without their slash, stay as they are")
+    lobby._tube.state = TubeClient.State.IDLE
