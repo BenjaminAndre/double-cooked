@@ -12,7 +12,7 @@ const CUSTOMERS := "res://art/textures/Character%02d.png"
 const CUSTOMER_KINDS := 5
 ## The boss: the drunk baraki, or a drunk Santa every other night (the artist's variant).
 const BOSS_PICTURES: Array[Texture2D] = [preload("res://art/textures/DrunkCharacter01.png"),
-        preload("res://art/textures/DrunkCharacter02.png")]
+        preload("res://art/textures/DrunkCharacter02.png"), preload("res://art/textures/DrunkCharacter03.png")]
 ## Now and then, people drinking their own beer on the pavement, just for the atmosphere: for
 ## DRINKERS_EVERY ticks at a time, some of EventCharacter07 to 09, or nobody.
 const DRINKERS_EVERY := 40 * Simulation.TICK_RATE

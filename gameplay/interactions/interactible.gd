@@ -21,7 +21,7 @@ const OIL_HEIGHT := 0.45
 const OIL_LIFETIME := 3.0
 const OIL_RATE := 10.0
 const OIL_SPEED := 0.05
-const OIL_SIZE := 0.2
+const OIL_SIZE := 0.28
 const OIL_SPIN := 90.0
 const OIL_AREA := Vector3(0.15, 0.0, 0.1)
 ## How high a basket rises when lifted.
@@ -35,6 +35,9 @@ var basket_model: Node3D
 var cooked_models: Array = []
 ## The FRIGO's beers, one shown per beer left (the artist's Beers01 to 05).
 var stock_models: Array = []
+## Whether the station writes its state over itself ("FEU !", "bière ×5"): not in a room with the
+## artist's models, whose look says it.
+var state_text := true
 
 ## Station kind: cuisson_1, cuisson_2, sauces, poubelle, soins, caisse, extincteur, boissons,
 ## pain, viandes. Empty means the station does nothing yet.
@@ -88,7 +91,7 @@ func show_station(station: SimStation, rules: SimRules) -> void:
         label = "FEU !"
     elif kind == &"frigo" and _in_use:
         label = "bière ×%d" % station.beers + (" · en panne" if broken else "")
-    _show_label(label, station.burning)
+    _show_label(label if state_text else "", station.burning)
     if frying:
         var window := Fryer.window(station)
         _cooking_bubble().show_cooking(station.basket.kind, station.cook, window, window.y + rules.fire_margin)

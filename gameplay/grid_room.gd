@@ -320,7 +320,9 @@ func _use_art(stations: Node3D) -> void:
         var box: CSGBox3D = station.get_node("CSGBox3D")
         box.visible = false
         var label: Label3D = station.get_node("Label")
-        label.visible = labels or station.kind in Interactible.FRYERS
+        # The artist's models say what each station is: no names, nor state text (DLC 1).
+        label.visible = labels
+        station.state_text = labels
         # A PRÊT tile's name stays low, on its tile.
         label.position.y = ART_LABEL_HEIGHT if station.kind != &"pret" else label.position.y
         var model_name: String = ART_MODELS.get(station.kind, "")
@@ -331,6 +333,9 @@ func _use_art(stations: Node3D) -> void:
             &"frigo":
                 if station.models:
                     station.stock_models = _sorted(station.models.find_children("*_Beers0*", "", true, false))
+                    # The Maes (DLC 1) aren't on the menu yet.
+                    for maes: Node3D in station.models.find_children("*_BeersMaes0*", "", true, false):
+                        maes.visible = false
             &"cuisson_1":
                 var fryer := art.get_node_or_null("DoubleCooked_DeepFryer")
                 if fryer:

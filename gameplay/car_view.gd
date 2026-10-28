@@ -1,20 +1,27 @@
 class_name CarView
 extends Node3D
-## The car crash (NightEvents.CAR_CRASH, GDD §6.4), as placeholders until the artist's car:
-## headlights flashing where it will hit while it comes, then a red box on the rubble.
+## The car crash (NightEvents.CAR_CRASH, GDD §6.4): headlights flashing where it will hit while it
+## comes (placeholders), then the artist's CrashedCar (DLC 1) on the rubble.
 
-const BODY := Color(0.8, 0.12, 0.1)
+const PICTURE := preload("res://art/textures/CrashedCar.png")
+## How wide the car is drawn, in metres.
+const WIDTH := 1.9
 const LIGHT := Color(1.0, 0.95, 0.5)
-const SIZE := Vector3(1.0, 0.8, 1.9)
 
 var night: Night
-var _car: MeshInstance3D
+var _car: Sprite3D
 var _lights: Array[MeshInstance3D] = []
 
 
 func _init(p_night: Night) -> void:
     night = p_night
-    _car = _box(SIZE, BODY)
+    _car = Sprite3D.new()
+    _car.texture = PICTURE
+    _car.pixel_size = WIDTH / PICTURE.get_width()
+    _car.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    _car.shaded = false
+    _car.no_depth_test = true
+    _car.visible = false
     add_child(_car)
     for side in [-1, 1]:
         var light := _box(Vector3.ONE * 0.25, LIGHT)
@@ -37,7 +44,7 @@ func _process(_delta: float) -> void:
         for node in crash:
             centre += sim.level.positions[node]
         global_position = centre / crash.size()
-        _car.position = Vector3.UP * SIZE.y / 2
+        _car.position = Vector3.UP * PICTURE.get_height() * _car.pixel_size / 2
 
 
 func _box(size: Vector3, color: Color) -> MeshInstance3D:

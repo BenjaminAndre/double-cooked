@@ -10,6 +10,11 @@ const SILENCE_WARNING := 2.0
 ## How long an announcement stays, in seconds, and the size of a star on the banner.
 const ANNOUNCE_TIME := 3.5
 const STAR_SIZE := 64
+## The corner frames (score, day, clock): their height on screen, the text's largest size, and
+## the room kept on the right of the text.
+const FRAME_HEIGHT := 72.0
+const FRAME_FONT := 30
+const FRAME_MARGIN := 8.0
 
 @export var night: Night
 
@@ -37,12 +42,12 @@ var _recap: RichTextLabel
 ## The clock and warnings: hidden in the lobby.
 var _corner: VBoxContainer
 ## The Nuit unique's score, beside the clock (the artist's scoreboard).
-var _score_frame: PanelContainer
+var _score_frame: Control
 var _score: Label
 ## The Nuit unique's medal, on the summary instead of the stars.
 var _medal: TextureRect
 ## The day of a campaign night, beside the clock.
-var _day_frame: PanelContainer
+var _day_frame: Control
 var _day: Label
 ## The start of a campaign night (DaySplash).
 var _splash: DaySplash
@@ -71,18 +76,11 @@ func _ready() -> void:
     frames.size_flags_horizontal = Control.SIZE_SHRINK_END
     frames.add_theme_constant_override("separation", 10)
     corner.add_child(frames)
-    _score_frame = ArtUi.panel(ArtUi.frame("Scoreboard03", Vector4(72, 20, 20, 20), 10))
-    _score_frame.get_theme_stylebox("panel").content_margin_left = 76
-    frames.add_child(_score_frame)
-    _score = _label(30, _score_frame)
-    _day_frame = ArtUi.panel(ArtUi.frame("Day", Vector4(80, 20, 20, 20), 10))
-    _day_frame.get_theme_stylebox("panel").content_margin_left = 84
-    frames.add_child(_day_frame)
-    _day = _label(30, _day_frame)
-    var clock_frame := ArtUi.panel(ArtUi.frame("Time", Vector4(80, 20, 20, 20), 10))
-    clock_frame.get_theme_stylebox("panel").content_margin_left = 84
-    frames.add_child(clock_frame)
-    _status = _label(30, clock_frame)
+    _score = _fixed_frame("Scoreboard03", 70, frames)
+    _score_frame = _score.get_parent()
+    _day = _fixed_frame("Day", 76, frames)
+    _day_frame = _day.get_parent()
+    _status = _fixed_frame("Time", 76, frames)
     _desync = _label(24, corner)
     _desync.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     _desync.add_theme_color_override("font_color", Color(1, 0.3, 0.25))
@@ -178,13 +176,13 @@ func _process(delta: float) -> void:
         _logo.visible = false
     _score_frame.visible = sim.rules.score_attack and not night.in_lobby
     if _score_frame.visible:
-        _set_text(_score, str(sim.score()))
+        _set_fitted(_score, str(sim.score()))
     _day_frame.visible = night.campaign_night > 0
     if _day_frame.visible:
-        _set_text(_day, capitalized(Campaign.day_label(night.campaign_night)))
+        _set_fitted(_day, day_short(night.campaign_night))
     if _splash.visible and _anyone_moving():
         _splash.dismiss()
-    _set_text(_status, clock(sim.clock_minutes()) \
+    _set_fitted(_status, clock(sim.clock_minutes()) \
             + (" · fermé" if sim.night_tick() >= sim.rules.night_ticks and sim.outcome == &"" else ""))
     _mood.mood = float(sim.crowd.mood) / sim.rules.riot
     var warnings := PackedStringArray()
@@ -446,6 +444,43 @@ static func swatch(color: int) -> String:
 ## "HH:MM" for minutes since 18:00.
 static func clock(minutes: int) -> String:
     return "%02d:%02d" % [(18 + minutes / 60) % 24, minutes % 60]
+
+
+## The day on its frame, short enough to read there: "MERCREDI", "MERCREDI S2" from the second
+## week (the full label is on the splash).
+static func day_short(campaign_night: int) -> String:
+    var week := Campaign.week(campaign_night)
+    return Campaign.day(campaign_night) + (" S%d" % week if week > 1 else "")
+
+
+## One of the artist's corner frames (UX_<name>), drawn at its own proportions, FRAME_HEIGHT
+## high (the artist: never stretched), with a label on its dark part from text_from (in the
+## picture's pixels). Returns the label; its parent is the frame.
+func _fixed_frame(picture_name: String, text_from: float, parent: Node) -> Label:
+    var picture := ArtUi.texture(picture_name)
+    var ratio := FRAME_HEIGHT / picture.get_height()
+    var frame := ArtUi.picture(picture, 0)
+    frame.custom_minimum_size = Vector2(picture.get_width(), picture.get_height()) * ratio
+    parent.add_child(frame)
+    var label := _label(FRAME_FONT, frame)
+    label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    label.offset_left = text_from * ratio
+    label.offset_right = -FRAME_MARGIN
+    label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    return label
+
+
+## Sets a corner frame's text, its size shrunk until it fits the dark part.
+func _set_fitted(label: Label, text: String) -> void:
+    if label.text == text:
+        return
+    label.text = text
+    var room := label.get_parent_control().custom_minimum_size.x - label.offset_left + label.offset_right
+    var font := label.get_theme_font("font")
+    var size := FRAME_FONT
+    while size > 12 and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > room:
+        size -= 1
+    label.add_theme_font_size_override("font_size", size)
 
 
 ## Only when it changes: each change relayouts the label.

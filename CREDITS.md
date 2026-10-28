@@ -6,6 +6,8 @@ The models, textures, UI, logo and concept boards in `art/` and `docs/art/` are 
 
 They are part of this game only. Ask the artist before reusing them elsewhere.
 
+The sound effects and the music (`art/sounds/`, delivered with DLC 1 on 2026-10-28) were generated with AI by the artist; their guide is `docs/art/DLC1/README_Audio.md`.
+
 ## Font
 
 [Bebas Kai](http://bebaskai.com/) by Ryoichi Tsunekawa (Dharma Type), under the SIL Open Font License 1.1: see `art/fonts/BebasKai-License.txt`.

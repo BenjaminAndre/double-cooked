@@ -11,10 +11,13 @@ config_version=5
 [application]
 
 config/name="double-cooked"
-config/version="0.3.7"
+config/version="0.3.8"
 run/main_scene="uid://bolij82abbnan"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.96, 0.87, 0.72, 1)
+boot_splash/image="res://art/logo/Logo.png"
+boot_splash/stretch_mode=1
 
 [debug_draw_3d]
 

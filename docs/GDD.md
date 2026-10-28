@@ -145,7 +145,7 @@ A Dark Souls style boss customer: bigger, in red instead of blue, with his own r
 - **Surprise AFSCA inspections** (0.2.42): from the second week, each night has a one-in-two chance (drawn from the night's seed) of the inspector dropping by unannounced, at any hour: "L'AFSCA arrive !" only 5 s ahead, then the same 20 s look. **A dirty kitchen then closes the shop**: the night is lost ("Fermé par l'AFSCA"). Grease takes 45 s to dry, so a kitchen caught dirty almost always fails; the counter is the BB gun (§8): shot, the inspector runs off.
 - **La voiture** (0.2.45, placeholders: a red box, brown squares): on campaign nights 10, 17, 24... (from the second week, once a week), around 22:30. "Une voiture fonce sur la friterie !" and its headlights flash for 3 s where it will hit, then it crashes in: **VIANDES is wrecked** and its squares (and the aisle in front of it, in the bigger kitchens; `GridRoom.crash_cells`) **become rubble nobody can walk on** for the rest of the night. Whoever stood there is **K.O.** and thrown aside. With no VIANDES left, the meat and bread dishes come off the menu, and the customers waiting for one flee, too scared to be angry.
 - **Dimanche** has one of these four, turn by turn week after week; **from the second week** every night has one more, at 00:30, never the same as the day's.
-- Just for the atmosphere, people sometimes drink their own beer on the pavement (the artist's EventCharacter07 to 09), and every other boss is a **drunk Santa** (same fight, another look).
+- Just for the atmosphere, people sometimes drink their own beer on the pavement (the artist's EventCharacter07 to 09), and the boss takes turns among three drunk looks, one of them a **drunk Santa** (same fight; the third look came with DLC 1).
 
 ## 7. Cooking
 
@@ -246,6 +246,10 @@ Tools to test a night with real players, in the web build too. **F4** opens them
 - **Campaign**: go straight to one of its first 20 nights, with its menu and pace (also from the lobby). Online, the host takes everyone there.
 - **Speed** ×1, ×2 or ×4: the host steps that many more ticks a second and the guests follow; the HUD shows it. Faster isn't easier, so it doesn't mark the run.
 - **Network** (online host only): a forced **desync** (a point of mood only the host has), to check that the guests' red warning shows; and the **network stats** under the clock: for each guest, the round trip of a ping sent every second, how many ticks behind the host it was, and the last tick it had received.
+
+### 9.3b The artist's DLC 1 (0.3.8 onwards)
+
+The artist's first update (`docs/art/DLC1/`): widened rooms (no void on wider screens), updated models and atlas, the pigeon and the crashed car in place of the placeholders, a third drunk look for the boss, the game logo on the loading screen, bigger frying oil, and the corner frames (score, day, clock) drawn at their own proportions, the text shrunk to fit ("MERCREDI S2"). The stations no longer write their name or state over themselves: the models say it. The raw fries keep sharing CUISSON 1's shelf with the cooked portions (0.2.19), unlike the artist's scene.
 
 ### 9.4 Phones (0.2.47)
 
