@@ -1023,10 +1023,13 @@ func _show(p_alpha: float) -> void:
             for index in menu_options.size():
                 var option: StringName = menu_options[index]
                 if menu_station.kind == &"peinture":
-                    # The characters' faces; a teammate's is greyed out.
-                    options.append(PaperFigure.portrait(Looks.character(index)))
+                    # The artist's portraits (DLC 1); a teammate's is greyed out.
+                    options.append(Looks.portrait(index))
                     if not simulation.color_free(index, player):
                         disabled.append(index)
+                    continue
+                if menu_station.kind == &"casquette" and Looks.hat_picture(index):
+                    options.append(Looks.hat_picture(index))
                     continue
                 var picture := ItemIcons.picture(option)
                 if option == Menu.BEER:

@@ -49,12 +49,19 @@ func _initialize() -> void:
             # Two players: one choosing a colour, the other at the hat stand in a beer helmet.
             night.play_lobby(2)
             var sim := night.simulation
-            sim.players[0].node = sim.level.find("Cell0_0")
-            sim.players[1].node = sim.level.find("Cell0_1")
-            sim.players[1].hat = 2
+            sim.players[0].node = sim.level.find("Cell0_1")
+            sim.players[1].node = sim.level.find("Cell0_2")
+            sim.players[1].hat = Looks.HATS.find(Looks.BEER_HELMET)
             sim.players[1].color = 3
             night.submit(0, Simulation.Command.INTERACT)
             night.submit(0, Simulation.Command.MOVE_LEFT)
+        "hats":
+            # The artist's DLC 1: the two new characters and the four hats, in the lobby.
+            night._begin(4, PackedInt32Array([0]), 1, Night.Role.OFFLINE, true)
+            var sim := night.simulation
+            for slot in 4:
+                sim.players[slot].color = [4, 5, 0, 3][slot]
+                sim.players[slot].hat = slot + 1
         "eject":
             # Both CUISSON VIANDE baskets halfway through tipping out, about 1 s in.
             var views := LevelReader.stations(game.get_node("Restaurant/Kitchen").anchors_root())

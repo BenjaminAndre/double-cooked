@@ -94,7 +94,7 @@ rooms = [NodePath("../Restaurant/KitchenArt/DoubleCooked_Room01"), NodePath("../
 [node name="LobbyRoom" type="Node3D" parent="." node_paths=PackedStringArray("art")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.5, 0, 21)
 script = ExtResource("13_room")
-layout = PackedStringArray("peinture casquette telephone . .", "@ @ @ @ .", "pret pret pret pret .", "- - porte - -")
+layout = PackedStringArray(". peinture casquette telephone .", "@ @ @ @ .", "pret pret pret pret .", "- - porte - -")
 back_offset = 0.78
 front_offset = 0.5
 art = NodePath("../Restaurant/LobbyArt")

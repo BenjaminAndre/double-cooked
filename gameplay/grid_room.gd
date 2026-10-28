@@ -19,9 +19,10 @@ extends Node3D
 const ANCHOR_SCENE := preload("res://gameplay/anchor.tscn")
 const SPACING := 1.0
 const LABELS := {
-    &"peinture": "PEINTURE",
-    &"casquette": "CASQUETTE",
-    &"telephone": "TÉLÉPHONE",
+    # The artist's names (DLC 1); the kinds keep theirs.
+    &"peinture": "SKIN",
+    &"casquette": "CHAPEAU",
+    &"telephone": "MULTI",
     &"porte": "PORTE",
     &"pret": "PRÊT",
     &"frigo": "FRIGO",
@@ -74,6 +75,10 @@ const ART_MODELS := {
     &"pain": "DoubleCooked_BreadBag",
     &"caisse": "DoubleCooked_CashRegister",
     &"extincteur": "DoubleCooked_FireCase",
+    # The lobby (DLC 1): two lockers and the phone.
+    &"peinture": "DoubleCooked_Locker",
+    &"casquette": "DoubleCooked_Locker",
+    &"telephone": "DoubleCooked_Phone",
 }
 ## Where the fryers' names float in the artist's kitchen.
 const ART_LABEL_HEIGHT := 1.1

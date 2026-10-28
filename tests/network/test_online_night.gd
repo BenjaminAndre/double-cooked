@@ -175,7 +175,7 @@ func test_the_lobby_is_shared_and_the_door_takes_everyone_with_their_looks() -> 
     await wait_until(func() -> bool: return client_night.role == Night.Role.CLIENT, 5.0)
     assert_true(client_night.in_lobby)
     # The guest picks the yellow character and the beer helmet, then stands on the PRÊT tile below them.
-    client_night.submit(0, Looks.command(3, 2))
+    client_night.submit(0, Looks.command(3, Looks.HATS.find(Looks.BEER_HELMET)))
     client_night.submit(0, C.MOVE_DOWN)
     var ready_tile := host_night.simulation.level.find("Cell2_1")
     await wait_until(func() -> bool: return host_night.simulation.players[1].node == ready_tile, 5.0)

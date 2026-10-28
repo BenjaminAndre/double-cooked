@@ -10,6 +10,10 @@ const FAT_WIDTH := 0.06
 const THIN_WIDTH := 0.07
 ## Where a hat sits: the top of the drawn head.
 const HEAD_TOP := PaperFigure.HEIGHT - 0.12
+## The artist's hats (DLC 1): how wide they are drawn, and how much of the picture stands above
+## the top of the head (as a share of its height).
+const HAT_WIDTH := 0.5
+const HAT_RAISE := 0.3
 ## Where the hearts and the held item go over a knocked-out player, flat on the floor.
 const LYING_TOP := 0.45
 
@@ -40,7 +44,7 @@ var _color := -1
 ## Which fat drawing shows (SimRules.fat_stage).
 var _fat := 0
 var _hat := -1
-var _helmet: Node3D
+var _helmet: Sprite3D
 ## The paper cut-out (docs/ART_PLAN.md).
 var _figure: PaperFigure
 
@@ -121,11 +125,11 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
         _figure.set_picture(Looks.character(_color, _fat))
     if state.hat != _hat:
         _hat = state.hat
-        _wear(Looks.HATS[_hat])
+        _wear(_hat)
     # Knocked out: lying on the floor.
     _figure.set_lying(state.down)
     if _helmet:
-        _helmet.visible = _hat == Looks.HATS.find(Looks.BEER_HELMET) and not state.down
+        _helmet.visible = _hat > 0 and not state.down
     var camera := get_viewport().get_camera_3d()
     var status := pseudo
     if state.down:
@@ -138,6 +142,9 @@ func show_state(state: SimPlayer, level: SimLevel, alpha: float) -> void:
         # Over the top of the drawing, where it is on screen.
         # Lying down, the drawing is flat on the floor: just over it.
         var top := LYING_TOP if state.down else PaperFigure.HEIGHT
+        if _helmet and _helmet.visible:
+            # Over the hat: as far as its picture stands above the head.
+            top = maxf(top, HEAD_TOP + _helmet.texture.get_height() * _helmet.pixel_size * (0.5 + HAT_RAISE))
         var head := camera.unproject_position($PlayerModel.global_position + camera.global_basis.y * top)
         _overhead.place(head)
         if _panel:
@@ -158,56 +165,33 @@ func _label(height: float, size: int) -> Label3D:
     return label
 
 
-## The cap is drawn on the characters, so "rien" still shows it until the artist draws them
-## without (docs/ART_PLAN.md); the beer helmet goes on top.
-func _wear(hat: StringName) -> void:
-    if hat == Looks.BEER_HELMET and not _helmet:
-        _helmet = _beer_helmet()
+## The artist's hat (DLC 1), a picture over the drawn head; none for "rien" (the first four
+## characters keep the cap of their drawing).
+func _wear(hat: int) -> void:
+    var picture := Looks.hat_picture(hat)
+    if picture and not _helmet:
+        _helmet = Sprite3D.new()
+        _helmet.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        _helmet.shaded = false
+        _helmet.no_depth_test = true
+        _helmet.render_priority = 2
         $PlayerModel.add_child(_helmet)
     if _helmet:
-        _helmet.visible = hat == Looks.BEER_HELMET
+        _helmet.visible = picture != null
+        if picture:
+            _helmet.texture = picture
+            _helmet.pixel_size = HAT_WIDTH / picture.get_width()
+            # Its brim on the head: the picture mostly above that point.
+            _helmet.offset = Vector2(0, picture.get_height() * HAT_RAISE)
 
 
-## A helmet with a can on each side and straws down to the mouth, built in code for now.
-func _beer_helmet() -> Node3D:
-    var helmet := Node3D.new()
-    var dome := MeshInstance3D.new()
-    var sphere := SphereMesh.new()
-    sphere.radius = 0.2
-    sphere.height = 0.2
-    sphere.is_hemisphere = true
-    var shell := StandardMaterial3D.new()
-    shell.albedo_color = Color(0.95, 0.8, 0.15)
-    sphere.material = shell
-    dome.mesh = sphere
-    helmet.add_child(dome)
-    var straw_material := StandardMaterial3D.new()
-    straw_material.albedo_color = Color(0.95, 0.95, 0.95)
-    for side in [-1.0, 1.0]:
-        var can := CanModels.beer(0.76)
-        can.position = Vector3(side * 0.24, 0.05, 0)
-        helmet.add_child(can)
-        # From the top of the can, down in front of the face.
-        var straw := MeshInstance3D.new()
-        var tube := CylinderMesh.new()
-        tube.top_radius = 0.012
-        tube.bottom_radius = 0.012
-        tube.height = 0.34
-        tube.material = straw_material
-        straw.mesh = tube
-        straw.position = Vector3(side * 0.13, -0.02, -0.12)
-        straw.rotation = Vector3(-0.5, 0, side * 0.9)
-        helmet.add_child(straw)
-    return helmet
-
-
-## A small hop when someone runs into this player.
 ## A teammate's beer landed on them (DLC 1): beer drops, and they rock back on their feet.
 func show_beer() -> void:
     Bursts.beer_drops(get_parent(), _figure.card_point(HEAD_TOP))
     _figure.rock()
 
 
+## A small hop when someone runs into this player.
 func show_bump() -> void:
     if _bump_tween:
         _bump_tween.kill()

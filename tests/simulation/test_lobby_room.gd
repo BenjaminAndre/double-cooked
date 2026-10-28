@@ -20,11 +20,11 @@ func before_each() -> void:
     rules.lobby = true
 
 
-func test_players_start_with_distinct_colours_and_a_cap() -> void:
+func test_players_start_with_distinct_colours_and_no_hat() -> void:
     var sim := _scenario([0, 4]).simulation
     assert_eq(sim.players[0].color, 0)
     assert_eq(sim.players[1].color, 1)
-    assert_eq(Looks.HATS[sim.players[0].hat], Looks.CAP)
+    assert_eq(Looks.HATS[sim.players[0].hat], Looks.NONE, "the drawing's own cap")
 
 
 func test_the_four_characters_sit_around_the_first_one() -> void:
@@ -59,9 +59,10 @@ func test_a_colour_worn_by_a_teammate_cant_be_taken() -> void:
     assert_ne(sim.players[0].menu, SimLevel.NONE, "the menu stays open")
 
 
-func test_the_hat_stand_offers_three_hats() -> void:
+func test_the_hat_stand_offers_the_artists_four_hats() -> void:
+    assert_eq(Menu.options(&"casquette").size(), 5, "none, then Hat01 to 04")
     var scenario := _scenario([1])
-    var sim := scenario.at(0, 0, C.INTERACT).at(0, 0, C.MOVE_LEFT).at(0, 0, C.INTERACT).run_until(1)
+    var sim := scenario.at(0, 0, C.INTERACT).at(0, 0, C.MOVE_RIGHT).at(0, 0, C.INTERACT).run_until(1)
     assert_eq(Looks.HATS[sim.players[0].hat], Looks.BEER_HELMET)
 
 
