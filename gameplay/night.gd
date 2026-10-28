@@ -38,6 +38,10 @@ signal points_scored(points: int)
 signal night_event_started(kind: StringName)
 ## A player at this keyboard used the lobby's TÉLÉPHONE (Menu.PHONE).
 signal phone_used(choice: StringName)
+## Every tick stepped, with what happened on it (Simulation.events): for the sound.
+signal stepped(events: Array[Dictionary])
+## A guest pressed Exit: the Lobby leaves the session.
+signal leave_requested
 
 ## The kitchen for one or two players (the artist's base layout), and the bigger ones (GDD §5.2):
 ## a night is played in the first one with a spawn for everyone.
@@ -82,6 +86,8 @@ var speed := 1
 ## A phone or tablet (LocalInput.touch_platform()): one finger plays (TouchInput), and the hints
 ## name gestures (GDD §9.4). Set by tests and screenshots to try it on a desktop.
 var touch := LocalInput.touch_platform()
+## The game's sound (SoundBoard), listening to the night.
+var sounds: SoundBoard
 ## Host: whether the HUD shows each guest's network stats (a test tool, see net_stats()).
 var show_net_stats := false
 
@@ -161,6 +167,8 @@ func _ready() -> void:
         players_parent.add_child(PigeonsView.new(self))
         players_parent.add_child(CarView.new(self))
         players_parent.add_child(TutorialView.new(self))
+    sounds = SoundBoard.new(self)
+    add_child(sounds)
     play_lobby(1)
 
 
@@ -318,6 +326,18 @@ func key_names() -> Dictionary:
 ## The centre of a station's view in the world (an index into the simulation's stations).
 func station_centre(index: int) -> Vector3:
     return _station_views[index].centre()
+
+
+## The Exit button (DLC 1): back to the lobby. Offline at once; the host takes everyone; a guest
+## leaves the session (leave_requested).
+func leave_night() -> void:
+    match role:
+        Role.OFFLINE:
+            play_lobby(_local_slots.size())
+        Role.HOST:
+            host_lobby()
+        Role.CLIENT:
+            leave_requested.emit()
 
 
 ## Whether this peer may use the test tools (GDD §9.3): the host, or offline.
@@ -555,6 +575,7 @@ func _step() -> bool:
         _apply_joins(tick)
         _pending = _no_commands()
     simulation.step(commands)
+    stepped.emit(simulation.events)
     var flat := _flatten(commands)
     for index in range(0, flat.size(), 2):
         _log.append_array([tick, flat[index], flat[index + 1]])

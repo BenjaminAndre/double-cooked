@@ -56,7 +56,8 @@ var open_tracker := func(url: String) -> void: _tube._initiate_tracker(url)
 
 func _ready() -> void:
     var box := VBoxContainer.new()
-    box.position = Vector2(16, 12)
+    # Under the HUD's buttons (sound, exit).
+    box.position = Vector2(16, 84)
     add_child(box)
     _status = Label.new()
     _status.add_theme_constant_override("outline_size", 6)
@@ -70,6 +71,7 @@ func _ready() -> void:
     box.add_child(_code_field)
     night.began.connect(_refresh)
     night.phone_used.connect(_on_phone)
+    night.leave_requested.connect(_leave)
     _refresh()
 
 

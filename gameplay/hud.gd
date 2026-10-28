@@ -15,6 +15,8 @@ const STAR_SIZE := 64
 const FRAME_HEIGHT := 72.0
 const FRAME_FONT := 30
 const FRAME_MARGIN := 8.0
+## The sound and exit buttons, in pixels.
+const BUTTON_SIZE := 60
 
 @export var night: Night
 
@@ -58,6 +60,9 @@ var _next: Label
 var _record: RichTextLabel
 ## The host's test tools (F4).
 var tools: DebugPanel
+## Top left (DLC 1): the sound on or off (F2 too), and Exit back to the lobby.
+var _sound_button: TextureButton
+var _exit_button: TextureButton
 ## The tutorial's current step (Tutorial), at the top of the screen.
 var _tutorial: PanelContainer
 var _tutorial_text: Label
@@ -154,6 +159,14 @@ func _ready() -> void:
     night.night_event_started.connect(_event_banner.show_event)
     tools = DebugPanel.new(night)
     add_child(tools)
+    var buttons := HBoxContainer.new()
+    buttons.position = Vector2(16, 12)
+    buttons.add_theme_constant_override("separation", 10)
+    add_child(buttons)
+    _sound_button = _button("Sound", buttons)
+    _sound_button.pressed.connect(toggle_sound)
+    _exit_button = _button("Home", buttons)
+    _exit_button.pressed.connect(night.leave_night)
     _tutorial = ArtUi.panel(ArtUi.frame("FrameTextInfo", Vector4(100, 20, 20, 20), 16))
     _tutorial.get_theme_stylebox("panel").content_margin_left = 110
     _tutorial.custom_minimum_size = Vector2(560, 110)
@@ -203,6 +216,10 @@ func _process(delta: float) -> void:
     _announce_left = maxf(_announce_left - delta, 0.0)
     _announce.visible = _announce_left > 0.0
     _show_tutorial(sim)
+    _exit_button.visible = not night.in_lobby
+    var sound_picture := ArtUi.texture("SoundMute" if night.sounds and night.sounds.muted else "Sound")
+    if _sound_button.texture_normal != sound_picture:
+        _sound_button.texture_normal = sound_picture
     _banner.visible = sim.outcome != &""
     # The summary takes the middle of the screen.
     _announce.visible = _announce.visible and not _banner.visible
@@ -497,3 +514,28 @@ func _label(size: int, parent: Node = self) -> Label:
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     parent.add_child(label)
     return label
+
+
+## The sound on or off (the button, or F2), kept on this browser.
+func toggle_sound() -> void:
+    if night.sounds:
+        night.sounds.muted = not night.sounds.muted
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    var key := event as InputEventKey
+    if key and key.pressed and not key.echo and key.physical_keycode == KEY_F2:
+        toggle_sound()
+        get_viewport().set_input_as_handled()
+
+
+## One of the artist's round buttons (UX_<name>), tappable on a phone.
+func _button(picture_name: String, parent: Node) -> TextureButton:
+    var button := TextureButton.new()
+    button.texture_normal = ArtUi.texture(picture_name)
+    button.ignore_texture_size = true
+    button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+    button.custom_minimum_size = Vector2.ONE * BUTTON_SIZE
+    button.focus_mode = Control.FOCUS_NONE
+    parent.add_child(button)
+    return button
