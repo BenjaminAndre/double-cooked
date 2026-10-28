@@ -71,7 +71,7 @@ func test_the_afsca_inspection_wants_no_fire() -> void:
         var over := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"inspection_over")
         assert_eq(over.size(), 1)
         assert_eq(over[0].passed, not fire)
-        assert_eq(sim.crowd.mood, 500 + (rules.mood_inspection_failed if fire else rules.mood_inspection_passed))
+        assert_eq(sim.crowd.mood, 500 + (0 if fire else rules.mood_inspection_passed), "failed: no mood, but pas frais")
 
 
 func _till_level() -> SimLevel:
@@ -169,3 +169,30 @@ func test_a_clean_kitchen_passes_a_surprise_inspection() -> void:
             .run_until(rules.surprise_warning + rules.inspection_ticks + 2)
     assert_eq(sim.outcome, &"")
     assert_true(scenario.events.any(func(e: Dictionary) -> bool: return e.type == &"inspection_over" and e.passed))
+
+
+func test_a_failed_planned_inspection_throws_everything_away() -> void:
+    # The artist's DLC 1: "pas frais".
+    var rules := _rules([[0.125, NightEvents.AFSCA]])
+    rules.fire_spread_after = NEVER
+    var scenario := Scenario.new(level, [fridge], 1, rules)
+    var sim := scenario.run_until(501)
+    sim.players[0].item = SimItem.new(Fryer.FRIES_GOOD)
+    sim.grease[fridge] = NEVER
+    scenario.run_until(502 + rules.inspection_ticks)
+    assert_null(sim.players[0].item, "the fries in hand")
+    assert_eq(sim.stations[0].left(Menu.BEER), 0, "the FRIGO emptied")
+    assert_eq(sim.outcome, &"", "the planned one doesn't close the shop")
+
+
+func test_at_half_time_everyone_wants_a_beer() -> void:
+    var rules := _rules([[0.125, NightEvents.DIABLES_ROUGES]])
+    var scenario := Scenario.new(_till_level(), [0], 1, rules)
+    var sim := scenario.run_until(1)
+    var waiting := SimCrowd.Customer.new()
+    waiting.order = &"frites:mayo"
+    waiting.patience = NEVER
+    sim.crowd.line.append(waiting)
+    scenario.run_until(500 + rules.rush_every * 2)
+    for customer in sim.crowd.line:
+        assert_true(customer.order in Menu.BEERS, "%s: a beer" % customer.order)

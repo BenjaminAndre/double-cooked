@@ -3,9 +3,11 @@ extends RefCounted
 ## What happens to a night besides its customers (GDD §6.4, the artist's events): each comes at
 ## its time (SimRules.night_events), is announced, and changes the rules for a while.
 ## - PANNE_FRIGO: the FRIGO breaks down, no beer comes back for a while.
-## - DIABLES_ROUGES: half-time of the national team, a rush of customers in a hurry.
+## - DIABLES_ROUGES: half-time of the national team, a rush of customers in a hurry; everyone wants
+##   a beer (DLC 1): the rush orders one, and those already in line switch to one.
 ## - AFSCA: the food safety inspector watches the kitchen a while; a fire meanwhile and the room
-##   sours, none and it calms down.
+##   is "pas frais" (the artist's DLC 1: the food in hand, the pre-cooked fries and the FRIGO's
+##   drinks thrown away, Simulation._spoil), none and the room calms down.
 ## - COLLEGUES: a group of colleagues from the company, announced ahead: their leader queues and
 ##   orders for everyone, beers mostly; the others wait outside.
 
@@ -72,8 +74,9 @@ func advance(tick: int, events: Array[Dictionary], dirty: bool) -> void:
         if inspection == 0:
             # A surprise inspection failed closes the shop; the planned one only sours the room.
             closed = surprise and inspection_failed
-            if not closed:
-                crowd.change_mood(rules.mood_inspection_failed if inspection_failed else rules.mood_inspection_passed)
+            # Failed, the planned one is "pas frais" instead (Simulation._spoil): no mood.
+            if not inspection_failed:
+                crowd.change_mood(rules.mood_inspection_passed)
             events.append({"type": &"inspection_over", "passed": not inspection_failed, "closed": closed})
     if surprise_at >= 0 and tick >= surprise_at:
         surprise_now(events)
@@ -95,6 +98,7 @@ func _start(kind: StringName) -> void:
             fridge_down = rules.fridge_breakdown
         DIABLES_ROUGES:
             crowd.rush = rules.rush_customers
+            crowd.half_time()
         AFSCA:
             _inspect(false)
         COLLEGUES:

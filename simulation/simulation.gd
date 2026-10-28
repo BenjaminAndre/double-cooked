@@ -191,6 +191,9 @@ func step(commands: Array) -> void:
                 or stations.any(func(station: SimStation) -> bool: return station.burning))
         if events.any(func(event: Dictionary) -> bool: return event.type == &"car_crash"):
             _crash()
+        if events.any(func(event: Dictionary) -> bool:
+                return event.type == &"inspection_over" and not event.passed and not event.closed):
+            _spoil()
         crowd.advance(night_tick(), players.size(), rng, events)
         _advance_pigeons()
         if tutorial:
@@ -1297,3 +1300,18 @@ func _shortest_drink(station: SimStation) -> StringName:
                 and (shortest == &"" or station.left(drink) < station.left(shortest)):
             shortest = drink
     return shortest
+
+
+## A planned AFSCA inspection failed (the artist's DLC 1): "pas frais". The food in hand, the
+## fries waiting pre-cooked on CUISSON 1 and every drink in the FRIGO go: orders start over, and
+## the FRIGO has to fill up again. Drinks in hand, the extinguisher and the gun stay.
+func _spoil() -> void:
+    for player in players:
+        if Menu.edible(player.item) and not player.item.kind in Menu.DRINKS:
+            player.item = null
+    for station in stations:
+        if station.kind == &"cuisson_1" and station.basket and not station.frying:
+            station.basket = null
+        for drink: StringName in station.stock:
+            station.stock[drink] = 0
+    events.append({"type": &"spoiled"})

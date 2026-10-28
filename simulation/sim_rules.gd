@@ -151,11 +151,10 @@ var fridge_breakdown := 25 * SECOND
 var rush_customers := 6
 var rush_every := 20 * SECOND / 6
 var rush_patience := 0.8
-## The AFSCA inspection: this long; then the room cheers up if no fire burnt meanwhile, and
-## sours by a quarter of a riot if one did.
+## The AFSCA inspection: this long; then the room cheers up if the kitchen stayed clean; if not,
+## everything is "pas frais" (DLC 1, Simulation._spoil).
 var inspection_ticks := 20 * SECOND
 var mood_inspection_passed := -150
-var mood_inspection_failed := 250
 ## Surprise inspections (from the second week of a campaign): the chance of one each night, and
 ## how long before the inspector walks in once announced. One failed closes the shop.
 var surprise_inspection_chance := 0.0

@@ -101,6 +101,8 @@ func advance(tick: int, player_count: int, rng: RandomNumberGenerator, events: A
     # A rush comes on top of the usual arrivals, even into a full line.
     if rush > 0 and tick >= rush_next:
         var hurried := _new_customer()
+        # Half-time: they come for a beer.
+        hurried.order = _a_beer(hurried.id)
         hurried.patience = roundi(hurried.patience * rules.rush_patience)
         hurried.full_patience = hurried.patience
         line.append(hurried)
@@ -256,6 +258,22 @@ func add_customer(order: StringName, events: Array[Dictionary]) -> void:
     customer.order = order
     line.append(customer)
     events.append({"type": &"arrival"})
+
+
+## The Diables Rouges' half-time (NightEvents, DLC 1): everyone waiting switches their order to a
+## beer (not the boss nor the colleagues' leader).
+func half_time() -> void:
+    for customer in line:
+        if not customer.boss and not customer.group:
+            customer.order = _a_beer(customer.id)
+
+
+## A Jupiler or a Maes, whichever is on tonight's menu, from the customer's own stream.
+func _a_beer(id: int) -> StringName:
+    var beers := Menu.BEERS.filter(func(beer: StringName) -> bool: return beer in rules.menu)
+    if beers.is_empty():
+        return Menu.BEER
+    return beers[stream(["beer", id]).randi_range(0, beers.size() - 1)]
 
 
 ## Test tool (Simulation.DebugTool.BOSS): the boss walks in now, unless he came already.
