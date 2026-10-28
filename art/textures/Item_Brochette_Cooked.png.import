@@ -17,7 +17,7 @@ dest_files=["res://.godot/imported/Item_Brochette_Cooked.png-9b3ef164c3dea087c75
 
 compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.8
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
