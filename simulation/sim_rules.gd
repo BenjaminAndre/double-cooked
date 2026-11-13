@@ -151,10 +151,17 @@ var fridge_breakdown := 25 * SECOND
 var rush_customers := 6
 var rush_every := 20 * SECOND / 6
 var rush_patience := 0.8
-## The AFSCA inspection: this long; then the room cheers up if the kitchen stayed clean; if not,
+## The AFSCA inspection: this long; then the room cheers up if he wasn't put off; if he was,
 ## everything is "pas frais" (DLC 1, Simulation._spoil).
 var inspection_ticks := 20 * SECOND
 var mood_inspection_passed := -150
+## While he inspects, the inspector walks round the kitchen (Simulation.inspector_route) and grows
+## suspicious: every tick, each dirty spot (grease, a fire, a landed pigeon) adds 1, or
+## suspicion_near within inspector_sight metres of him. Full at suspicion_max, the inspection
+## fails on the spot. One far puddle for the whole look doesn't fail it; one under his nose soon does.
+var suspicion_max := 40 * SECOND
+var suspicion_near := 3
+var inspector_sight := 1.5
 ## Surprise inspections (from the second week of a campaign): the chance of one each night, and
 ## how long before the inspector walks in once announced. One failed closes the shop.
 var surprise_inspection_chance := 0.0

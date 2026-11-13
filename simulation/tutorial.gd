@@ -49,7 +49,7 @@ const PART_2: Array[Dictionary] = [
     {"id": &"shoot", "station": &"",
             "text": "Un autre pigeon : {maintenir} pour viser, {fleches} pour changer de cible, lâche pour tirer. Les équipiers aussi peuvent être visés !"},
     {"id": &"afsca", "station": &"",
-            "text": "Contrôle AFSCA : pas de feu, de graisse ni de pigeon pendant 20 s. Ou alors... vise l'inspecteur."},
+            "text": "Contrôle AFSCA : l'inspecteur fait le tour, et la saleté qu'il voit remplit sa jauge (vite, juste sous son nez). Pleine, c'est raté. Ou alors... vise-le."},
 ]
 
 ## Which part: 1 or 2.

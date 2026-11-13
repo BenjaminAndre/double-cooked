@@ -22,10 +22,15 @@ const DRINKERS_AT := Vector3(-1.0, 0, 2.3)
 const LEADER := "res://art/textures/EventCharacter01.png"
 const COLLEAGUE := "res://art/textures/EventCharacter%02d.png"
 const COLLEAGUES_AT := Vector3(2.5, 0, -3.4)
-## The AFSCA inspector while he inspects (a placeholder picture until the artist draws him), in
-## the room by the counter (relative to this node).
+## The AFSCA inspector while he inspects (a placeholder picture until the artist draws him), on
+## his round in the kitchen.
 const INSPECTOR := "res://art/textures/EventCharacter06.png"
-const INSPECTOR_AT := Vector3(0, 0, 1.2)
+## On his round, the share of each station's time he spends looking at it before walking on; his
+## suspicion bar and the alert icon by it.
+const INSPECTOR_LOOKS := 0.7
+const SUSPICION_BAR := Vector2(120, 20)
+const SUSPICION_ICON := 30
+const SUSPICION_FONT := 18
 ## Over a customer put to sleep by one beer too many (GDD §6.2): the artist's Zzz, bobbing.
 ## The order tickets, drawn 20% bigger than their layout (from playtesting).
 const TICKET_SCALE := 1.2
@@ -80,6 +85,9 @@ var _layer: CanvasLayer
 ## The colleagues waiting outside, while their leader is in line.
 var _colleagues: Array[Node3D] = []
 var _inspector: PaperFigure
+## His suspicion, over his head on screen.
+var _suspicion: PanelContainer
+var _suspicion_bar: ArtBar
 var _drinkers: Array[Node3D] = []
 
 
@@ -256,16 +264,61 @@ func _show_drinkers(tick: int) -> void:
 
 ## Where the inspector stands in the world, e.g. for the BB gun's cursor.
 func inspector_position() -> Vector3:
-    return to_global(INSPECTOR_AT)
+    return _inspector.global_position if _inspector else global_position
 
 
+## While he inspects, the inspector walks round the kitchen (Simulation.inspector_route): he looks
+## at each station a while, then walks to the next. His suspicion shows as a bar over his head,
+## green turning red as it fills (SimRules.suspicion_max).
 func _show_inspector(shown: bool) -> void:
     if shown and not _inspector:
         _inspector = PaperFigure.new(load(INSPECTOR))
-        _inspector.position = INSPECTOR_AT
         add_child(_inspector)
-    if _inspector:
-        _inspector.visible = shown
+        # In a bubble like the station menus', so it doesn't read as a fryer's.
+        _suspicion = ArtUi.panel(ArtUi.frame("FrameItem02", Vector4(20, 20, 20, 20), 8))
+        _suspicion.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        var column := VBoxContainer.new()
+        column.add_theme_constant_override("separation", 0)
+        _suspicion.add_child(column)
+        var title := Label.new()
+        title.text = "AFSCA"
+        title.add_theme_font_size_override("font_size", SUSPICION_FONT)
+        title.add_theme_color_override("font_color", ArtUi.INK)
+        title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        column.add_child(title)
+        var row := HBoxContainer.new()
+        column.add_child(row)
+        row.add_child(ArtUi.picture(ArtUi.texture("Alert"), SUSPICION_ICON))
+        _suspicion_bar = ArtBar.new(SUSPICION_BAR.x, SUSPICION_BAR.y)
+        _suspicion_bar.rising = true
+        _suspicion_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+        row.add_child(_suspicion_bar)
+        _layer.add_child(_suspicion)
+    if not _inspector:
+        return
+    _inspector.visible = shown
+    _suspicion.visible = shown
+    if not shown:
+        return
+    var sim := night.simulation
+    var route := sim.inspector_route()
+    var progress := sim.inspector_progress()
+    var index := mini(int(progress), route.size() - 1)
+    var from := sim.level.positions[route[index]]
+    var to := sim.level.positions[route[mini(index + 1, route.size() - 1)]]
+    # Looking at the station most of the time, walking on to the next at the end.
+    var walked := clampf((progress - index - INSPECTOR_LOOKS) / (1.0 - INSPECTOR_LOOKS), 0.0, 1.0)
+    _inspector.global_position = from.lerp(to, walked)
+    var camera := get_viewport().get_camera_3d()
+    if not camera:
+        return
+    if walked > 0.0:
+        _inspector.face(to - from, camera)
+    _suspicion_bar.show_fraction(float(sim.night_events.suspicion) / sim.rules.suspicion_max)
+    _suspicion.scale = Vector2.ONE * ArtUi.ui_scale
+    _suspicion.reset_size()
+    var head := camera.unproject_position(_inspector.card_point(PaperFigure.HEIGHT + 0.1))
+    _suspicion.position = head - Vector2(_suspicion.size.x / 2, _suspicion.size.y) * _suspicion.scale
 
 
 ## The leader's colleagues, standing outside with their cans while he is in line.

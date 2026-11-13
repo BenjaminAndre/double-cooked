@@ -1,9 +1,12 @@
 class_name ArtBar
 extends TextureProgressBar
-## A patience bar in the artist's style: green, turning red once it runs low.
+## A patience bar in the artist's style: green, turning red once it runs low (or once it is
+## nearly full, for a bar that warns as it fills: rising).
 
 const LOW := 0.3
 const MARGIN := 12
+
+var rising := false
 
 
 func _init(width: float, height: float) -> void:
@@ -22,7 +25,7 @@ func _init(width: float, height: float) -> void:
 ## fraction: 1 full, 0 empty.
 func show_fraction(fraction: float) -> void:
     value = clampf(fraction, 0.0, 1.0)
-    var low := value < LOW
+    var low := value > 1.0 - LOW if rising else value < LOW
     if low != get_meta(&"low", false):
         set_meta(&"low", low)
         texture_progress = ArtUi.texture("SliderRed" if low else "SliderGreen")

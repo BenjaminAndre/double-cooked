@@ -254,6 +254,14 @@ func _initialize() -> void:
             sim.players[0].aim_ticks = 100
             sim._pigeon_arrives()
             sim.rules.pigeon_peck = 1 << 30
+        "inspector":
+            # The AFSCA inspector halfway round the kitchen, grease near him: his suspicion fills.
+            night.play_local(2)
+            var sim := night.simulation
+            sim.grease[sim.level.find("Sauces")] = sim.rules.grease_ticks
+            sim.night_events.inspect_now(sim.events)
+            sim.night_events.inspection = sim.rules.inspection_ticks * 4 / 10
+            sim.night_events.suspicion = sim.rules.suspicion_max * 6 / 10
         "car":
             # Just after the car crashed into VIANDES (placeholders), one player knocked out.
             night.play_local(2, Campaign.CAR_FIRST)

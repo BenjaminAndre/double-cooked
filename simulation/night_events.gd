@@ -5,9 +5,10 @@ extends RefCounted
 ## - PANNE_FRIGO: the FRIGO breaks down, no beer comes back for a while.
 ## - DIABLES_ROUGES: half-time of the national team, a rush of customers in a hurry; everyone wants
 ##   a beer (DLC 1): the rush orders one, and those already in line switch to one.
-## - AFSCA: the food safety inspector watches the kitchen a while; a fire meanwhile and the room
-##   is "pas frais" (the artist's DLC 1: the food in hand, the pre-cooked fries and the FRIGO's
-##   drinks thrown away, Simulation._spoil), none and the room calms down.
+## - AFSCA: the food safety inspector walks round the kitchen a while; if what he sees (a fire,
+##   grease, a pigeon) fills his suspicion, the room is "pas frais" (the artist's DLC 1: the food
+##   in hand, the pre-cooked fries and the FRIGO's drinks thrown away, Simulation._spoil);
+##   otherwise the room calms down.
 ## - COLLEGUES: a group of colleagues from the company, announced ahead: their leader queues and
 ##   orders for everyone, beers mostly; the others wait outside.
 
@@ -26,8 +27,10 @@ var rules: SimRules
 var crowd: SimCrowd
 ## Ticks left before the FRIGO works again.
 var fridge_down := 0
-## Ticks left of the AFSCA inspection, and whether a fire burnt during it.
+## Ticks left of the AFSCA inspection, how suspicious the inspector is so far
+## (SimRules.suspicion_max), and whether he failed it.
 var inspection := 0
+var suspicion := 0
 var inspection_failed := false
 ## Ticks before the colleagues' leader joins the line: the FRIGO restocks twice as fast meanwhile.
 var group_coming := 0
@@ -54,8 +57,8 @@ func _init(p_rules: SimRules, p_crowd: SimCrowd) -> void:
 
 
 ## One tick: the next event starts once its time comes ({"type": &"night_event", "kind": ...}),
-## and those under way run out. dirty: whether a station is burning or grease is on the floor.
-func advance(tick: int, events: Array[Dictionary], dirty: bool) -> void:
+## and those under way run out. dirt: how much the inspector sees tonight (Simulation.inspector_dirt).
+func advance(tick: int, events: Array[Dictionary], dirt: int) -> void:
     if car_coming > 0:
         car_coming -= 1
         if car_coming == 0:
@@ -69,8 +72,12 @@ func advance(tick: int, events: Array[Dictionary], dirty: bool) -> void:
         if group_coming == 0:
             crowd.add_group(events)
     if inspection > 0:
-        inspection_failed = inspection_failed or dirty
+        suspicion += dirt
         inspection -= 1
+        if suspicion >= rules.suspicion_max:
+            # Seen enough: the verdict, on the spot.
+            inspection_failed = true
+            inspection = 0
         if inspection == 0:
             # A surprise inspection failed closes the shop; the planned one only sours the room.
             closed = surprise and inspection_failed
@@ -108,8 +115,8 @@ func _start(kind: StringName) -> void:
 
 
 func fingerprint() -> Array:
-    return [fridge_down, inspection, inspection_failed, group_coming, _started, surprise_at, inspector_coming,
-            surprise, closed, car_coming]
+    return [fridge_down, inspection, suspicion, inspection_failed, group_coming, _started, surprise_at,
+            inspector_coming, surprise, closed, car_coming]
 
 
 ## The surprise inspector is announced now (also a test tool), unless an inspection is on.
@@ -130,6 +137,7 @@ func inspect_now(events: Array[Dictionary]) -> void:
 func _inspect(is_surprise: bool) -> void:
     inspection = rules.inspection_ticks
     inspection_failed = false
+    suspicion = 0
     surprise = is_surprise
 
 
@@ -137,6 +145,7 @@ func _inspect(is_surprise: bool) -> void:
 func inspector_shot() -> void:
     inspection = 0
     inspection_failed = false
+    suspicion = 0
     surprise = false
 
 

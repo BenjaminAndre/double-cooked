@@ -185,10 +185,7 @@ func step(commands: Array) -> void:
         _check_menu(player)
         _check_aim(player)
     if not rules.lobby:
-        # A fire, grease on the floor, a pigeon: what the AFSCA inspector looks for.
-        night_events.advance(night_tick(), events, not grease.is_empty()
-                or pigeons.any(func(pigeon: SimPigeon) -> bool: return pigeon.landed())
-                or stations.any(func(station: SimStation) -> bool: return station.burning))
+        night_events.advance(night_tick(), events, inspector_dirt())
         if events.any(func(event: Dictionary) -> bool: return event.type == &"car_crash"):
             _crash()
         if events.any(func(event: Dictionary) -> bool:
@@ -1148,6 +1145,58 @@ func _pigeon_leaves(pigeon: SimPigeon, why: StringName) -> void:
 
 func _pigeon_delay() -> int:
     return crowd.stream(["pigeon_delay", _pigeons_seen]).randi_range(rules.pigeon_every_min, rules.pigeon_every_max)
+
+
+## The AFSCA inspector's round (GDD §6.4): the node in front of each station, in the level's
+## order (row by row in a GridRoom), but not the rubble.
+func inspector_route() -> Array[int]:
+    var route: Array[int] = []
+    var seen := {}
+    for node in level.positions.size():
+        var station := level.node_stations[node]
+        if station != SimLevel.NONE and not seen.has(station) and not blocked.has(node):
+            seen[station] = true
+            route.append(node)
+    return route
+
+
+## How far along his round the inspector is, in stations (2.5: halfway from the third to the
+## fourth); -1 while nobody inspects. He goes round once in SimRules.inspection_ticks.
+func inspector_progress() -> float:
+    var route_size := inspector_route().size()
+    if night_events.inspection <= 0 or route_size == 0:
+        return -1.0
+    return float(rules.inspection_ticks - night_events.inspection) * route_size / rules.inspection_ticks
+
+
+## The node the inspector looks from, SimLevel.NONE while nobody inspects.
+func inspector_node() -> int:
+    var progress := inspector_progress()
+    if progress < 0:
+        return SimLevel.NONE
+    var route := inspector_route()
+    return route[mini(int(progress), route.size() - 1)]
+
+
+## What the inspector sees this tick (SimRules.suspicion_max): each puddle of grease, fire and
+## landed pigeon, much more when it is right by him.
+func inspector_dirt() -> int:
+    var at := inspector_node()
+    if at == SimLevel.NONE:
+        return 0
+    var spots: Array = grease.keys()
+    for index in stations.size():
+        if stations[index].burning:
+            spots.append(level.node_stations.find(index))
+    for pigeon in pigeons:
+        if pigeon.landed():
+            spots.append(level.node_stations.find(pigeon.station))
+    var dirt := 0
+    for node: int in spots:
+        if node >= 0:
+            var near := level.positions[node].distance_to(level.positions[at]) <= rules.inspector_sight
+            dirt += rules.suspicion_near if near else 1
+    return dirt
 
 
 ## The pigeon landed on this station, null if none.

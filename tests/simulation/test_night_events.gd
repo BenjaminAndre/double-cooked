@@ -196,3 +196,55 @@ func test_at_half_time_everyone_wants_a_beer() -> void:
     scenario.run_until(500 + rules.rush_every * 2)
     for customer in sim.crowd.line:
         assert_true(customer.order in Menu.BEERS, "%s: a beer" % customer.order)
+
+
+## A row of six stations, one metre apart.
+func _row_level() -> SimLevel:
+    var row := SimLevel.new()
+    for index in 6:
+        row.add_node(Vector3(index, 0, 0), row.add_station(&"frigo" if index == 0 else &"sauces"), "N%d" % index)
+        if index > 0:
+            row.link(index - 1, SimLevel.Direction.RIGHT, index)
+            row.link(index, SimLevel.Direction.LEFT, index - 1)
+    return row
+
+
+func test_the_inspector_walks_round_the_kitchen() -> void:
+    var rules := _rules([[0.125, NightEvents.AFSCA]])
+    var scenario := Scenario.new(_row_level(), [0], 1, rules)
+    var sim := scenario.run_until(500)
+    assert_eq(sim.inspector_node(), SimLevel.NONE, "not yet")
+    scenario.run_until(501)
+    assert_eq(sim.inspector_route(), [0, 1, 2, 3, 4, 5] as Array[int])
+    assert_eq(sim.inspector_node(), 0, "from the first station")
+    scenario.run_until(501 + rules.inspection_ticks / 2)
+    assert_eq(sim.inspector_node(), 3, "halfway round")
+    scenario.run_until(500 + rules.inspection_ticks)
+    assert_eq(sim.inspector_node(), 5, "the last one")
+
+
+func test_one_far_puddle_makes_him_suspicious_but_not_enough() -> void:
+    var rules := _rules([[0.125, NightEvents.AFSCA]])
+    var scenario := Scenario.new(_row_level(), [0], 1, rules)
+    var sim := scenario.run_until(1)
+    # At the far end: he only sees it close by at the end of his round.
+    sim.grease[5] = NEVER
+    scenario.run_until(502 + rules.inspection_ticks)
+    var over := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"inspection_over")
+    assert_eq(over.size(), 1)
+    assert_true(over[0].passed)
+    assert_gt(sim.night_events.suspicion, 0, "he saw it")
+
+
+func test_dirt_under_his_nose_fails_the_inspection_on_the_spot() -> void:
+    var rules := _rules([[0.125, NightEvents.AFSCA]])
+    var scenario := Scenario.new(_row_level(), [0], 1, rules)
+    var sim := scenario.run_until(1)
+    sim.grease[0] = NEVER
+    sim.grease[1] = NEVER
+    sim.grease[2] = NEVER
+    scenario.run_until(502 + rules.inspection_ticks)
+    var over := scenario.events.filter(func(e: Dictionary) -> bool: return e.type == &"inspection_over")
+    assert_eq(over.size(), 1)
+    assert_false(over[0].passed)
+    assert_lt(over[0].tick, 500 + rules.inspection_ticks / 2, "before the end of his round")
