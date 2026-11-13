@@ -91,11 +91,18 @@ func test_the_four_player_kitchen_has_a_register_for_each_of_the_first_two_custo
             "the second customer stands at the second CAISSE")
 
 
-func test_the_tutorial_goes_back_to_the_lobby_and_keeps_no_record() -> void:
+func test_the_tutorial_goes_on_to_its_second_part_then_back_to_the_lobby_and_keeps_no_record() -> void:
     night.play_local(1, Campaign.TUTORIAL)
     assert_not_null(night.simulation.tutorial)
     assert_false(night.in_lobby)
-    night.simulation.tutorial.step = Tutorial.STEPS.size()
+    night.simulation.tutorial.step = night.simulation.tutorial.steps().size()
+    await wait_until(func() -> bool: return night.simulation.outcome == &"won", 2.0)
+    assert_eq(Hud.title(night.simulation, night.campaign_night), "Première partie du tutoriel terminée !")
+    assert_eq(night.next_night(), Campaign.TUTORIAL_2)
+    night.continue_after_night()
+    assert_false(night.in_lobby)
+    assert_eq(night.simulation.tutorial.part, 2, "the second part")
+    night.simulation.tutorial.step = night.simulation.tutorial.steps().size()
     await wait_until(func() -> bool: return night.simulation.outcome == &"won", 2.0)
     assert_eq(Hud.title(night.simulation, night.campaign_night), "Tutoriel terminé ! La campagne vous attend.")
     assert_eq(night.campaign_record().night, 0)
@@ -115,4 +122,4 @@ func test_on_a_phone_the_hints_and_the_tutorial_name_gestures_and_a_tap_goes_on(
     var tap := InputEventScreenTouch.new()
     tap.pressed = false
     night._unhandled_input(tap)
-    assert_true(night.in_lobby, "a tap goes on")
+    assert_eq(night.campaign_night, Campaign.TUTORIAL_2, "a tap goes on")

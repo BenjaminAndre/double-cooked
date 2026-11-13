@@ -121,6 +121,12 @@ func surprise_now(events: Array[Dictionary]) -> void:
     events.append({"type": &"night_event", "kind": AFSCA_SURPRISE})
 
 
+## The planned inspection starts now, announced (the tutorial's, Tutorial).
+func inspect_now(events: Array[Dictionary]) -> void:
+    _inspect(false)
+    events.append({"type": &"night_event", "kind": AFSCA})
+
+
 func _inspect(is_surprise: bool) -> void:
     inspection = rules.inspection_ticks
     inspection_failed = false

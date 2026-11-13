@@ -81,8 +81,8 @@ func _init(p_level: SimLevel, spawns: PackedInt32Array, p_seed: int, p_rules: Si
     crowd = SimCrowd.new(rules, p_seed)
     night_events = NightEvents.new(rules, crowd)
     crowd.registers = maxi(1, level.station_kinds.count(&"caisse"))
-    if rules.tutorial:
-        tutorial = Tutorial.new()
+    if rules.tutorial > 0:
+        tutorial = Tutorial.new(rules.tutorial)
     for slot in spawns.size():
         players.append(SimPlayer.new(slot, spawns[slot]))
         players[slot].bmi = rules.start_bmi
@@ -192,7 +192,8 @@ func step(commands: Array) -> void:
         if events.any(func(event: Dictionary) -> bool: return event.type == &"car_crash"):
             _crash()
         if events.any(func(event: Dictionary) -> bool:
-                return event.type == &"inspection_over" and not event.passed and not event.closed):
+                return event.type == &"inspection_over" and not event.passed and not event.closed) \
+                and not tutorial:
             _spoil()
         crowd.advance(night_tick(), players.size(), rng, events)
         _advance_pigeons()
@@ -299,7 +300,8 @@ func _use_menu(player: SimPlayer, command: int) -> bool:
                     events.append({"type": &"phone", "choice": option, "slot": player.slot})
                 &"porte":
                     events.append({"type": &"start_night", "by": player.slot,
-                            "night": {Menu.DOOR_CAMPAIGN: 1, Menu.DOOR_TUTORIAL: Campaign.TUTORIAL}.get(option, 0)})
+                            "night": {Menu.DOOR_CAMPAIGN: 1, Menu.DOOR_TUTORIAL: Campaign.TUTORIAL,
+                                    Menu.DOOR_TUTORIAL_2: Campaign.TUTORIAL_2}.get(option, 0)})
                 &"sauces":
                     player.item.sauce = option
                 &"frigo":

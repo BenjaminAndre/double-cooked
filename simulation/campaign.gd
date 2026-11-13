@@ -73,6 +73,8 @@ static func menu_for(night: int) -> Array[StringName]:
 
 ## The night number of the tutorial (GDD §4.4), carried like a campaign night.
 const TUTORIAL := -1
+## The tutorial's second part (throwing, K.O., grease, pigeons, the BB gun, the AFSCA).
+const TUTORIAL_2 := -2
 ## The tutorial's menu: fries with mayo, and beer.
 const TUTORIAL_MENU: Array[StringName] = [&"frites", Menu.NATURE, Menu.MAYO, Menu.BEER]
 
@@ -81,6 +83,11 @@ const TUTORIAL_MENU: Array[StringName] = [&"frites", Menu.NATURE, Menu.MAYO, Men
 ## crew makes the first nights too easy. One night ahead per player beyond the first (2 players:
 ## 1, 3: 2, 4: 3). It is still lundi, night 1, for them.
 const HEAD_START_PER_PLAYER := 1
+
+
+## Which part of the tutorial this night number is (1 or 2), 0 for any other night.
+static func tutorial_part(night: int) -> int:
+    return -night if night in [TUTORIAL, TUTORIAL_2] else 0
 
 
 ## How hard this night of a campaign is for a crew of this many: the night whose menu and pace
@@ -97,8 +104,8 @@ static func head_start(players: int) -> int:
 ## The rules of a night: night 0 is the Nuit unique, a score attack with the whole menu (GDD §4.3).
 static func rules_for(night: int, players := 1) -> SimRules:
     var rules := SimRules.new()
-    if night == TUTORIAL:
-        return _tutorial_rules(rules)
+    if tutorial_part(night) > 0:
+        return _tutorial_rules(rules, tutorial_part(night))
     rules.score_attack = night == 0
     # How hard: a crew starts further on. The calendar (the day, its events) keeps the night.
     var hard := level(night, players)
@@ -155,9 +162,9 @@ static func new_on(night: int) -> Array[StringName]:
 ## A quiet night where only the tutorial's steps bring customers and the fire (Tutorial): nobody
 ## loses patience, the room never sours, the clock stands still, nobody starves and fires don't
 ## spread.
-static func _tutorial_rules(rules: SimRules) -> SimRules:
+static func _tutorial_rules(rules: SimRules, part: int) -> SimRules:
     const NEVER := 1 << 30
-    rules.tutorial = true
+    rules.tutorial = part
     rules.menu = TUTORIAL_MENU.duplicate()
     rules.first_arrival = NEVER
     rules.boss_orders = 0

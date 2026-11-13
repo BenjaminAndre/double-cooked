@@ -70,7 +70,8 @@ const PHONE: Array[StringName] = [PHONE_HOST, PHONE_JOIN, PHONE_DUO, PHONE_LEAVE
 const DOOR_CAMPAIGN := &"campagne"
 const DOOR_SINGLE_NIGHT := &"nuit_unique"
 const DOOR_TUTORIAL := &"tutoriel"
-const DOOR: Array[StringName] = [DOOR_CAMPAIGN, DOOR_SINGLE_NIGHT, DOOR_TUTORIAL]
+const DOOR_TUTORIAL_2 := &"tutoriel_2"
+const DOOR: Array[StringName] = [DOOR_CAMPAIGN, DOOR_SINGLE_NIGHT, DOOR_TUTORIAL, DOOR_TUTORIAL_2]
 
 ## The options of each station that opens a menu (GDD §5.4).
 const STATION_OPTIONS := {

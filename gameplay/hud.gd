@@ -226,10 +226,11 @@ func _process(delta: float) -> void:
     if _banner.visible and _splash.visible:
         _splash.visible = false
     if _banner.visible:
-        var goes_on := night.campaign_night > 0 and sim.outcome == &"won"
+        var after := night.next_night()
+        var goes_on := after != 0
         # On a phone, a tap goes on, and there is no F3.
         var key := "Toucher" if night.touch else "Entrée"
-        var next := "%s : %s" % [key, Campaign.day_label(night.campaign_night + 1) if goes_on else "retour à la salle"]
+        var next := "%s : %s" % [key, next_label(after) if goes_on else "retour à la salle"]
         if night.role == Night.Role.HOST and not goes_on:
             next = "%s : tout le monde en salle" % key
         elif night.role == Night.Role.CLIENT:
@@ -275,12 +276,18 @@ func _show_tutorial(sim: Simulation) -> void:
     _tutorial.position = Vector2((screen.x - _tutorial.size.x) / 2, 16)
 
 
+## What the banner says comes next (Night.next_night()).
+static func next_label(night_number: int) -> String:
+    return "tutoriel, 2e partie" if night_number == Campaign.TUTORIAL_2 else Campaign.day_label(night_number)
+
+
 ## "Étape n / N", then what to do, with these key or gesture names (Night.key_names()).
 static func tutorial_text(tutorial: Tutorial, names: Dictionary) -> String:
     var text: String = tutorial.current().get("text", "")
     for name: String in names:
         text = text.replace("{%s}" % name, names[name])
-    return "Étape %d / %d · %s" % [tutorial.step + 1, Tutorial.STEPS.size(), text]
+    return "%sÉtape %d / %d · %s" % ["Tuto 2 · " if tutorial.part == 2 else "", tutorial.step + 1,
+            tutorial.steps().size(), text]
 
 
 ## The end-of-night stars (docs/ART_PLAN.md): held until closing; the room still in the green
@@ -399,7 +406,8 @@ static func title(sim: Simulation, campaign_night := 0) -> String:
         &"closing":
             return "Fermeture ! Vous avez tenu la nuit."
         &"tutorial":
-            return "Tutoriel terminé ! La campagne vous attend."
+            return "Tutoriel terminé ! La campagne vous attend." if sim.tutorial.part == 2 \
+                    else "Première partie du tutoriel terminée !"
         &"afsca":
             return "Fermé par l'AFSCA à %s." % clock(sim.clock_minutes())
         &"crew_down":

@@ -64,7 +64,7 @@ func test_the_customer_at_the_second_register_stays_there_when_the_first_leaves(
     var second := sim.crowd.line[1]
     sim.players[0].item = SimItem.new(Menu.COLA)
     scenario.at(1, 0, INTERACT).at(1, 0, RELEASE).run_until(2)
-    assert_eq(sim.crowd.at_register(1), second, "the next in line takes the first register")
+    assert_eq(sim.crowd.at_register(1), second, "they stay at the second register")
 
 
 ## Players at the front and second registers; the line holds these orders at tick 1.

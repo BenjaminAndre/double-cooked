@@ -55,11 +55,12 @@ Take an order at the CAISSE → prepare it across the stations → hand it over 
 - At the end, the artist's **medal** (bronze from 400, silver from 800, gold from 1200) instead of the campaign's stars, and the **best score** on this browser, kept per crew size since only those compare; the lobby shows it too.
 - No events for now.
 
-### 4.4 The tutorial (0.2.46)
+### 4.4 The tutorial (0.2.46, second part 0.3.17)
 
-- The PORTE's third option, **tutoriel**: one quiet night in **11 steps**, shown at the top of the screen ("Étape n / 11", with this keyboard's key names) and pointed at by an arrow over the station to use. A step ends **only once the crew has done it**, whoever does it; nothing happens on a clock meanwhile.
-- The steps: plunge a batch at CUISSON 1, lift it in the green, take a portion, second fry at CUISSON 2, lift it golden (ruined: to the POUBELLE and take another portion), mayo at SAUCES, serve at the CAISSE; a beer from the FRIGO for a second customer, served at the CAISSE (and how to throw or drink one); then CUISSON 2 catches fire: take the EXTINCTEUR and put it out.
-- The night is otherwise still (`Campaign.rules_for(Campaign.TUTORIAL)`): fries, mayo and beer only, no patience lost, no mood, no clock, no starving, fires don't spread. After the last step the night is held ("Tutoriel terminé !") and Entrée goes back to the lobby; it sets no record. Later, a second part could show the beer rescue, the BB gun, grease and pigeons.
+- The PORTE's options **tutoriel** and **tutoriel 2**: quiet nights in steps, shown at the top of the screen ("Étape n / N", with this keyboard's key names or the phone's gestures) and pointed at by an arrow over the station to use. A step ends **only once the crew has done it**, whoever does it; nothing happens on a clock meanwhile.
+- **First part, 11 steps:** plunge a batch at CUISSON 1, lift it in the green, take a portion, second fry at CUISSON 2, lift it golden (ruined: to the POUBELLE and take another portion), mayo at SAUCES, serve at the CAISSE; a beer from the FRIGO for a second customer, served at the CAISSE (and how to throw or drink one); then CUISSON 2 catches fire: take the EXTINCTEUR and put it out.
+- **Second part, 8 steps** (surviving the night): a customer waits for fries; take a drink from the FRIGO and throw it at them; the first player is knocked out, crawls to the FRIGO and drinks one to get up (with all their hearts back); a puddle of grease in front of SAUCES to slip on (mopped afterwards); a pigeon squats a station, shoo it; take the BB gun under the CAISSE; shoot the next pigeon; then an **AFSCA inspection** (20 s): keep the kitchen clean, or shoot the inspector. The puddle and the pigeons come back until the crew deals with them, and a failed inspection throws nothing away and closes nothing.
+- The nights are otherwise still (`Campaign.rules_for(Campaign.TUTORIAL)`, `TUTORIAL_2`): fries, mayo and beer only, no patience lost, no mood, no clock, no starving, fires don't spread. After the last step of the first part, Entrée (or a tap) goes on to the second; after the second, back to the lobby ("Tutoriel terminé !"). Neither sets a record.
 
 ## 5. Players
 
@@ -277,21 +278,19 @@ Goal: prove the core loop **with multiplayer**.
 
 ## 11. Open questions
 
-To tune by playing the slice, not on paper:
+Tuned by playing, and still worth watching at each playtest: the fry timings and windows (§7.1), the mood values (§6), the patience speeds and the customer rate per crew size (§6.2, with the campaign's head start, §4.2), and the fire timings (§8).
 
-1. Fry timings: how long are the first fry, the rest and the second fry, and how wide is each window?
-2. Mood values: how much each event moves the meter, the level thresholds, and how fast it drifts upward.
-3. Patience speeds (front and rest of the line), and the customer rate per player count.
-4. Fire timings (damage interval, spread delay).
+Settled since the first playtest:
 
-To decide after the slice: the other hazards (§8), the rest of the menu (§7.2), and customer types beyond the first (§6.1).
+- **Batch frying**: yes, CUISSON 1 fries batches of 5 portions (§7.1), so both CUISSON 2 get used.
+- **The slow start**: a batch serves the first customers quickly, and a bigger crew starts the campaign further on (§4.2).
 
-From the first playtest:
-
-- **Batch frying?** In a real fritkot a whole batch is fried, then served from continuously. One basket = one portion (now) keeps every order a small cooking puzzle; batches would shift the game towards stock management and anticipation. Not decided.
-- **The start is slow**: the first customer waits while the first basket cooks. Maybe fine as a calm opening (Soirée phase); revisit with the batch question.
+Still open: other customer types (§6.1, a proposal), and drinking a beer scrambling the controls (§8, a proposal).
 
 ## 12. Towards v1.0
 
-- **Campaign mode** (first version in §4.2): later, more complex orders (the mitraillette), barricades to build against the cans, special nights every N nights (like the dog rounds), and an easter egg: a hidden quest in the kitchen that unlocks a secret hat or colour.
-- **Grid menus:** station menus as a 3×3 grid (5×5 at harder levels), the cursor starting in the middle, moved with the arrows. Efficient with a keyboard and quick to learn.
+Done since this list was written: the campaign (§4.2) and its breads up to the mitraillette (§7.3), the grid menus (3 × 3, §5.4; no menu needs 5 × 5 yet), the hazards (§8), the tutorial (§4.4) and phone play (§9.4). Left:
+
+- **Barricades** to build against the cans.
+- **Special nights** every N nights (like the dog rounds).
+- **An easter egg**: a hidden quest in the kitchen that unlocks a secret hat or colour.

@@ -198,14 +198,24 @@ func host_online(p_campaign_night := 0) -> void:
 
 ## Once a night is over (Enter, or the host's Enter online): a campaign goes on to its next
 ## night when this one was held; otherwise everyone goes back to the lobby.
+## What comes after this night: the next of a campaign won, the tutorial's second part after
+## the first, 0 for back to the lobby.
+func next_night() -> int:
+    if simulation.outcome != &"won":
+        return 0
+    if campaign_night == Campaign.TUTORIAL:
+        return Campaign.TUTORIAL_2
+    return campaign_night + 1 if campaign_night > 0 else 0
+
+
 func continue_after_night() -> void:
-    var next := campaign_night + 1 if campaign_night > 0 and simulation.outcome == &"won" else 0
+    var next := next_night()
     if role == Role.HOST:
-        if next > 0:
+        if next != 0:
             host_online(next)
         else:
             host_lobby()
-    elif next > 0:
+    elif next != 0:
         play_local(_local_slots.size(), next)
     else:
         play_lobby(_local_slots.size())
@@ -625,7 +635,9 @@ func _step() -> bool:
             if event.get("closed", false):
                 announced.emit("L'AFSCA ferme la friterie !")
             else:
-                announced.emit("Contrôle AFSCA réussi !" if event.passed else "Contrôle AFSCA raté : pas frais, tout à la poubelle !")
+                announced.emit("Contrôle AFSCA réussi !" if event.passed
+                        else "Contrôle AFSCA raté ! Ici, sans conséquence." if simulation.tutorial
+                        else "Contrôle AFSCA raté : pas frais, tout à la poubelle !")
         elif event.type == &"boss_arrived":
             announced.emit("Le boss arrive !")
         elif event.type == &"look" and _local_slots.size() > 0 and event.slot == _local_slots[0]:
